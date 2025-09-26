@@ -1,0 +1,94 @@
+<!-- Barra superior -->
+<div
+  id="nav-superior"
+  class="z-depth-1"
+  style="background-color: #fff; padding: 10px"
+>
+  <div style="float: left; top: 10px; position: absolute; left: 10px">
+    <!-- Puedes poner un logo aquí -->
+  </div>
+  <div style="float: right; position: absolute; top: 10px; right: 10px">
+    <a
+      href="{{ url_for('gestion.logout') }}"
+      class="btn waves-effect red darken-1 white-text"
+    >
+      <i class="material-icons left white-text">exit_to_app</i>Salir
+    </a>
+  </div>
+</div>
+
+<!-- Menú lateral -->
+<ul id="slide-out" class="sidenav sidenav-fixed">
+  <li>
+    <div class="user-view">
+      <a href="#user"
+        ><img
+          id="imgFotoPerfil"
+          class="circle"
+          src="../static/images/photo_init.png"
+      /></a>
+      <a href="#!"
+        ><span id="spanUsuario" class="white-text"
+          ><label
+            style="font-size: 20px; font-weight: 600; color: white"
+            id="lblUsuario"
+            >{{ session['usuario'] }}</label
+          ></span
+        ></a
+      ><br />
+      <a href="#!"
+        ><span id="spanRol" class="white-text"
+          ><label
+            style="font-size: 14px; font-weight: 400; color: white"
+            id="lblRol"
+            >{{ session.get('rol', 'Administrador') }}</label
+          ></span
+        ></a
+      >
+    </div>
+  </li>
+  <li><a class="subheader white-text">GESTION DE INFORMACIÓN</a></li>
+  <li id="menu01">
+    <a href="#" class="white-text"
+      ><i class="material-icons white-text">diversity_3</i> Organización
+      institucional
+    </a>
+  </li>
+
+  <li><a class="subheader white-text">PLATAFORMA TECNOLOGICA</a></li>
+  <li id="menu02">
+    <a href="{{ url_for('herramientas_digitales.inicio') }}" class="white-text"
+      ><i class="material-icons white-text">apps</i> Herramientas digitales</a
+    >
+  </li>
+  <li id="menu03">
+    <a href="{{ url_for('capas_geograficas.inicio') }}" class="white-text">
+      <i class="material-icons white-text">layers</i> Capas geográficos
+    </a>
+  </li>
+  <li>
+    <div class="divider"></div>
+  </li>
+  <li><a class="subheader white-text">CONFIGURACIÓN</a></li>
+  <li id="menu04">
+    <a href="#" class="white-text"
+      ><i class="material-icons white-text">format_list_numbered</i>
+      Categorías</a
+    >
+  </li>
+  <li id="menu05">
+    <a href="#" class="white-text"
+      ><i class="material-icons white-text">cloud</i> Tipo de servicios</a
+    >
+  </li>
+  <li>
+    <div class="divider"></div>
+  </li>
+
+  <li><a class="subheader white-text">MI CUENTA</a></li>
+  <li id="menu09">
+    <a href="#" class="white-text"
+      ><i class="material-icons white-text">person</i> Datos personales</a
+    >
+  </li>
+</ul>

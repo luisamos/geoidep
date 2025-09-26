@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es-pe">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="{{ tipo_descripcion or ('Catálogo de ' ~ tipo_nombre ~ ' administrados por entidades públicas') }}"
+        name="description" />
+    <title>{{ tipo_titulo }}</title>
+    <style>
+        .turbo-progress-bar {
+            position: fixed;
+            display: block;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: #0076ff;
+            z-index: 2147483647;
+            transition: width 300ms ease-out, opacity 150ms 150ms ease-in;
+            transform: translate3d(0, 0, 0);
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}" media="print" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_print-8986f2e8.css') }}" media="print" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application-41919f8f.css') }}" media="all"
+        data-turbo-track="reload" />
+    <script src="{{ url_for('static', filename='js/application_base-1ff14882.js') }}" data-turbo-track="reload" defer></script>
+</head>
+
+<body>
+    {% include 'geoportal/cabecera.html' %}
+    <div class="react-modal"></div>
+    <div class="js-breadcrumb-full-width text-sm bg-white">
+        <div class="container md:max-w-6xl mx-auto px-4">
+            <div class="row">
+                <nav aria-label="Ruta de páginas" class="col-md-12 px-4">
+                    <ol class="breadcrumb font-bold">
+                        <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                            <a aria-label="Inicio Gob.pe" class="track-ga-interaction" data-ga-element-type="link"
+                                data-ga-label="inicio" href="/">
+                                <div class="home__logo__img__breadcrumb" id="home">Inicio</div>
+                                <div class="home__logo__img__breadcrumb hidden" id="escudo">
+                                    <div class="mr-2">
+                                        <img alt="gob.pe" class="h-8" height="32rem"
+                                            src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario-4656b576.svg') }}" />
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10.1 16.3" width="10.1" height="16.3"
+                                    aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                </svg>
+                            </span>
+                            <a class="track-ga-interaction font-bold" data-ga-element-type="link" data-ga-label="El Estado"
+                                href="/estado">El Estado</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10.1 16.3" width="10.1" height="16.3"
+                                    aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                </svg>
+                            </span>
+                            <a class="track-ga-interaction font-bold" data-ga-element-type="link"
+                                data-ga-label="Catálogo IDEP" href="/geoportal/catalogo">Infraestructura de Datos
+                                Espaciales del Perú (IDEP)</a>
+                        </li>
+                        <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                            <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10.1 16.3" width="10.1" height="16.3"
+                                    aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                </svg>
+                            </span>
+                            <a aria-current="page">{{ tipo_titulo }}</a>
+                        </li>
+                    </ol>
+                </nav>
+                <div class="searchbox">
+                    <div class="search-breadcrumb"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main aria-label="Contenido principal" role="main" id="main" class="yield js-sharect">
+        <div class="catalog_themes-show">
+            <div class="catalog-container-show">
+                <div class="grid grid-cols-1 lg:grid-cols-4 container p-0 max-w-full lg:max-w-6xl pl-0 lg:pl-8 xl:pl-0"
+                    data-controller="catalog">
+                    <aside class="bg-indigo-50 py-8 px-8 lg:px-0 lg:block">
+                        <div class="catalog-header">
+                            <div class="flex lg:block">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 68 67"
+                                    fill="none" class="block my-2">
+                                    <g clip-path="url(#alerta_icon)">
+                                        <path d="M34.0045 61.5295H12.3465C9.29593 61.5295 7.41996 58.1396 9.05932 55.5334L30.7174 20.8855C32.2469 18.4496 35.7622 18.4496 37.2832 20.8855L58.9413 55.5334C60.5638 58.1396 58.7132 61.5295 55.6542 61.5295H33.9961H34.0045Z"
+                                            fill="#FFF3F3"></path>
+                                        <path d="M34.1141 46.1058C32.4579 46.1058 31.1396 44.6579 31.1396 42.9033V34.5735C31.1396 32.7935 32.4832 31.3711 34.1141 31.3711C35.7451 31.3711 37.0886 32.819 37.0886 34.5735V42.9033C37.0886 44.6834 35.7451 46.1058 34.1141 46.1058Z"
+                                            fill="#EF1630"></path>
+                                        <path d="M34.1139 54.2144C35.9645 54.2144 37.4602 52.7068 37.4602 50.8415C37.4602 48.9763 35.9645 47.4688 34.1139 47.4688C32.2633 47.4688 30.7676 48.9763 30.7676 50.8415C30.7676 52.7068 32.2633 54.2144 34.1139 54.2144Z"
+                                            fill="#EF1630"></path>
+                                        <path d="M34.0045 61.5295H12.3465C9.29593 61.5295 7.41996 58.1396 9.05932 55.5334L30.7174 20.8855C32.2469 18.4496 35.7622 18.4496 37.2832 20.8855L58.9413 55.5334C60.5638 58.1396 58.7132 61.5295 55.6542 61.5295H33.9961H34.0045Z"
+                                            stroke="#534C89" stroke-width="5.8" stroke-miterlimit="10"></path>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="alerta_icon">
+                                            <rect width="56" height="61" fill="white" transform="translate(6 3)" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <div class="catalog-title my-4">
+                                    <h1 class="ml-3 lg:ml-0">{{ tipo_titulo }}</h1>
+                                </div>
+                            </div>
+                            {% if tipo_descripcion %}
+                            <p class="ml-3 lg:ml-0 text-sm text-gray-700">{{ tipo_descripcion }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="catalog-children w-full mt-6">
+                            <p class="my-0 lg:my-4 font-bold">Categoría</p>
+                            {% if categorias %}
+                            <nav class="hidden lg:block">
+                                {% for categoria in categorias %}
+                                <button class="px-4 w-full font-bold hover:bg-gray-85 hover:text-gray-900 py-4 text-left rounded-tl-lg rounded-bl-lg transition duration-500 {{ 'bg-white text-gray-900' if loop.first else 'text-blue-700' }}"
+                                    data-action="click->catalog#scrollToSmooth" data-id="container-{{ loop.index }}"
+                                    data-target="catalog.button" type="button">
+                                    {{ categoria.nombre }}
+                                </button>
+                                {% endfor %}
+                            </nav>
+                            {% else %}
+                            <p class="text-sm text-gray-600">No se registran categorías para este tipo de servicio.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="lg:hidden mt-6">
+                            <label class="block text-sm font-bold mb-2" for="categoria_select">Seleccionar
+                                categoría</label>
+                            <select class="form-control border border-gray-300 rounded-lg h-12 w-full px-3"
+                                id="categoria_select" onchange="if(this.value){location.hash=this.value;}"
+                                {% if not categorias %}disabled{% endif %}>
+                                <option value="">Selecciona una categoría</option>
+                                {% for categoria in categorias %}
+                                  <option value="#container-{{ loop.index }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <form class="simple_form js-search-form mt-8" novalidate="novalidate" method="get"
+                            action="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}">
+                            <div class="catalog-filter mb-6">
+                                <label class="block font-bold" for="filter_terms">Filtrar por palabra clave</label>
+                                <div class="relative border-2 border-gray-900 flex justify-between focus-within:border-yellow-500 h-12 mt-2 w-full rounded-lg bg-white">
+                                    <input class="js-search-input border-none pl-3 w-full focus:outline-none placeholder:text-gray-600 placeholder:text-base rounded-lg"
+                                        placeholder="Buscar" type="text" name="filter_terms" id="filter_terms"
+                                        value="{{ filter_terms }}" />
+                                    <button aria-label="Buscar" class="absolute right-1 rounded p-0 h-fit"
+                                        style="top: 6px; right: 6px;" type="submit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"
+                                            class="bg-gray-900 text-white p-2 border border-white text-4xl h-8 w-8 rounded">
+                                            <path fill="currentColor"
+                                                d="M9.291 15.723a6.424 6.424 0 0 1-6.432-6.432A6.424 6.424 0 0 1 9.29 2.859a6.424 6.424 0 0 1 6.432 6.432 6.424 6.424 0 0 1-6.432 6.432zm8.576 0h-1.129l-.4-.386a9.25 9.25 0 0 0 2.244-6.046A9.29 9.29 0 0 0 9.291 0 9.29 9.29 0 0 0 0 9.291a9.29 9.29 0 0 0 9.291 9.291 9.25 9.25 0 0 0 6.046-2.244l.386.4v1.13L22.87 25 25 22.87z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="catalog-filter">
+                                <label class="block font-bold" for="institucion_id">Entidad</label>
+                                <select id="institucion_id" name="institucion_id"
+                                    class="form-control border border-gray-300 rounded-lg h-12 w-full px-3"
+                                    onchange="this.form.submit()">
+                                    <option value="">Todas las entidades</option>
+                                    {% for institucion in instituciones %}
+                                    <option value="{{ institucion.id }}" {% if institucion.id == institucion_id %}selected{% endif %}>
+                                        {{ institucion.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% if institucion_id or filter_terms %}
+                            <a class="inline-block mt-4 text-sm text-blue-700 font-bold"
+                                href="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}">Limpiar filtros</a>
+                            {% endif %}
+                        </form>
+                    </aside>
+
+                    <div class="catalog_content lg:col-span-3 px-6 py-8">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <h2 class="text-2xl font-bold text-gray-900">Geoportales disponibles</h2>
+                            <div class="js-catalog-theme-search-results-count text-sm text-gray-600">
+                                {% if total_herramientas %}
+                                {{ total_herramientas }} {{ 'resultado' if total_herramientas == 1 else 'resultados' }}
+                                encontrados
+                                {% else %}
+                                Sin resultados para los filtros seleccionados
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if categorias %}
+                        <div class="js-catalog-theme-search-results">
+                            {% for categoria in categorias %}
+                            <div class="child my-6" id="container-{{ loop.index }}">
+                                <div class="child-title">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Categoría</p>
+                                    <h3 class="mt-2">{{ categoria.nombre }}</h3>
+                                    {% if categoria.descripcion %}
+                                    <p class="mt-2 text-gray-700">{{ categoria.descripcion }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="child-pages mt-4">
+                                    {% if categoria.herramientas %}
+                                    {% for herramienta in categoria.herramientas %}
+                                    <article class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0">
+                                        <div class="flex flex-col gap-6">
+                                            <div>
+                                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Nombre</p>
+                                                {% if herramienta.recurso %}
+                                                <a class="block text-blue-700 font-bold w-fit underline"
+                                                    href="{{ herramienta.recurso }}" target="_blank" rel="noopener">
+                                                    {{ herramienta.nombre }}
+                                                </a>
+                                                {% else %}
+                                                <p class="font-bold text-gray-900">{{ herramienta.nombre }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Descripción</p>
+                                                <p class="text-gray-800">{{ herramienta.descripcion or 'Sin descripción registrada.' }}</p>
+                                            </div>
+                                            {% if herramienta.recurso %}
+                                            <div>
+                                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Recurso</p>
+                                                <a class="text-blue-700 underline break-words"
+                                                    href="{{ herramienta.recurso }}" target="_blank" rel="noopener">{{ herramienta.recurso }}</a>
+                                            </div>
+                                            {% endif %}
+                                            {% if herramienta.institucion %}
+                                            <div>
+                                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Elaborado por</p>
+                                                <p class="text-gray-700">{{ herramienta.institucion.nombre }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                    {% else %}
+                                    <p class="text-gray-700">No hay recursos registrados en esta categoría.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-gray-700 mt-6">No se encontraron registros para los filtros seleccionados.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+
+    {% include 'geoportal/pie_pagina.html' %}
+</body>
+
+
+</html>

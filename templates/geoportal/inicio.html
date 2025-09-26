@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es-pe">
+
+<head>
+    <meta
+        content="Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socio-económico y favorecer la oportuna toma de..."
+        name="description" />
+    <title>Geoportal IDEP</title>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="H5efy5u72DDgqekf6xOfjd06S-f366QEbnkpXoDqcAg" name="google-site-verification" />
+    <meta content="false" name="turbo-prefetch" />
+    <meta name="csrf-param" content="authenticity_token" />
+    <meta name="csrf-token"
+        content="F0vOomxaZ4IuXUpGVANMDIzJzyB7-AB7AAwlyDbudPkUweGh56Og38rCebOEaFLaRWHKXSK1eWJ9RL9JdLN94g" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_base-9d9deb51.css' ) }}"
+        media="print" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application_print-8986f2e8.css' ) }}"
+        media="print" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/application-3dc1a03f.css' ) }}" media="all"
+        data-turbo-track="reload" />
+
+    <meta content="@gobpePCM" name="twitter:site" />
+    <meta content="@gobpePCM" name="twitter:creator" />
+    <meta content="Infraestructura de Datos Espaciales del Perú (IDEP)" name="twitter:title" />
+    <meta
+        content="Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socio-económico y favorecer la oportuna toma de... #gobpe"
+        name="twitter:description" />
+    <meta content="https://www.gob.pe/idep" property="og:url" />
+    <meta content="article" property="og:type" />
+    <meta content="Infraestructura de Datos Espaciales del Perú (IDEP)" property="og:title" />
+    <meta
+        content="Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socio-económico y favorecer la oportuna toma de... #gobpe"
+        property="og:description" />
+    <meta content="summary" name="twitter:card" />
+    <meta content="200" property="og:image:width" />
+    <meta content="200" property="og:image:height" />
+    <meta content="{{ url_for('static', filename='images/escudo-rojo-200-f4bf73f7.png' ) }}" property="og:image" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-57x57-42e0cdf0.png' ) }}" sizes="57x57" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-60x60-5474857c.png' ) }}" sizes="60x60" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-72x72-23a18d8b.png' ) }}" sizes="72x72" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-76x76-6deed722.png' ) }}" sizes="76x76" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-114x114-952c16d1.png' ) }}" sizes="114x114" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-120x120-09c0093c.png' ) }}" sizes="120x120" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-144x144-cfa8302f.png' ) }}" sizes="144x144" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-152x152-657ce405.png' ) }}" sizes="152x152" />
+    <link rel="apple-touch-icon" type="image/x-icon"
+        href="{{ url_for('static', filename='images/apple-icon-180x180-f85c0fca.png' ) }}" sizes="180x180" />
+    <link rel="icon" type="image/png"
+        href="{{ url_for('static', filename='images/android-icon-192x192-ec1dea24.png' ) }}" sizes="192x192" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon-1760a09d.ico' ) }}" />
+</head>
+
+<body>
+    <a class="sr-only focus:not-sr-only text-primary underline p-4!" href="#main">Saltar a contenido principal</a>
+    <div class="nothing"></div>
+    <header aria-label="Header" class="home bg-white shadow">
+        <div class="container align-center relative">
+            <div class="header__content w-full">
+                <div class="header__half flex-align-center">
+                    <a class="logo black home__logo track-ga-interaction no-underline!"
+                        data-ga-element-type="icono-principal" data-ga-label="Logo gob.pe" href="/">
+                        <div class="home__logo__img_shield--small js-escudo md:hidden">
+                            <img height="40rem" alt="Logotipo de gob.pe" class="h-10" role="img"
+                                src="{{ url_for('static', filename='images/escudo_rojo_bicentenario-785637cc.svg' ) }}" />
+                        </div>
+                        <div aria-label="Logo gob.pe" class="home__logo__img--small" role="img">
+                            <img alt="Logo gob.pe" class="img-logo" height="40rem"
+                                src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg' ) }}" />
+                            <img alt="Logo gob.pe" class="d-none img-logo-focus"
+                                src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_black-b62ef1cc.svg' ) }}" />
+                        </div>
+                    </a>
+                </div>
+                <div class="w-220 md:w-310">
+                    <div class="search-internal">
+                        <form autocomplete="off" role="search" data-controller="" action="/institucion/pcm/buscador"
+                            accept-charset="UTF-8" method="get">
+                            <div class="input-group no-print relative">
+                                <label class="visually-hidden" for="input-search-home-gobpe">Texto de búsqueda en
+                                    gob.pe</label>
+                                <input id="input-search-home-gobpe" placeholder="Buscar en PCM"
+                                    class="search search_autocomplete h-14 rounded-lg border-2 border-gray-900 focus:border-transparent track-ga-search"
+                                    data-url="https://www.gob.pe/searches_autocomplete.json" data-institution-id="63"
+                                    data-target="" data-ga-label="buscador-Redirections" data-ga-element-type="buscador"
+                                    type="search" name="term" />
+                                <input value="pcm" autocomplete="off" type="hidden" name="institucion"
+                                    id="institucion" />
+                                <input autocomplete="off" type="hidden" name="topic_id" id="topic_id" />
+                                <input value="" autocomplete="off" type="hidden" name="contenido" id="contenido" />
+                                <input value="none" autocomplete="off" type="hidden" name="sort_by" id="sort_by" />
+                                <button aria-label="Buscar"
+                                    class="submit bg-gray-900 border-0 absolute inset-y-0 right-0 m-2 cursor-pointer p-2 rounded"
+                                    disabled="true" id="btn-search-home-gobpe" type="submit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                        fill="none" class="w-6 h-6">
+                                        <path
+                                            d="M21.0086 18.2075H20.06L19.7238 17.8834C20.9005 16.5146 21.6089 14.7376 21.6089 12.8045C21.6089 8.494 18.1149 5 13.8045 5C9.494 5 6 8.494 6 12.8045C6 17.1149 9.494 20.6089 13.8045 20.6089C15.7376 20.6089 17.5146 19.9005 18.8834 18.7238L19.2075 19.06V20.0086L25.211 26L27 24.211L21.0086 18.2075ZM13.8045 18.2075C10.8148 18.2075 8.40137 15.7942 8.40137 12.8045C8.40137 9.81475 10.8148 7.40137 13.8045 7.40137C16.7942 7.40137 19.2075 9.81475 19.2075 12.8045C19.2075 15.7942 16.7942 18.2075 13.8045 18.2075Z"
+                                            fill="white"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="react-modal"></div>
+    <div class="js-breadcrumb-full-width text-sm bg-white">
+        <div class="container md:max-w-6xl mx-auto px-4">
+            <div class="row">
+                <nav aria-label="Ruta de páginas" class="col-md-12 px-4">
+                    <ol class="breadcrumb font-bold">
+                        <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                            <a aria-label="Inicio Gob.pe" class="track-ga-interaction" data-ga-element-type="link"
+                                data-ga-label="inicio" href="https://www.gob.pe/">
+                                <div class="home__logo__img__breadcrumb" id="home">Inicio</div>
+                                <div class="home__logo__img__breadcrumb hidden" id="escudo">
+                                    <div class="mr-2">
+                                        <img alt="gob.pe" class="h-8" height="32rem"
+                                            src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario-4656b576.svg' ) }}" />
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                            <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                    style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
+                                    height="16.3" aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
+                                    </path>
+                                </svg>
+                            </span>
+                            <span class="hidden-lg-up mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                    style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
+                                    height="16.3" aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="m 10.1,1.9 -6.2,6.2 6.2,6.3 -2,1.9 L 0,8.2 8.1,0 Z">
+                                    </path>
+                                </svg>
+                            </span>
+                            <a class="track-ga-interaction font-bold " data-ga-element-type="link"
+                                data-ga-label="El Estado" href="https://www.gob.pe/estado">El Estado</a>
+                        </li>
+                        <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                            <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                    style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
+                                    height="16.3" aria-hidden="true" class="w-2">
+                                    <path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
+                                    </path>
+                                </svg>
+                            </span>
+                            <a aria-current="page">Infraestructura de Datos Espaciales del Perú (IDEP)</a>
+                        </li>
+                    </ol>
+                </nav>
+                <div class="searchbox">
+                    <div class="search-breadcrumb"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main aria-label="Contenido principal" role="main" id="main" class="yield js-sharect ">
+        <div class="campaigns-show">
+            <div class="campaigns">
+                <div class="bg-gray-100">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <section>
+                                    <div class="row">
+                                        <div class="p-6 md:py-10 md:pl-4 col-md-5">
+                                            <h1 class="text-4xl md:text-40 leading-10 md:leading-12 mb-4 md:mb-8">
+                                                Infraestructura de Datos Espaciales del Perú (IDEP)</h1>
+                                            <div class="page page__content pt-5">
+                                                <div class="boton">
+                                                    <a class="track-ga-interaction" data-ga-element-type="link"
+                                                        data-ga-label="Consultar mapas" target="_blank"
+                                                        href="/idep">Leer más</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7 px-0 pb-6 md:py-10 md:pr-4">
+                                            <img class="w-full h-auto campaign-cover-img"
+                                                style="width: 645px; height: 363px;" aria-label="IDEP" alt="IDEP"
+                                                tabindex="0"
+                                                src="{{ url_for('static', filename='images/banner_idep.png' ) }}" />
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pb-10 relative">
+                    <div class="section__anchor" id="section-23"></div>
+                    <div class="container py-8 md:py-12">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h1 class="title title__line mb-4 ml-2">Recursos geoespaciales</h1>
+                            </div>
+                        </div>
+                        <div class="mb-4 md:mb-8">
+                            <div class="relative px-0">
+                                <a class="cursor-pointer absolute -left-16 w-16 bg-indigo-900 top-0 bottom-0 z-10 js-horizontal-scroll opacity-80 hidden invisible md:visible flex justify-center items-center track-ga-interaction"
+                                    data-direction="left" data-ga-element-type="icono-flecha"
+                                    data-ga-label="flecha-izquierda">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 32 16"
+                                        fill="none" class="text-white transform rotate-180">
+                                        <path d="M24.02 6H0V10H24.02V16L32 8L24.02 0V6Z" fill="currentColor"></path>
+                                    </svg>
+                                </a>
+                                <ul
+                                    class="grid_scrollable gap-4 md:no-scroll js-horizontal-scroll-list md:px-16 mb-0 md:-mx-16">
+                                    <li class="grid_scrollable__item min-h-19 px-2 js-scroll-3">
+                                        <div class="border-b-4 border-black">
+                                            <div
+                                                class="p-6 h-full bg-white flex flex-col flex-1 shadow-campaign-card border border-gray-80">
+                                                <a class="track-ga-interaction" data-ga-element-type="link"
+                                                    data-ga-label="Catágolo Nacional de Servicios de Información Georeferenciados"
+                                                    data-ga-institution="pcm" data-ga-title-section="Orientación"
+                                                    href="/catalogo">
+                                                    <h3
+                                                        class="leading-tight text-blue-700 text-xl px-0 h-24 tracking-normal">
+                                                        Catágolo Nacional de Servicios Georeferenciados
+                                                    </h3>
+                                                </a>
+                                                <p class="h-24">Acceso a los recursos
+                                                    geoespaciales de la Infraestructura de Datos Espaciales del Perú.
+                                                </p>
+                                                <a class="bg-blue-100 px-4 py-2 w-fit mx-auto font-bold track-ga-interaction"
+                                                    data-ga-element-type="boton" data-ga-institution="pcm"
+                                                    data-ga-label="Leer más" data-ga-title-section="Orientación"
+                                                    href="/catalogo" target="_blank">
+                                                    Ir al servicio
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                        id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                        style="enable-background:new 0 0 10.1 16.3;"
+                                                        xml:space="preserve" width="10.1" height="16.3"
+                                                        class="ml-4 inline">
+                                                        <path fill="currentColor"
+                                                            d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="grid_scrollable__item min-h-19 px-2 js-scroll-0">
+                                        <div class="border-b-4 border-black">
+                                            <div
+                                                class="p-6 h-full bg-white flex flex-col flex-1 shadow-campaign-card border border-gray-80">
+                                                <a class="track-ga-interaction" data-ga-element-type="link"
+                                                    data-ga-label="Publicar en IDEP" data-ga-institution="pcm"
+                                                    data-ga-title-section="Orientación"
+                                                    href="https://visor.geoperu.gob.pe/">
+                                                    <h3
+                                                        class="leading-tight text-blue-700 text-xl px-0 h-24 tracking-normal">
+                                                        La Plataforma Nacional de Datos Georreferenciados</h3>
+                                                </a>
+                                                <p class="h-24">Geo Perú, es la plataforma digital única del Estado
+                                                    Peruano que integra datos georreferenciados y estadísticos.</p>
+                                                <a class="bg-blue-100 px-4 py-2 w-fit mx-auto font-bold track-ga-interaction"
+                                                    data-ga-element-type="boton" data-ga-institution="pcm"
+                                                    data-ga-label="Leer más" data-ga-title-section="Orientación"
+                                                    href="https://visor.geoperu.gob.pe/" target="_blank">
+                                                    Ir al servicio
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                        id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                        style="enable-background:new 0 0 10.1 16.3;"
+                                                        xml:space="preserve" width="10.1" height="16.3"
+                                                        class="ml-4 inline">
+                                                        <path fill="currentColor"
+                                                            d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <li class="grid_scrollable__item min-h-19 px-2 js-scroll-1">
+                                        <div class="border-b-4 border-black">
+                                            <div
+                                                class="p-6 h-full bg-white flex flex-col flex-1 shadow-campaign-card border border-gray-80">
+                                                <a class="track-ga-interaction" data-ga-element-type="link"
+                                                    data-ga-label="Cursos de capacitación de la IDEP"
+                                                    data-ga-institution="pcm" data-ga-title-section="Orientación"
+                                                    href="https://catalogo.geoidep.gob.pe/metadatos/srv/spa/catalog.search#/home">
+                                                    <h3
+                                                        class="leading-tight text-blue-700 text-xl px-0 h-24 tracking-normal">
+                                                        Catálogo Nacional de Metadatos geográficos</h3>
+                                                </a>
+                                                <p class="h-24">Búsqueda de metadatos estandarizados cosechados a partir
+                                                    de las iniciativas por parte de las instituciones, gobierno
+                                                    regionales y locales.
+                                                </p>
+                                                <a class="bg-blue-100 px-4 py-2 w-fit mx-auto font-bold track-ga-interaction"
+                                                    data-ga-element-type="boton" data-ga-institution="pcm"
+                                                    data-ga-label="Leer más" data-ga-title-section="Orientación"
+                                                    href="https://catalogo.geoidep.gob.pe/metadatos/srv/spa/catalog.search#/home"
+                                                    target="_blank">
+                                                    Ir al servicio
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                        id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                        style="enable-background:new 0 0 10.1 16.3;"
+                                                        xml:space="preserve" width="10.1" height="16.3"
+                                                        class="ml-4 inline">
+                                                        <path fill="currentColor"
+                                                            d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"></path>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100">
+                    <div class="container relative pb-6">
+                        <div class="section__anchor" id="noticias"></div>
+                        <section aria-labelledby="feeds-title" class="py-8 md:pt-12 md:pb-6">
+                            <h2 class="text-4xl text-center mb-12" id="feeds-title">Nodos de la Infraestructura de Datos
+                                Espaciales</h2>
+                            <div class="mb-4 md:mb-4">
+                                <ul class="row scrollable mb-0">
+                                    <li class="col-lg-4 mb-4 scrollable__item min-h-35">
+                                        <div
+                                            class="card border relative bg-white flex min-h-14 h-full flex-col shadow-cards ">
+                                            <figure class="max-w-full">
+                                                <img alt="" loading="lazy" class="w-full object-cover md:h-full"
+                                                    src="https://cdn.www.gob.pe/uploads/document/file/1910654/standard_NP-%20ONU-gobierno%20digital%20.jpg.jpg" />
+                                            </figure>
+                                            <div class="p-6 flex flex-col flex-1 justify-between">
+                                                <div class="flex flex-wrap md:no-wrap">
+                                                    <h3 aria-describedby="peru-avanza-en-reconocimiento-transfronterizo-de-la-identidad-digital-y-las-firmas-digitales-para-facilitar-el-comercio-electronico-description"
+                                                        class="text-base leading-snug flex-1 mt-4 sm:mt-0">
+                                                        <a class="text-primary card__mock hover:no-underline track-ga-interaction"
+                                                            data-ga-element-type="link"
+                                                            data-ga-label="Perú avanza en reconocimiento transfronterizo de la identidad digital y las firmas digitales para facilitar el comercio electrónico"
+                                                            data-ga-institution="pcm">Nodos Institucionales</a>
+                                                    </h3>
+                                                </div>
+                                                <div class="flex flex-col gap-2 md:gap-4">
+                                                    <div class="flex-1 mb-6 "
+                                                        id="peru-avanza-en-reconocimiento-transfronterizo-de-la-identidad-digital-y-las-firmas-digitales-para-facilitar-el-comercio-electronico-description">
+                                                        <div class="z-10 relative">Son las entidades responsables de
+                                                            producir, administrar y compartir datos espaciales dentro de
+                                                            la IDE, actuando como puntos clave de articulación y
+                                                            colaboración entre diferentes niveles de gobierno y
+                                                            academia.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <a class="z-10 track-ga-interaction" aria-hidden="true"
+                                                        tabindex="-1" data-ga-element-type="link"
+                                                        data-ga-label="Ir al servicio" data-ga-institution="pcm"
+                                                        data-ga-title-section="noticias" href="">
+                                                        <span
+                                                            class="inline-block mb-2 text-blue-700 w-auto text-base font-bold hover:underline">
+                                                            Consultar
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                                id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                                style="enable-background:new 0 0 10.1 16.3;"
+                                                                xml:space="preserve" width="10.1" height="16.3"
+                                                                class="ml-3 inline text-xs">
+                                                                <path fill="currentColor"
+                                                                    d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
+                                                                </path>
+                                                            </svg>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="col-lg-4 mb-4 scrollable__item min-h-35">
+                                        <div
+                                            class="card border relative bg-white flex min-h-14 h-full flex-col shadow-cards ">
+                                            <figure class="max-w-full">
+                                                <img alt="" loading="lazy" class="w-full object-cover md:h-full"
+                                                    src="https://cdn.www.gob.pe/uploads/document/file/1910654/standard_NP-%20ONU-gobierno%20digital%20.jpg.jpg" />
+                                            </figure>
+                                            <div class="p-6 flex flex-col flex-1 justify-between">
+                                                <div class="flex flex-wrap md:no-wrap">
+                                                    <h3 aria-describedby="peru-propone-a-la-onu-medir-el-avance-de-ciudadania-digital-a-nivel-mundial-description"
+                                                        class="text-base leading-snug flex-1 mt-4 sm:mt-0">
+                                                        <a class="text-primary card__mock hover:no-underline track-ga-interaction"
+                                                            data-ga-element-type="link"
+                                                            data-ga-label="Perú propone a la ONU medir el avance de ciudadanía digital a nivel mundial"
+                                                            data-ga-institution="pcm" data-ga-title-section="noticias"
+                                                            href="">Nodos
+                                                            Regionales e Locales</a>
+                                                    </h3>
+                                                </div>
+                                                <div class="flex flex-col gap-2 md:gap-4">
+                                                    <div class="flex-1 mb-6 "
+                                                        id="peru-propone-a-la-onu-medir-el-avance-de-ciudadania-digital-a-nivel-mundial-description">
+                                                        <div class="z-10 relative">Son instancias descentralizadas (como
+                                                            gobiernos regionales, municipalidades u otras entidades
+                                                            locales) que participan activamente en la generación,
+                                                            gestión y difusión de información geoespacial en su ámbito
+                                                            territorial.</div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <a class="z-10 track-ga-interaction" aria-hidden="true"
+                                                        tabindex="-1" data-ga-element-type="link"
+                                                        data-ga-label="Leer más" data-ga-institution="pcm"
+                                                        data-ga-title-section="noticias" href="">
+                                                        <span
+                                                            class="inline-block mb-2 text-blue-700 w-auto text-base font-bold hover:underline">
+                                                            Consultar
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                                id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                                style="enable-background:new 0 0 10.1 16.3;"
+                                                                xml:space="preserve" width="10.1" height="16.3"
+                                                                class="ml-3 inline text-xs">
+                                                                <path fill="currentColor"
+                                                                    d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
+                                                                </path>
+                                                            </svg>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="col-lg-4 mb-4 scrollable__item min-h-35">
+                                        <div
+                                            class="card border relative bg-white flex min-h-14 h-full flex-col shadow-cards ">
+                                            <figure class="max-w-full">
+                                                <img alt="" loading="lazy" class="w-full object-cover md:h-full"
+                                                    src="https://cdn.www.gob.pe/uploads/document/file/1910654/standard_NP-%20ONU-gobierno%20digital%20.jpg.jpg" />
+                                            </figure>
+                                            <div class="p-6 flex flex-col flex-1 justify-between">
+                                                <div class="flex flex-wrap md:no-wrap">
+                                                    <h3 aria-describedby="gobierno-lanza-red-nacional-de-innovadores-digitales-para-impulsar-la-transformacion-de-los-servicios-publicos-description"
+                                                        class="text-base leading-snug flex-1 mt-4 sm:mt-0">
+                                                        <a class="text-primary card__mock hover:no-underline track-ga-interaction"
+                                                            data-ga-element-type="link"
+                                                            data-ga-label="Gobierno lanza Red Nacional de Innovadores Digitales para impulsar la transformación de los servicios públicos"
+                                                            data-ga-institution="pcm" data-ga-title-section="noticias"
+                                                            href="">Nodos
+                                                            no Gubernamentales</a>
+                                                    </h3>
+                                                </div>
+                                                <div class="flex flex-col gap-2 md:gap-4">
+                                                    <div class="flex-1 mb-6 "
+                                                        id="gobierno-lanza-red-nacional-de-innovadores-digitales-para-impulsar-la-transformacion-de-los-servicios-publicos-description">
+                                                        <div class="z-10 relative">Son organizaciones de la sociedad
+                                                            civil, universidades, centros de investigación, ONGs o
+                                                            empresas privadas que participan en la producción, gestión o
+                                                            uso de información geoespacial.</div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <a class="z-10 track-ga-interaction" aria-hidden="true"
+                                                        tabindex="-1" data-ga-element-type="link"
+                                                        data-ga-label="Leer más" data-ga-institution="pcm"
+                                                        data-ga-title-section="noticias" href="">
+                                                        <span
+                                                            class="inline-block mb-2 text-blue-700 w-auto text-base font-bold hover:underline">
+                                                            Consultar
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                                id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
+                                                                style="enable-background:new 0 0 10.1 16.3;"
+                                                                xml:space="preserve" width="10.1" height="16.3"
+                                                                class="ml-3 inline text-xs">
+                                                                <path fill="currentColor"
+                                                                    d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
+                                                                </path>
+                                                            </svg>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="js-campaigns-feed-extras hidden grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {% include 'geoportal/pie_pagina.html' %}
+</body>
+
+</html>

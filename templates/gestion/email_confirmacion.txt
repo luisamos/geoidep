@@ -1,0 +1,10 @@
+Hola {{ usuario.username }},
+
+Gracias por registrarte en GEOIDEP. Para activar tu cuenta solo debes confirmar tu correo electrónico haciendo clic en el siguiente enlace:
+
+{{ confirm_url }}
+
+Si tú no solicitaste esta cuenta, puedes ignorar este mensaje.
+
+Saludos,
+Equipo GEOIDEP

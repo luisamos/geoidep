@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Módulo de Administración - GEOIDEP</title>
+
+    <!-- Tus hojas de estilo locales -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/subsistema.css') }}"
+    />
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+  </head>
+
+  <body>
+    <div id="modal_login" class="modal__login">
+      <div class="modal__content">
+        <div class="content__controls center-align">
+          <img
+            alt="Logo de Geo Perú"
+            src="{{ url_for('static', filename='images/idep.png') }}"
+            style="width: 126px"
+          />
+          <div class="row">
+            <form method="POST">
+              {{ form.hidden_tag() }}
+              <div class="row">
+                <div class="input-field col s12">
+                  {{ form.username.label }} {{ form.username(class="validate")
+                  }}
+                </div>
+                <div class="input-field col s12">
+                  {{ form.password.label }} {{ form.password(class="validate")
+                  }}
+                </div>
+                <div class="input-field col s12">{{ form.recaptcha }}</div>
+              </div>
+              {{ form.submit(class="button__primary", type="submit") }}
+            </form>
+          </div>
+          <p>
+            ¿Aún no tienes cuenta?
+            <a href="{{ url_for('gestion.registro') }}">Regístrate aquí</a>.
+          </p>
+        </div>
+        <div class="login__image"><!-- Imagen o diseño de fondo --></div>
+      </div>
+    </div>
+
+    <div class="modal_wait">
+      <div class="ventana">
+        <img
+          alt="Cargando..."
+          src="{{ url_for('static', filename='images/wait_geoperu.gif') }}"
+          height="150px"
+        />
+      </div>
+    </div>
+    <script>
+          document.addEventListener('DOMContentLoaded', function () {
+              const msgs = {{ get_flashed_messages(with_categories = true) | tojson
+          }};
+          msgs.forEach(([category, msg]) => {
+              const classes = category === 'success' ? 'green'
+                  : category === 'error' ? 'red'
+                      : '';
+              M.toast({ html: msg, classes });
+          });
+      });
+    </script>
+  </body>
+</html>

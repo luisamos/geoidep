@@ -1,0 +1,53 @@
+<a class="sr-only focus:not-sr-only text-primary underline p-4!" href="#main">Saltar a contenido principal</a>
+<div class="nothing"></div>
+<header aria-label="Header" class="home bg-white shadow">
+    <div class="container align-center relative">
+        <div class="header__content w-full">
+            <div class="header__half flex-align-center">
+                <a class="logo black home__logo track-ga-interaction no-underline!"
+                    data-ga-element-type="icono-principal" data-ga-label="Logo gob.pe" href="/">
+                    <div class="home__logo__img_shield--small js-escudo md:hidden">
+                        <img height="40rem" alt="Logotipo de gob.pe" class="h-10" role="img"
+                            src="{{ url_for('static', filename='images/escudo_rojo_bicentenario-785637cc.svg' ) }}" />
+                    </div>
+                    <div aria-label="Logo gob.pe" class="home__logo__img--small" role="img">
+                        <img alt="Logo gob.pe" class="img-logo" height="40rem"
+                            src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg' ) }}" />
+                        <img alt="Logo gob.pe" class="d-none img-logo-focus"
+                            src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_black-b62ef1cc.svg' ) }}" />
+                    </div>
+                </a>
+            </div>
+            <div class="w-220 md:w-310">
+                <div class="search-internal">
+                    <form autocomplete="off" role="search" data-controller="" action="/institucion/pcm/buscador"
+                        accept-charset="UTF-8" method="get">
+                        <div class="input-group no-print relative">
+                            <label class="visually-hidden" for="input-search-home-gobpe">Texto de búsqueda en
+                                gob.pe</label>
+                            <input id="input-search-home-gobpe" placeholder="Buscar en PCM"
+                                class="search search_autocomplete h-14 rounded-lg border-2 border-gray-900 focus:border-transparent track-ga-search"
+                                data-url="https://www.gob.pe/searches_autocomplete.json" data-institution-id="63"
+                                data-target="" data-ga-label="buscador-Redirections" data-ga-element-type="buscador"
+                                type="search" name="term" />
+                            <input value="pcm" autocomplete="off" type="hidden" name="institucion" id="institucion" />
+                            <input autocomplete="off" type="hidden" name="topic_id" id="topic_id" />
+                            <input value="" autocomplete="off" type="hidden" name="contenido" id="contenido" />
+                            <input value="none" autocomplete="off" type="hidden" name="sort_by" id="sort_by" />
+                            <button aria-label="Buscar"
+                                class="submit bg-gray-900 border-0 absolute inset-y-0 right-0 m-2 cursor-pointer p-2 rounded"
+                                disabled="true" id="btn-search-home-gobpe" type="submit">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
+                                    fill="none" class="w-6 h-6">
+                                    <path
+                                        d="M21.0086 18.2075H20.06L19.7238 17.8834C20.9005 16.5146 21.6089 14.7376 21.6089 12.8045C21.6089 8.494 18.1149 5 13.8045 5C9.494 5 6 8.494 6 12.8045C6 17.1149 9.494 20.6089 13.8045 20.6089C15.7376 20.6089 17.5146 19.9005 18.8834 18.7238L19.2075 19.06V20.0086L25.211 26L27 24.211L21.0086 18.2075ZM13.8045 18.2075C10.8148 18.2075 8.40137 15.7942 8.40137 12.8045C8.40137 9.81475 10.8148 7.40137 13.8045 7.40137C16.7942 7.40137 19.2075 9.81475 19.2075 12.8045C19.2075 15.7942 16.7942 18.2075 13.8045 18.2075Z"
+                                        fill="white"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

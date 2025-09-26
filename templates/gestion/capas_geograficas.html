@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Capas Geográficas</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+  </head>
+
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <h4>Capas Geográficas</h4>
+
+        <div class="row">
+          <div class="input-field col s4">
+            <select id="tipo_capa">
+              <option value="" disabled selected>Seleccione tipo</option>
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
+            </select>
+            <label>Tipo de Capa</label>
+          </div>
+          <div class="input-field col s2">
+            <button id="btnBuscar" class="btn waves-effect blue">Buscar</button>
+          </div>
+          <div class="input-field col s2">
+            <button
+              id="btnAgregar"
+              class="btn waves-effect green modal-trigger"
+              data-target="modalCapa"
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+
+        <table class="highlight" style="background-color: #fff">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>En GeoPerú</th>
+              <th>Servicios</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for capa in capas %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ capa.nombre }}</td>
+              <td>{{ 'Sí' if capa.publicar_geoperu else 'No' }}</td>
+              <td>
+                {% for serv in capa.servicios %} {{ serv.tipo_servicio.nombre
+                }}{% if not loop.last %}, {% endif %} {% endfor %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4">No hay capas disponibles.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal para registro capa y servicios -->
+    <div id="modalCapa" class="modal">
+      <div class="modal-content">
+        <h5>Nueva Capa Geográfica</h5>
+
+        <div class="input-field">
+          <input id="nombre_capa" type="text" />
+          <label for="nombre_capa">Nombre</label>
+        </div>
+
+        <div class="input-field">
+          <textarea
+            id="descripcion_capa"
+            class="materialize-textarea"
+          ></textarea>
+          <label for="descripcion_capa">Descripción</label>
+        </div>
+
+        <div class="input-field">
+          <select id="tipo_capa_modal">
+            <option value="1">Público</option>
+            <option value="0">Privado</option>
+          </select>
+          <label>Tipo de Capa</label>
+        </div>
+
+        <div class="input-field">
+          <select id="categoria_capa" name="categoria_id">
+            <option value="" disabled selected>Seleccione categoría</option>
+            {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+            {% endfor %}
+          </select>
+          <label>Categoría</label>
+        </div>
+
+        <p>
+          <label>
+            <input type="checkbox" id="publicar_geoperu" />
+            <span>Publicar en GeoPerú</span>
+          </label>
+        </p>
+
+        <h6>Servicios Asociados</h6>
+        <table class="highlight" id="tablaServicios">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>URL</th>
+              <th>Layer</th>
+              <th>Visible</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- filas dinámicas con JS -->
+          </tbody>
+        </table>
+        <button class="btn orange" id="btnAddServicio">Agregar Servicio</button>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey">Cancelar</button>
+        <button class="btn blue" id="btnGuardar">Guardar</button>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      // Inicialización de Materialize
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll("select");
+        M.FormSelect.init(elems);
+        var modals = document.querySelectorAll(".modal");
+        M.Modal.init(modals);
+      });
+
+      // Agregar fila de servicio
+      document
+        .getElementById("btnAddServicio")
+        .addEventListener("click", function () {
+          var tbody = document.querySelector("#tablaServicios tbody");
+          var tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td>
+          <select class="tipo_servicio">
+            <option value="" disabled selected>Seleccione</option>
+            <option value="OGC:WMS">OGC:WMS</option>
+            <option value="OGC:WFS">OGC:WFS</option>
+            <option value="OGC:WCS">OGC:WCS</option>
+            <option value="OGC:WMTS">OGC:WMTS</option>
+            <option value="REST:ArcGIS">REST:ArcGIS</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </td>
+        <td><input type="text" class="url_servicio"></td>
+        <td><input type="text" class="nombre_layer"></td>
+        <td>
+          <label>
+            <input type="checkbox" class="visible_servicio" checked />
+            <span></span>
+          </label>
+        </td>
+        <td><button class="btn-small red eliminar-servicio">X</button></td>
+      `;
+          tbody.appendChild(tr);
+          // Inicializar nuevo select
+          M.FormSelect.init(tr.querySelectorAll("select"));
+        });
+
+      // Eliminar fila de servicio
+      document
+        .querySelector("#tablaServicios")
+        .addEventListener("click", function (e) {
+          if (e.target && e.target.matches("button.eliminar-servicio")) {
+            var tr = e.target.closest("tr");
+            tr.parentNode.removeChild(tr);
+          }
+        });
+
+      // Guardar capa y servicios
+      document
+        .getElementById("btnGuardar")
+        .addEventListener("click", async function () {
+          var nombre = document.getElementById("nombre_capa").value;
+          var descripcion = document.getElementById("descripcion_capa").value;
+          var tipoModal = document.getElementById("tipo_capa_modal").value;
+          var tipo_capa = tipoModal === "1" ? "publico" : "privado";
+          var categoriaId = document.getElementById("categoria_capa").value;
+          var publicar = document.getElementById("publicar_geoperu").checked;
+
+          var servicios = [];
+          document
+            .querySelectorAll("#tablaServicios tbody tr")
+            .forEach(function (row) {
+              servicios.push({
+                tipo: row.querySelector(".tipo_servicio").value,
+                url: row.querySelector(".url_servicio").value,
+                layer: row.querySelector(".nombre_layer").value,
+                visible: row.querySelector(".visible_servicio").checked,
+              });
+            });
+
+          var payload = {
+            nombre: nombre,
+            descripcion: descripcion,
+            tipo_capa: tipo_capa,
+            categoria_id: Number(categoriaId),
+            publicar_geoperu: publicar,
+            servicios: servicios,
+          };
+
+          try {
+            var resp = await fetch("/capas_geograficas/guardar", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            var json = await resp.json();
+            if (resp.ok) {
+              M.toast({ html: "Capa creada con ID " + json.capa_id });
+              // Cerrar modal
+              var modalElem = document.getElementById("modalCapa");
+              var instance = M.Modal.getInstance(modalElem);
+              instance.close();
+              // Opcional: limpiar formulario
+            } else {
+              M.toast({ html: "Error: " + (json.message || resp.statusText) });
+            }
+          } catch (err) {
+            M.toast({ html: "Error de red" });
+          }
+        });
+    </script>
+  </body>
+</html>

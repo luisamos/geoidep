@@ -1,0 +1,9 @@
+#
+# GEOIDEP
+#
+git init
+git add .
+git commit -m "v.2.0.2 | 26/09/2025 13:40"
+git branch -M main
+git remote add origin https://github.com/luisamos/geoidep.git
+git push -u origin main

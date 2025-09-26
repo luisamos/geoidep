@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Herramientas digitales</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      .icono-tabla {
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+
+      .icono-tabla:last-child {
+        margin-right: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <h3>Herramientas digitales</h3>
+            <p class="flow-text">
+              Acceso a los recursos geoespaciales de la Infraestructura de Datos
+              Espaciales del Perú.
+            </p>
+          </div>
+          <div class="input-field col s3">
+            <select id="filtro_tipo">
+              <option value="" selected>Todos los tipos</option>
+              {% for tipo in tipos_servicio %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Tipo de recurso</label>
+          </div>
+          <div class="input-field col s5">
+            <input
+              id="txtFiltro"
+              type="text"
+              class="validate"
+              placeholder="Ingrese el nombre del recurso"
+            />
+            <label for="txtFiltro">Nombre del recurso</label>
+          </div>
+          <div class="input-field col s2">
+            <button id="btnBuscar" class="btn waves-effect blue">
+              Buscar
+            </button>
+          </div>
+          <div class="input-field col s2">
+            <button
+              id="btnAgregar"
+              class="btn waves-effect green modal-trigger"
+              data-target="modalHerramienta"
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+
+        <div class="row" style="max-height: 600px; overflow-y: auto">
+          <div class="col s12">
+            <table
+              class="highlight"
+              id="tablaHerramientas"
+              style="background-color: #fff"
+            >
+              <thead>
+                <tr>
+                  <th style="padding-left: 20px">N°</th>
+                  <th>Categoría</th>
+                  <th>Tipo de recurso</th>
+                  <th>Nombre</th>
+                  <th>Estado</th>
+                  <th>Recurso</th>
+                  <th>Institución</th>
+                  <th>Opciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="institucionTag"
+      data-institucion-id="{{ institucion_usuario.id if institucion_usuario else '' }}"
+      data-institucion-nombre="{{ institucion_usuario.nombre if institucion_usuario else '' }}"
+      hidden
+    ></div>
+
+    <div id="modalHerramienta" class="modal">
+      <div class="modal-content">
+        <h5 id="modalTituloHerramienta">Nueva herramienta digital</h5>
+        <form id="formHerramienta">
+          <div class="input-field">
+            <input id="nombre_herramienta" type="text" maxlength="200" />
+            <label for="nombre_herramienta">Nombre</label>
+          </div>
+
+          <div class="input-field">
+            <input
+              id="descripcion_herramienta"
+              type="text"
+              maxlength="20"
+            />
+            <label for="descripcion_herramienta">Descripción (opcional)</label>
+          </div>
+
+          <div class="input-field">
+            <select id="tipo_servicio_herramienta">
+              <option value="" disabled selected>Seleccione tipo</option>
+              {% for tipo in tipos_servicio %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Tipo de recurso</label>
+          </div>
+
+          <div class="input-field">
+            <select id="categoria_herramienta">
+              <option value="" disabled selected>Seleccione categoría</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Categoría</label>
+          </div>
+
+          <p>
+            <strong>Institución:</strong>
+            <span id="institucionNombre">
+              {{ institucion_usuario.nombre if institucion_usuario else 'No asociada' }}
+            </span>
+          </p>
+
+          <div class="input-field">
+            <input id="recurso_herramienta" type="url" />
+            <label for="recurso_herramienta">URL del recurso (opcional)</label>
+          </div>
+
+          <div class="input-field">
+            <select id="estado_herramienta">
+              <option value="" selected>Sin estado</option>
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
+            </select>
+            <label>Estado</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn-flat">Cancelar</button>
+        <button class="btn blue" id="btnGuardar">Guardar</button>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var modalElems = document.querySelectorAll(".modal");
+        M.Modal.init(modalElems);
+        inicializarSelects();
+        cargarHerramientas();
+
+        const tbody = document.querySelector("#tablaHerramientas tbody");
+        document
+          .getElementById("btnBuscar")
+          .addEventListener("click", cargarHerramientas);
+        document.getElementById("btnAgregar").addEventListener("click", function () {
+          document.getElementById("formHerramienta").reset();
+          herramientaEditandoId = null;
+          document.getElementById("modalTituloHerramienta").textContent =
+            "Nueva herramienta digital";
+          setTimeout(() => {
+            inicializarSelects();
+            M.updateTextFields();
+          }, 0);
+        });
+
+        document
+          .getElementById("btnGuardar")
+          .addEventListener("click", guardarHerramienta);
+        tbody.addEventListener("click", manejarAccionesTabla);
+      });
+
+      function inicializarSelects() {
+        var selectElems = document.querySelectorAll("select");
+        M.FormSelect.init(selectElems);
+      }
+
+      const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
+      const iconoEliminar = "{{ url_for('static', filename='images/delete.png') }}";
+      let herramientasCache = [];
+      let herramientaEditandoId = null;
+
+      async function cargarHerramientas() {
+        const filtroNombre = document
+          .getElementById("txtFiltro")
+          .value.trim()
+          .toLowerCase();
+        const filtroTipo = document.getElementById("filtro_tipo").value;
+        try {
+          const resp = await fetch("/herramientas_digitales/listar");
+          if (!resp.ok) {
+            throw new Error("No se pudo obtener la información");
+          }
+          const data = await resp.json();
+          herramientasCache = data;
+          const tbody = document.querySelector("#tablaHerramientas tbody");
+          tbody.innerHTML = "";
+
+          const filtrados = data.filter((item) => {
+            const coincideNombre =
+              !filtroNombre || item.nombre.toLowerCase().includes(filtroNombre);
+            const coincideTipo =
+              !filtroTipo || Number(item.tipo_servicio_id) === Number(filtroTipo);
+            return coincideNombre && coincideTipo;
+          });
+
+          if (filtrados.length === 0) {
+            const fila = document.createElement("tr");
+            fila.innerHTML = '<td colspan="8">No hay herramientas registradas.</td>';
+            tbody.appendChild(fila);
+            return;
+          }
+
+          filtrados.forEach((herramienta, index) => {
+            const fila = document.createElement("tr");
+            const estado = herramienta.estado_display || "Sin estado";
+            const recurso = herramienta.recurso
+              ? `<a href="${herramienta.recurso}" target="_blank" rel="noopener">Ver recurso</a>`
+              : "-";
+            fila.innerHTML = `
+              <td style="padding-left: 20px">${index + 1}</td>
+              <td>${herramienta.categoria || "-"}</td>
+              <td>${herramienta.tipo_servicio || "-"}</td>
+              <td>${herramienta.nombre}</td>
+              <td>${estado}</td>
+              <td>${recurso}</td>
+              <td>${herramienta.institucion || "-"}</td>
+              <td>
+                <img
+                  src="${iconoEditar}"
+                  class="icono-tabla accion-editar"
+                  data-id="${herramienta.id}"
+                  alt="Editar"
+                  title="Editar"
+                />
+                <img
+                  src="${iconoEliminar}"
+                  class="icono-tabla accion-eliminar"
+                  data-id="${herramienta.id}"
+                  alt="Eliminar"
+                  title="Eliminar"
+                />
+              </td>
+            `;
+            tbody.appendChild(fila);
+          });
+        } catch (err) {
+          M.toast({ html: err.message || "Ocurrió un error al listar las herramientas" });
+        }
+      }
+
+      async function guardarHerramienta() {
+        const nombre = document.getElementById("nombre_herramienta").value.trim();
+        const descripcion = document
+          .getElementById("descripcion_herramienta")
+          .value.trim();
+        const tipoServicio = document.getElementById("tipo_servicio_herramienta").value;
+        const categoria = document.getElementById("categoria_herramienta").value;
+        const recurso = document.getElementById("recurso_herramienta").value.trim();
+        const estado = document.getElementById("estado_herramienta").value;
+
+        const institucionTag = document.getElementById("institucionTag");
+        const institucionId = institucionTag
+          ? Number(institucionTag.dataset.institucionId || 0)
+          : 0;
+
+        const esEdicion = Boolean(herramientaEditandoId);
+
+        if (!nombre || !tipoServicio || !categoria) {
+          M.toast({ html: "Complete los campos obligatorios." });
+          return;
+        }
+
+        if (!institucionId) {
+          M.toast({ html: "No se encontró la institución asociada al usuario." });
+          return;
+        }
+
+        const payload = {
+          nombre: nombre,
+          id_tipo_servicio: Number(tipoServicio),
+          id_categoria: Number(categoria),
+          descripcion: descripcion,
+          recurso: recurso,
+          estado: estado === "" ? "" : Number(estado),
+        };
+
+        if (!esEdicion) {
+          payload.id_institucion = institucionId;
+        }
+
+        try {
+          const url = esEdicion
+            ? `/herramientas_digitales/${herramientaEditandoId}`
+            : "/herramientas_digitales/guardar";
+          const method = esEdicion ? "PUT" : "POST";
+          const resp = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const resultado = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(
+              resultado.message ||
+                (esEdicion
+                  ? "No se pudo actualizar la herramienta"
+                  : "No se pudo registrar la herramienta")
+            );
+          }
+
+          const mensajeExito = esEdicion
+            ? "Herramienta actualizada correctamente"
+            : "Herramienta registrada correctamente";
+          M.toast({ html: mensajeExito });
+          const modal = M.Modal.getInstance(document.getElementById("modalHerramienta"));
+          modal.close();
+          document.getElementById("formHerramienta").reset();
+          inicializarSelects();
+          M.updateTextFields();
+          document.getElementById("modalTituloHerramienta").textContent =
+            "Nueva herramienta digital";
+          herramientaEditandoId = null;
+          cargarHerramientas();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar la herramienta" });
+        }
+      }
+
+      function manejarAccionesTabla(event) {
+        const target = event.target;
+        if (target.classList.contains("accion-editar")) {
+          const id = Number(target.dataset.id);
+          const herramienta = herramientasCache.find(
+            (item) => Number(item.id) === id
+          );
+          if (!herramienta) {
+            M.toast({ html: "No se encontró la información de la herramienta" });
+            return;
+          }
+          abrirModalEdicion(herramienta);
+        } else if (target.classList.contains("accion-eliminar")) {
+          const id = Number(target.dataset.id);
+          eliminarHerramienta(id);
+        }
+      }
+
+      function abrirModalEdicion(herramienta) {
+        herramientaEditandoId = herramienta.id;
+        document.getElementById("modalTituloHerramienta").textContent =
+          "Editar herramienta digital";
+
+        document.getElementById("nombre_herramienta").value = herramienta.nombre || "";
+        document.getElementById("descripcion_herramienta").value =
+          herramienta.descripcion || "";
+        document.getElementById("tipo_servicio_herramienta").value =
+          herramienta.tipo_servicio_id || "";
+        document.getElementById("categoria_herramienta").value =
+          herramienta.categoria_id || "";
+        document.getElementById("recurso_herramienta").value =
+          herramienta.recurso || "";
+        document.getElementById("estado_herramienta").value =
+          herramienta.estado === null || herramienta.estado === undefined
+            ? ""
+            : herramienta.estado;
+
+        inicializarSelects();
+        M.updateTextFields();
+
+        const modal = M.Modal.getInstance(document.getElementById("modalHerramienta"));
+        modal.open();
+      }
+
+      async function eliminarHerramienta(id) {
+        const confirmar = confirm(
+          "¿Está seguro de eliminar la herramienta seleccionada?"
+        );
+        if (!confirmar) {
+          return;
+        }
+
+        try {
+          const resp = await fetch(`/herramientas_digitales/${id}`, {
+            method: "DELETE",
+          });
+          const resultado = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(
+              resultado.message || "No se pudo eliminar la herramienta"
+            );
+          }
+
+          M.toast({ html: "Herramienta eliminada correctamente" });
+          cargarHerramientas();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar la herramienta" });
+        }
+      }
+    </script>
+  </body>
+</html>
