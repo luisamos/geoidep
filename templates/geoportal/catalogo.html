@@ -1,552 +1,1191 @@
 <!DOCTYPE html>
 <html lang="es-pe">
+  <head>
+    <meta
+      content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
+      name="description"
+    />
+    <title>
+      Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales.
+    </title>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta
+      content="H5efy5u72DDgqekf6xOfjd06S-f366QEbnkpXoDqcAg"
+      name="google-site-verification"
+    />
+    <meta content="false" name="turbo-prefetch" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}"
+      media="print"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/application_print-8986f2e8.css') }}"
+      media="print"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/application-41919f8f.css') }}"
+      media="all"
+      data-turbo-track="reload"
+    />
+    <script>
+      //global object for fbjs and draftjs
+      if (typeof global === "undefined") {
+        window.global = window;
+      }
+    </script>
+    <script
+      src="{{ url_for('static', filename='js/application_base-1ff14882.js') }}"
+      data-turbo-track="reload"
+      defer="defer"
+    ></script>
+    <meta content="@gobpePCM" name="twitter:site" />
+    <meta content="@gobpePCM" name="twitter:creator" />
+    <meta
+      content="Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales."
+      name="twitter:title"
+    />
+    <meta
+      content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
+      name="twitter:description"
+    />
+    <meta content="https://www.gob.pe/idep" property="og:url" />
+    <meta content="article" property="og:type" />
+    <meta
+      content="Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales."
+      property="og:title"
+    />
+    <meta
+      content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
+      property="og:description"
+    />
+    <meta content="summary" name="twitter:card" />
+    <meta content="200" property="og:image:width" />
+    <meta content="200" property="og:image:height" />
+    <meta
+      content="https://www.gob.pe/assets/escudo-rojo-200-f4bf73f7.png"
+      property="og:image"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-57x57-42e0cdf0.png') }}"
+      sizes="57x57"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-60x60-5474857c.png') }}"
+      sizes="60x60"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-72x72-23a18d8b.png') }}"
+      sizes="72x72"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-76x76-6deed722.png') }}"
+      sizes="76x76"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-114x114-952c16d1.png') }}"
+      sizes="114x114"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-120x120-09c0093c.png') }}"
+      sizes="120x120"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-144x144-cfa8302f.png') }}"
+      sizes="144x144"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-152x152-657ce405.png') }}"
+      sizes="152x152"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/apple-icon-180x180-f85c0fca.png') }}"
+      sizes="180x180"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/android-icon-192x192-ec1dea24.png') }}"
+      sizes="192x192"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='images/favicon-1760a09d.ico') }}"
+    />
+  </head>
 
-<head>
-	<meta
-		content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
-		name="description" />
-	<title>Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales.
-	</title>
-	<meta charset="UTF-8" />
-	<meta content="width=device-width, initial-scale=1" name="viewport" />
-	<meta content="H5efy5u72DDgqekf6xOfjd06S-f366QEbnkpXoDqcAg" name="google-site-verification" />
-	<meta content="false" name="turbo-prefetch" />
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}" />
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/application_base-9d9deb51.css') }}" media="print" />
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/application_print-8986f2e8.css') }}"
-		media="print" />
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/application-41919f8f.css') }}" media="all"
-		data-turbo-track="reload" />
-	<script>//global object for fbjs and draftjs
-		if (typeof global === 'undefined') {
-			window.global = window;
-		}</script>
-	<script src="{{ url_for('static', filename='js/application_base-1ff14882.js') }}" data-turbo-track="reload"
-		defer="defer"></script>
-	<meta content="@gobpePCM" name="twitter:site" />
-	<meta content="@gobpePCM" name="twitter:creator" />
-	<meta content="Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales." name="twitter:title" />
-	<meta
-		content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
-		name="twitter:description" />
-	<meta content="https://www.gob.pe/idep" property="og:url" />
-	<meta content="article" property="og:type" />
-	<meta content="Catálogo Nacional de Servicios Web - Infraestructura de Datos Espaciales." property="og:title" />
-	<meta
-		content="El Catálogo Nacional de Servicios Web de Información Georreferenciada es el Registro de los servicios web que son administrados y mantenidos por las entidades públicas productoras de información, con el objeto de compartir e intercambiar datos mediante servicios interoperables."
-		property="og:description" />
-	<meta content="summary" name="twitter:card" />
-	<meta content="200" property="og:image:width" />
-	<meta content="200" property="og:image:height" />
-	<meta content="https://www.gob.pe/assets/escudo-rojo-200-f4bf73f7.png" property="og:image" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-57x57-42e0cdf0.png') }}" sizes="57x57" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-60x60-5474857c.png') }}" sizes="60x60" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-72x72-23a18d8b.png') }}" sizes="72x72" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-76x76-6deed722.png') }}" sizes="76x76" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-114x114-952c16d1.png') }}" sizes="114x114" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-120x120-09c0093c.png') }}" sizes="120x120" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-144x144-cfa8302f.png') }}" sizes="144x144" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-152x152-657ce405.png') }}" sizes="152x152" />
-	<link rel="apple-touch-icon" type="image/x-icon"
-		href="{{ url_for('static', filename='images/apple-icon-180x180-f85c0fca.png') }}" sizes="180x180" />
-	<link rel="icon" type="image/png"
-		href="{{ url_for('static', filename='images/android-icon-192x192-ec1dea24.png') }}" sizes="192x192" />
-	<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon-1760a09d.ico') }}" />
-</head>
+  <body>
+    <a
+      class="sr-only focus:not-sr-only text-primary underline p-4!"
+      href="#main"
+      >Saltar a contenido principal</a
+    >
+    <div class="nothing"></div>
+    <header aria-label="Header" class="home bg-white shadow">
+      <div class="container align-center relative">
+        <div class="header__content w-full">
+          <div class="header__half flex-align-center">
+            <a
+              class="logo black home__logo track-ga-interaction no-underline!"
+              data-ga-element-type="icono-principal"
+              data-ga-label="Logo gob.pe"
+              href="/"
+            >
+              <div class="home__logo__img_shield--small js-escudo md:hidden">
+                <img
+                  height="40rem"
+                  alt="Logotipo de gob.pe"
+                  class="h-10"
+                  role="img"
+                  src="{{ url_for('static', filename='images/escudo_rojo_bicentenario-785637cc.svg') }}"
+                />
+              </div>
+              <div
+                aria-label="Logo gob.pe"
+                class="home__logo__img--small"
+                role="img"
+              >
+                <img
+                  alt="Logo gob.pe"
+                  class="img-logo"
+                  height="40rem"
+                  src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg') }}"
+                /><img
+                  alt="Logo gob.pe"
+                  class="d-none img-logo-focus"
+                  src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_black-b62ef1cc.svg') }}"
+                />
+              </div>
+            </a>
+          </div>
+          <div class="w-220 md:w-310">
+            <div class="search-internal">
+              <form
+                autocomplete="off"
+                role="search"
+                data-controller=""
+                action="/busquedas"
+                accept-charset="UTF-8"
+                method="get"
+              >
+                <div class="input-group no-print relative">
+                  <label class="visually-hidden" for="input-search-home-gobpe"
+                    >Texto de búsqueda en gob.pe</label
+                  ><input
+                    id="input-search-home-gobpe"
+                    placeholder="Buscar en gob.pe"
+                    class="search search_autocomplete h-14 rounded-lg border-2 border-gray-900 focus:border-transparent track-ga-search"
+                    data-url="https://www.gob.pe/searches_autocomplete.json"
+                    data-institution-id=""
+                    data-target=""
+                    data-ga-label="buscador-Catálogos"
+                    data-ga-element-type="buscador"
+                    type="search"
+                    name="term"
+                  /><input
+                    value=""
+                    autocomplete="off"
+                    type="hidden"
+                    name="institucion"
+                    id="institucion"
+                  /><input
+                    autocomplete="off"
+                    type="hidden"
+                    name="topic_id"
+                    id="topic_id"
+                  /><input
+                    value=""
+                    autocomplete="off"
+                    type="hidden"
+                    name="contenido"
+                    id="contenido"
+                  /><input
+                    value="none"
+                    autocomplete="off"
+                    type="hidden"
+                    name="sort_by"
+                    id="sort_by"
+                  /><button
+                    aria-label="Buscar"
+                    class="submit bg-gray-900 border-0 absolute inset-y-0 right-0 m-2 cursor-pointer p-2 rounded"
+                    disabled="true"
+                    id="btn-search-home-gobpe"
+                    type="submit"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="32"
+                      height="32"
+                      viewBox="0 0 32 32"
+                      fill="none"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        d="M21.0086 18.2075H20.06L19.7238 17.8834C20.9005 16.5146 21.6089 14.7376 21.6089 12.8045C21.6089 8.494 18.1149 5 13.8045 5C9.494 5 6 8.494 6 12.8045C6 17.1149 9.494 20.6089 13.8045 20.6089C15.7376 20.6089 17.5146 19.9005 18.8834 18.7238L19.2075 19.06V20.0086L25.211 26L27 24.211L21.0086 18.2075ZM13.8045 18.2075C10.8148 18.2075 8.40137 15.7942 8.40137 12.8045C8.40137 9.81475 10.8148 7.40137 13.8045 7.40137C16.7942 7.40137 19.2075 9.81475 19.2075 12.8045C19.2075 15.7942 16.7942 18.2075 13.8045 18.2075Z"
+                        fill="white"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="react-modal"></div>
+    <div class="js-breadcrumb-full-width text-sm bg-white">
+      <div class="container md:max-w-6xl mx-auto px-4">
+        <div class="row">
+          <nav aria-label="Ruta de páginas" class="col-md-12 px-4">
+            <ol class="breadcrumb font-bold">
+              <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                <a
+                  aria-label="Inicio Gob.pe"
+                  class="track-ga-interaction"
+                  data-ga-element-type="link"
+                  data-ga-label="inicio"
+                  href="/"
+                >
+                  <div class="home__logo__img__breadcrumb" id="home">
+                    Inicio
+                  </div>
+                  <div class="home__logo__img__breadcrumb hidden" id="escudo">
+                    <div class="mr-2">
+                      <img
+                        alt="gob.pe"
+                        class="h-8"
+                        height="32rem"
+                        src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario-4656b576.svg') }}"
+                      />
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li class="breadcrumb-item">
+                <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                    ></path></svg></span
+                ><span class="hidden-lg-up mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="m 10.1,1.9 -6.2,6.2 6.2,6.3 -2,1.9 L 0,8.2 8.1,0 Z"
+                    ></path></svg></span
+                ><a
+                  class="track-ga-interaction font-bold"
+                  data-ga-element-type="link"
+                  data-ga-label="El Estado"
+                  href="/estado"
+                  >El Estado</a
+                >
+              </li>
+              <li class="breadcrumb-item">
+                <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                    ></path></svg></span
+                ><span class="hidden-lg-up mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="m 10.1,1.9 -6.2,6.2 6.2,6.3 -2,1.9 L 0,8.2 8.1,0 Z"
+                    ></path></svg></span
+                ><a
+                  class="track-ga-interaction font-bold"
+                  data-ga-element-type="link"
+                  data-ga-label="El Estado"
+                  href="/"
+                  >Infraestructura de Datos Espaciales del Perú (IDEP)</a
+                >
+              </li>
 
-<body>
-	<a class="sr-only focus:not-sr-only text-primary underline p-4!" href="#main">Saltar a contenido principal</a>
-	<div class="nothing"></div>
-	<header aria-label="Header" class="home bg-white shadow">
-		<div class="container align-center relative">
-			<div class="header__content w-full">
-				<div class="header__half flex-align-center"><a
-						class="logo black home__logo track-ga-interaction no-underline!"
-						data-ga-element-type="icono-principal" data-ga-label="Logo gob.pe" href="/">
-						<div class="home__logo__img_shield--small js-escudo md:hidden"><img height="40rem"
-								alt="Logotipo de gob.pe" class="h-10" role="img"
-								src="{{ url_for('static', filename='images/escudo_rojo_bicentenario-785637cc.svg') }}" />
-						</div>
-						<div aria-label="Logo gob.pe" class="home__logo__img--small" role="img"><img alt="Logo gob.pe"
-								class="img-logo" height="40rem"
-								src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg') }}" /><img
-								alt="Logo gob.pe" class="d-none img-logo-focus"
-								src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario_black-b62ef1cc.svg') }}" />
-						</div>
-					</a></div>
-				<div class="w-220 md:w-310">
-					<div class="search-internal">
-						<form autocomplete="off" role="search" data-controller="" action="/busquedas"
-							accept-charset="UTF-8" method="get">
-							<div class="input-group no-print relative"><label class="visually-hidden"
-									for="input-search-home-gobpe">Texto de búsqueda en gob.pe</label><input
-									id="input-search-home-gobpe" placeholder="Buscar en gob.pe"
-									class="search search_autocomplete h-14 rounded-lg border-2 border-gray-900 focus:border-transparent track-ga-search"
-									data-url="https://www.gob.pe/searches_autocomplete.json" data-institution-id=""
-									data-target="" data-ga-label="buscador-Catálogos" data-ga-element-type="buscador"
-									type="search" name="term" /><input value="" autocomplete="off" type="hidden"
-									name="institucion" id="institucion" /><input autocomplete="off" type="hidden"
-									name="topic_id" id="topic_id" /><input value="" autocomplete="off" type="hidden"
-									name="contenido" id="contenido" /><input value="none" autocomplete="off"
-									type="hidden" name="sort_by" id="sort_by" /><button aria-label="Buscar"
-									class="submit bg-gray-900 border-0 absolute inset-y-0 right-0 m-2 cursor-pointer p-2 rounded"
-									disabled="true" id="btn-search-home-gobpe" type="submit"><svg
-										xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"
-										fill="none" class="w-6 h-6">
-										<path
-											d="M21.0086 18.2075H20.06L19.7238 17.8834C20.9005 16.5146 21.6089 14.7376 21.6089 12.8045C21.6089 8.494 18.1149 5 13.8045 5C9.494 5 6 8.494 6 12.8045C6 17.1149 9.494 20.6089 13.8045 20.6089C15.7376 20.6089 17.5146 19.9005 18.8834 18.7238L19.2075 19.06V20.0086L25.211 26L27 24.211L21.0086 18.2075ZM13.8045 18.2075C10.8148 18.2075 8.40137 15.7942 8.40137 12.8045C8.40137 9.81475 10.8148 7.40137 13.8045 7.40137C16.7942 7.40137 19.2075 9.81475 19.2075 12.8045C19.2075 15.7942 16.7942 18.2075 13.8045 18.2075Z"
-											fill="white"></path>
-									</svg></button></div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
-	</header>
-	<div class="react-modal"></div>
-	<div class="js-breadcrumb-full-width text-sm bg-white">
-		<div class="container md:max-w-6xl mx-auto px-4">
-			<div class="row">
-				<nav aria-label="Ruta de páginas" class="col-md-12 px-4">
-					<ol class="breadcrumb font-bold">
-						<li class="breadcrumb-item hidden-sm-down hidden-md-down"><a aria-label="Inicio Gob.pe"
-								class="track-ga-interaction" data-ga-element-type="link" data-ga-label="inicio"
-								href="/">
-								<div class="home__logo__img__breadcrumb" id="home">Inicio</div>
-								<div class="home__logo__img__breadcrumb hidden" id="escudo">
-									<div class="mr-2"><img alt="gob.pe" class="h-8" height="32rem"
-											src="{{ url_for('static', filename='images/escudo_text_gobpe_bicentenario-4656b576.svg') }}" />
-									</div>
-								</div>
-							</a></li>
-						<li class="breadcrumb-item"><span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"><svg
-									xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-									version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-									style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-									height="16.3" aria-hidden="true" class="w-2">
-									<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-									</path>
-								</svg></span><span class="hidden-lg-up mx-1 md:mx-3"><svg
-									xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-									version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-									style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-									height="16.3" aria-hidden="true" class="w-2">
-									<path fill="currentColor" d="m 10.1,1.9 -6.2,6.2 6.2,6.3 -2,1.9 L 0,8.2 8.1,0 Z">
-									</path>
-								</svg></span><a class="track-ga-interaction font-bold" data-ga-element-type="link"
-								data-ga-label="El Estado" href="/estado">El Estado</a></li>
-						<li class="breadcrumb-item"><span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"><svg
-									xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-									version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-									style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-									height="16.3" aria-hidden="true" class="w-2">
-									<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-									</path>
-								</svg></span><span class="hidden-lg-up mx-1 md:mx-3"><svg
-									xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-									version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-									style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-									height="16.3" aria-hidden="true" class="w-2">
-									<path fill="currentColor" d="m 10.1,1.9 -6.2,6.2 6.2,6.3 -2,1.9 L 0,8.2 8.1,0 Z">
-									</path>
-								</svg></span><a class="track-ga-interaction font-bold" data-ga-element-type="link"
-								data-ga-label="El Estado" href="/">Infraestructura de Datos Espaciales del Perú
-								(IDEP)</a></li>
+              <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                    ></path></svg></span
+                ><a aria-current="page"
+                  >Catálogo Nacional de Servicios Georeferenciados</a
+                >
+              </li>
+            </ol>
+          </nav>
+          <div class="searchbox">
+            <div class="search-breadcrumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main
+      aria-label="Contenido principal"
+      role="main"
+      id="main"
+      class="yield js-sharect"
+    >
+      <div class="catalogs-show">
+        <div class="container bg-white py-8" data-sticky-container="">
+          <div class="flex flex-col md:flex-row">
+            <div class="description flex-1">
+              <h1 class="text-4xl mb-4">
+                Catálogo Nacional de Servicios Georeferenciados
+              </h1>
+              <p>
+                Es el Registro de los servicios web que son administrados y
+                mantenidos por las entidades públicas productoras de
+                información, con el objeto de compartir e intercambiar datos
+                mediante servicios interoperables. Este Catálogo ha sido creado
+                en el marco de la implementación del Decreto Supremo
+                133-2013-PCM, norma que establece el acceso e intercambio de
+                datos georreferenciados entre entidades de la administración
+                pública.
+              </p>
+            </div>
+            <div class="image flex-1">
+              <img
+                alt="Catálogo Nacional de Servicios Georeferenciados"
+                class="h-auto w-full block m-auto rounded-lg"
+                src="{{ url_for('static', filename='images/catalogo.png') }}"
+              />
+            </div>
+          </div>
+        </div>
+        <section aria-labelledby="search_label" class="py-12 bg-indigo-50">
+          <div class="container md:max-w-6xl">
+            <div class="flex justify-between items-center flex-col md:flex-row">
+              <h2 class="text-3xl font-bold mb-6">¿Qué necesitas?</h2>
+            </div>
+            <div
+              class="cards grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8"
+            >
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Geoportales de entidades públicas"
+                href="{{ url_for('geoportal.catalogo_por_tipo', slug='geoportales') }}"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="65"
+                      height="65"
+                      viewBox="0 0 65 65"
+                    >
+                      <image
+                        href="data:image/png;base64,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"
+                        x="0"
+                        y="0"
+                        width="65"
+                        height="65"
+                      />
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Geoportales de entidades públicas
+                    </p>
+                    <div class="card-description">
+                      <p id="6rqhe">
+                        Portales públicos que comparten información geográfica y
+                        servicios especializados.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Servicio de visualización de mapas"
+                href="/catalogos/servicios_ogc_wms"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 96 96"
+                      width="65"
+                      height="65"
+                      role="img"
+                      aria-label="WMS - Material Design small magnifier"
+                    >
+                      <defs>
+                        <filter
+                          id="dp2"
+                          x="-20%"
+                          y="-20%"
+                          width="140%"
+                          height="140%"
+                        >
+                          <feOffset dx="0" dy="1" />
+                          <feGaussianBlur stdDeviation="1.2" result="blur" />
+                          <feColorMatrix
+                            type="matrix"
+                            values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0"
+                          />
+                          <feBlend
+                            in="SourceGraphic"
+                            in2="blur"
+                            mode="normal"
+                          />
+                        </filter>
+                      </defs>
 
-						<li class="breadcrumb-item hidden-sm-down hidden-md-down"><span
-								class="hidden-sm-down hidden-md-down mx-1 md:mx-3"><svg
-									xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-									version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-									style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-									height="16.3" aria-hidden="true" class="w-2">
-									<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-									</path>
-								</svg></span><a aria-current="page">Catálogo Nacional de Servicios Georeferenciados</a>
-						</li>
-					</ol>
-				</nav>
-				<div class="searchbox">
-					<div class="search-breadcrumb"></div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<main aria-label="Contenido principal" role="main" id="main" class="yield js-sharect ">
-		<div class="catalogs-show">
-			<div class="container bg-white py-8" data-sticky-container="">
-				<div class="flex flex-col md:flex-row">
-					<div class="description flex-1">
-						<h1 class="text-4xl mb-4">Catálogo Nacional de Servicios Georeferenciados</h1>
-						<p>Es el Registro de los servicios web que son administrados y mantenidos por las entidades
-							públicas productoras de información, con el objeto de compartir e intercambiar datos
-							mediante servicios interoperables.
+                      <rect
+                        x="8"
+                        y="8"
+                        width="80"
+                        height="80"
+                        rx="18"
+                        fill="#FFFFFF"
+                        filter="url(#dp2)"
+                      />
 
-							Este Catálogo ha sido creado en el marco de la implementación del Decreto Supremo
-							133-2013-PCM, norma que establece el acceso e intercambio de datos georreferenciados entre
-							entidades de la administración pública.</p>
-					</div>
-					<div class="image flex-1"><img alt="Catálogo Nacional de Servicios Georeferenciados"
-							class="h-auto w-full block m-auto rounded-lg"
-							src="{{ url_for('static', filename='images/catalogo.png') }}" /></div>
-				</div>
-			</div>
-			<section aria-labelledby="search_label" class="py-12 bg-indigo-50">
-				<div class="container md:max-w-6xl">
-					<div class="flex justify-between items-center flex-col md:flex-row">
-						<h2 class="text-3xl font-bold mb-6">¿Qué necesitas?</h2>
-					</div>
-					<div class="cards grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Geoportales de entidades públicas"
-							href="{{ url_for('geoportal.catalogo_por_tipo', slug='geoportales') }}">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg"
-										width="65" height="65" viewBox="0 0 65 65">
-										<image
-											href="data:image/png;base64,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"
-											x="0" y="0" width="65" height="65" />
-									</svg>
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Geoportales de entidades públicas</p>
-									<div class="card-description">
-										<p id="6rqhe">Portales públicos que comparten información geográfica y servicios
-											especializados.</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Servicio de visualización de mapas"
-							href="/catalogos/servicios_ogc_wms">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="65" height="65"
-										role="img" aria-label="WMS - Material Design small magnifier">
-										<defs>
-											<filter id="dp2" x="-20%" y="-20%" width="140%" height="140%">
-												<feOffset dx="0" dy="1" />
-												<feGaussianBlur stdDeviation="1.2" result="blur" />
-												<feColorMatrix type="matrix"
-													values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0" />
-												<feBlend in="SourceGraphic" in2="blur" mode="normal" />
-											</filter>
-										</defs>
+                      <!-- Location pin -->
+                      <g transform="translate(22,18)">
+                        <path
+                          d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
+                          fill="#E53935"
+                        />
+                        <circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
+                      </g>
 
-										<rect x="8" y="8" width="80" height="80" rx="18" fill="#FFFFFF"
-											filter="url(#dp2)" />
+                      <!-- Smaller magnifier -->
+                      <g transform="translate(8,8)">
+                        <circle
+                          cx="52"
+                          cy="46"
+                          r="9"
+                          fill="#FFFFFF"
+                          stroke="#E0E0E0"
+                          stroke-width="3"
+                        />
+                        <rect
+                          x="58"
+                          y="52"
+                          width="12"
+                          height="4"
+                          rx="2"
+                          transform="rotate(45 58 52)"
+                          fill="#424242"
+                        />
+                      </g>
 
-										<!-- Location pin -->
-										<g transform="translate(22,18)">
-											<path
-												d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
-												fill="#E53935" />
-											<circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
-										</g>
+                      <circle
+                        cx="48"
+                        cy="31"
+                        r="1.6"
+                        fill="#FFFFFF"
+                        opacity="0.9"
+                      />
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Servicio de visualización de mapas
+                    </p>
+                    <div class="card-description">
+                      <p id="94a1v">
+                        El servicio OGC: WMS permite visualizar mapas en un
+                        visor o un software de Sistema de Información Geográfica
+                        - GIS.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Educación"
+                href="/catalogos/servicios_ogc_wfs"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 96 96"
+                      width="65"
+                      height="65"
+                      role="img"
+                      aria-label="WMS - Material Design download"
+                    >
+                      <defs>
+                        <filter
+                          id="dp2"
+                          x="-20%"
+                          y="-20%"
+                          width="140%"
+                          height="140%"
+                        >
+                          <feOffset dx="0" dy="1" />
+                          <feGaussianBlur stdDeviation="1.2" result="blur" />
+                          <feColorMatrix
+                            type="matrix"
+                            values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0"
+                          />
+                          <feBlend
+                            in="SourceGraphic"
+                            in2="blur"
+                            mode="normal"
+                          />
+                        </filter>
+                      </defs>
 
-										<!-- Smaller magnifier -->
-										<g transform="translate(8,8)">
-											<circle cx="52" cy="46" r="9" fill="#FFFFFF" stroke="#E0E0E0"
-												stroke-width="3" />
-											<rect x="58" y="52" width="12" height="4" rx="2"
-												transform="rotate(45 58 52)" fill="#424242" />
-										</g>
+                      <rect
+                        x="8"
+                        y="8"
+                        width="80"
+                        height="80"
+                        rx="18"
+                        fill="#FFFFFF"
+                        filter="url(#dp2)"
+                      />
 
-										<circle cx="48" cy="31" r="1.6" fill="#FFFFFF" opacity="0.9" />
-									</svg>
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Servicio de visualización de mapas</p>
-									<div class="card-description">
-										<p id="94a1v">El servicio OGC: WMS permite visualizar mapas en un visor o un
-											software de Sistema de Información Geográfica - GIS.</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Educación" href="/catalogos/servicios_ogc_wfs">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="65" height="65"
-										role="img" aria-label="WMS - Material Design download">
-										<defs>
-											<filter id="dp2" x="-20%" y="-20%" width="140%" height="140%">
-												<feOffset dx="0" dy="1" />
-												<feGaussianBlur stdDeviation="1.2" result="blur" />
-												<feColorMatrix type="matrix"
-													values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0" />
-												<feBlend in="SourceGraphic" in2="blur" mode="normal" />
-											</filter>
-										</defs>
+                      <!-- Pin de ubicación -->
+                      <g transform="translate(22,18)">
+                        <path
+                          d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
+                          fill="#E53935"
+                        />
+                        <circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
+                      </g>
 
-										<rect x="8" y="8" width="80" height="80" rx="18" fill="#FFFFFF"
-											filter="url(#dp2)" />
+                      <!-- Reemplazo: icono de descarga dentro de un badge -->
+                      <g transform="translate(8,8)">
+                        <!-- Badge circular -->
+                        <circle
+                          cx="52"
+                          cy="46"
+                          r="9"
+                          fill="#FFFFFF"
+                          stroke="#E0E0E0"
+                          stroke-width="3"
+                        />
+                        <!-- Flecha de descarga (Material-like) -->
+                        <g transform="translate(52,46)">
+                          <!-- Tallo -->
+                          <path
+                            d="M0 -5 V4"
+                            stroke="#424242"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                          />
+                          <!-- Cabeza de flecha -->
+                          <path
+                            d="M-4 1 L0 5 L4 1"
+                            fill="none"
+                            stroke="#424242"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                          <!-- Línea base -->
+                          <line
+                            x1="-6"
+                            y1="8"
+                            x2="6"
+                            y2="8"
+                            stroke="#424242"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                          />
+                        </g>
+                      </g>
 
-										<!-- Pin de ubicación -->
-										<g transform="translate(22,18)">
-											<path
-												d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
-												fill="#E53935" />
-											<circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
-										</g>
+                      <circle
+                        cx="48"
+                        cy="31"
+                        r="1.6"
+                        fill="#FFFFFF"
+                        opacity="0.9"
+                      />
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Servicio de descarga por la web
+                    </p>
+                    <div class="card-description">
+                      <p id="2ndun">
+                        El servicio OGC: WFS permite la descarga de datos
+                        vectoriales a través de la web. Los formatos compatibles
+                        son GML, geoJson, ShapeFile.
+                      </p>
+                      <p id="6vles"></p>
+                      <p id="bru8p"></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Gobiernos regionales y municipalidades"
+                href="/catalogos/visores"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="65"
+                      height="65"
+                      viewBox="0 0 65 65"
+                      role="img"
+                      aria-label="Monitor con mapa incrustado"
+                    >
+                      <image
+                        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAABBCAYAAACO98lFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAACZ1JREFUeNrsW2doVNsWXimmGI0tsQeN3di7xB5Fsfzw+Ufwh/hLEcUnosJFBX/ZFQv2xsOGvcSuaKxRsQZrFIzXFjX2kklist73rTtnGLx53EzIy9zHOxs2M3Nmn332+ta3vrX2ziREVeX/vYWK21wQXBBcEFwQXBBcEFwQXBBcEFwQXBBcEFwQXBACaOGBDA4JCckKDw+PxmthScYXFBTwHomIiLDPRUVFf/ZCaKjwTCM/P98+V6hQobjn2qv/2QfehxQWFr7HnK3LFQQssMGIESOkYcOG4vF4BICYgTSWnQbZpLhOg0+cOCF3796Vjh07SkpKihnqAEODOC4qKkpOnjwp165dk3bt2snAgQNtjp8/f9oYjo2OjrZrubm5Nm9kZKS8e/dO9uzZE1MmVOCDStpjY2P10qVL6t++fPmiAMTeY4HWnXb58mVt27atNmnSRM+cOeO7DgN970+fPq2tWrXSHj166JUrV3zX4WXf+5ycHM3KyrJrzvyPHz/WhISEd4Gs/z/1gAZXrlxZDx48qPCofvv2TXfu3KkDBgzQ7du3Kzysr169sv7ixQvNzs62xV69elVbtGih8Kbu2LHD7nv//r0Bt23bNgUTFJ7VQ4cO2fiXL1/q8+fPbR4+B0zSfv366eDBgw0IAsI50tPTtV69emUCQkDCSCqSwoxbeFAmTZokYIbUqFHDrsNTvjgnnQGEdO3aVTZv3mwhNHbsWDl8+LBUqlRJ9u7dKxMnTpSaNWva/Rzz5MkTqV69uoSFhUlcXJw8ffrUxly4cMHmiYmJsWc42lBm56OBhsO5c+c0LS1N69evb16sW7eurly5UvPy8vTjx4/GAocR9Cpf2S5evKht2rSh93TGjBkKY+0zPbpixQoFcNq7d2+jOduDBw+MAbw+d+5c/f79uzGILCETGGp4dvmHA7yjM2fO1KZNm1rftGmTDh06lO7QRYsWGX0/f/78JyD4me3GjRsKr9v4Tp06GdXZvn79qvPmzVOIoA4aNMh0YsiQIT4AIIg2rzNXUEFg7IKqBsCpU6fMgIyMDO3cubMZtnjxYmOEPxB8hZIbQNSTatWqKbKFnj171q5zLMWVrzSY2kHtIWPIEGoHGeYAEHQm0FCKHFKaKfWbN29MEO/fv6/du3c3IBYsWGAG07Bnz54ZhdkoggwnpEG9efOmAcJ7KKpsNIyMWLhwoUJftHHjxr7QoPEE4cOHDya4HEcQykoYAxpML23cuNEWxsXQK04WePTokQ8Ihsbbt2/106dP9h2zAgFo3ry5aQPb8ePHzdvx8fF64MABHxCkPkODz+rfv7/Ny5RKw/mdkx2CBkKVKlUs5ZHy/nQnEMzf9+7d0+TkZANi69atZtiuXbuU95FB58+ft3sdbzL2GzRooNSa/fv32/gfP35YnzNnjs3Ts2dPewbT4+TJk3XLli0WIqwpghIOSFG+xTrK7wDx+vVr8xgXN2HCBPMUx1atWlWbNWtmADBMCADvdXSCRRSLKQLBEHGAoNfnz5+vSMeKKtLqEYLCTETA6YyggED1JuVv3bplWlBcOqQWsDHWCUBSUpJev37dxlNDnHF8Ja2dqpGMYGgQCOoNUyJBnT17thnPztTKECSbgiaMzAxOert9+7Z5ksY4nUbSS6jprQ5gOczY53dUf38Q6GmCOXz4cF2yZImiIDIgUDz5NIK6MmzYMHsmUzOFkT2o2YGeQgVnC6XKEwh6i94hvelBMsDRAGoEDWrUqJGpPr3rCCaLIcY7BXD9+vU+sSQQzAyoIHX06NE+BjDLMFUGPUXSOFaLu3fvVuwetX379nrnzh3zvgMAczyzAD3LxvRJsWR1ybxP0AhAhw4dtGLFirp8+XIziiBSC1h/tGzZUqk/ZBN1gaARhL9FsYSaX48ePWqGMFWyeGJo0FCKINMgGcA0SLpz0XzNzMzUvn37GhBr16414KgtTKWMbwJA48gSagc1IjEx0ebft2+fgemEUtBBoJe52+PCmeJYNteuXdsWzBBp3bq1AcDvmS0crWBKe/jwodGf3l+2bJnle3qXAPiLJY0lq/yzBjZbBibn/G+EQ8DHazzk4E6OhyMjR46UUaNG2W4PGypBbEu3bt0EsWs7To5lh7GCwkbAAvseii/IArab5G7Tf25+BkDSp08fWbdunaDMlnHjxsmRI0foBNth+p82BeWM0ZslbBHcDnMLjN2grFq1Srp06WIGECT/RfI9soNA8ATVoH0/fvx4Wb16tYAZtg3/FQiEhvTq1UvWrFkjSLU2/tixY3aqxOeX5c+MQgMFgGcJXDQ9iaJIEhISjAHYRAmo7DtT+GXPYV4EnWXp0qV2rU6dOgKhFOiJMYLM8R/Pz/5AQJQF+xJjFYEI2kErPcAzQXpkypQpAhE0b0IcjQFcnD8D/LTEAJo+fbogDQpSnmALLunp6VKrVi0bw3mLozi0R/qnpMiGDRsMRALG8TzbLKuQCPSgVVJTUwWZQBolJtrCkA7lAzTACZFfmUO681B02rRpgppBZs2aJVOnTrVD15ZJSeLJzRVPXp4v1otjHzUG2cTGEBQe8jp6UxYtJJDYYspyjsZ7Dx4syVhYNrxjJXXxKmqeu3H9uqSnpUlMXJyMHjNGCmF0LgwJ855Oc5z8xTpsnV6jefqcA2YdT03NASjx5QpCKPYODbGAWFD3C8BABShhf6Uj6FEw1jIBjPDwHghfLuOeCyjNovk3DfQPIjk/VePLNRyiQcffQOFkePQ9aKwlNIIeZ6fYfQN4CjBqIKa/M4sEuGACFwthzkRY/DMjo/w1geStCyY0hdDFUQRLmlW8PQYg/isrS85CIyY1aSKdAeZ3vzqhpCBUA4CFALVCaGj5g2B/WoM3PfCgpxReDPd6MQ2pLx4gdkIhlMcj9ABB8AA4D1NqkP4WKZFAn2HhYTYoxQP/gcqyJgCogPsLmRrDwgJmAp8f9YdIFpY7CPlAf/vvv8tVpCxPgDR2woLaUBVsKAAAJ7OzfUIXyBwELhvZ5WtBQa1yT5FgwlXEYXRYSEhRKcvWItwVC6MTMdcLTPIG7yO9tgUMKEIzD3N0K29NGIMHRxeUnoZkczv0degb0HeR3aUBwUug/GAI44OyYJ/X6Ez0R/9zP9IohbGR3mc4niaDnOKmijfrVvR+z/EUGk95gxCoJgQydwf05eiJfipu5QJ6HPqnP4o+nyOYJl6i/4Z+JpCd7d+ZCVxdhNfoH37Xc71hEP2LHkQE6zdUIe7/QLm/XnNBcEFwQXBBcEFwQXBBcEFwQXBBcEEoWfu3AAMAjW94apVFDNQAAAAASUVORK5CYII="
+                        x="0"
+                        y="0"
+                        width="65"
+                        height="65"
+                      />
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Visores de mapas institucionales
+                    </p>
+                    <div class="card-description">
+                      <p id="c425a">
+                        Visores de mapas interactivos mantenidos por las
+                        entidades públicas.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Servicio Rest"
+                href="/catalogos/servicios_rest"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 96 96"
+                      width="65"
+                      height="65"
+                      role="img"
+                      aria-label="WMS - Material Design cloud"
+                    >
+                      <defs>
+                        <filter
+                          id="dp2"
+                          x="-20%"
+                          y="-20%"
+                          width="140%"
+                          height="140%"
+                        >
+                          <feOffset dx="0" dy="1" />
+                          <feGaussianBlur stdDeviation="1.2" result="blur" />
+                          <feColorMatrix
+                            type="matrix"
+                            values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0"
+                          />
+                          <feBlend
+                            in="SourceGraphic"
+                            in2="blur"
+                            mode="normal"
+                          />
+                        </filter>
+                      </defs>
 
-										<!-- Reemplazo: icono de descarga dentro de un badge -->
-										<g transform="translate(8,8)">
-											<!-- Badge circular -->
-											<circle cx="52" cy="46" r="9" fill="#FFFFFF" stroke="#E0E0E0"
-												stroke-width="3" />
-											<!-- Flecha de descarga (Material-like) -->
-											<g transform="translate(52,46)">
-												<!-- Tallo -->
-												<path d="M0 -5 V4" stroke="#424242" stroke-width="3"
-													stroke-linecap="round" />
-												<!-- Cabeza de flecha -->
-												<path d="M-4 1 L0 5 L4 1" fill="none" stroke="#424242" stroke-width="3"
-													stroke-linecap="round" stroke-linejoin="round" />
-												<!-- Línea base -->
-												<line x1="-6" y1="8" x2="6" y2="8" stroke="#424242" stroke-width="3"
-													stroke-linecap="round" />
-											</g>
-										</g>
+                      <!-- Fondo -->
+                      <rect
+                        x="8"
+                        y="8"
+                        width="80"
+                        height="80"
+                        rx="18"
+                        fill="#FFFFFF"
+                        filter="url(#dp2)"
+                      />
 
-										<circle cx="48" cy="31" r="1.6" fill="#FFFFFF" opacity="0.9" />
-									</svg>
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Servicio de descarga por la web</p>
-									<div class="card-description">
-										<p id="2ndun">El servicio OGC: WFS permite la descarga de datos vectoriales a
-											través de la web. Los formatos compatibles son
-											GML, geoJson, ShapeFile.</p>
-										<p id="6vles"></p>
-										<p id="bru8p"></p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Gobiernos regionales y municipalidades"
-							href="/catalogos/visores">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg" 
-										width="65" height="65" viewBox="0 0 65 65" 
-										role="img" aria-label="Monitor con mapa incrustado">
-										<image 
-										href="data:image/png;base64,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"
-										x="0" y="0" width="65" height="65"/>
-									</svg>
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Visores de mapas institucionales
-									</p>
-									<div class="card-description">
-										<p id="c425a">Visores de mapas interactivos mantenidos por las entidades
-											públicas.</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Servicio Rest"
-							href="/catalogos/servicios_rest">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="65" height="65"
-										role="img" aria-label="WMS - Material Design cloud">
-									<defs>
-										<filter id="dp2" x="-20%" y="-20%" width="140%" height="140%">
-										<feOffset dx="0" dy="1" />
-										<feGaussianBlur stdDeviation="1.2" result="blur" />
-										<feColorMatrix type="matrix"
-											values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.20 0" />
-										<feBlend in="SourceGraphic" in2="blur" mode="normal" />
-										</filter>
-									</defs>
+                      <!-- Pin de ubicación -->
+                      <g transform="translate(22,18)">
+                        <path
+                          d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
+                          fill="#E53935"
+                        />
+                        <circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
+                      </g>
 
-									<!-- Fondo -->
-									<rect x="8" y="8" width="80" height="80" rx="18" fill="#FFFFFF" filter="url(#dp2)" />
-
-									<!-- Pin de ubicación -->
-									<g transform="translate(22,18)">
-										<path
-										d="M26 0c-10.5 0-19 8.5-19 19c0 13.7 15.3 28.9 18.3 31.8a1.9 1.9 0 0 0 2.6 0C31.9 47.9 45 33.4 45 19C45 8.5 36.5 0 26 0z"
-										fill="#E53935" />
-										<circle cx="26" cy="19" r="8.5" fill="#FAFAFA" />
-									</g>
-
-									<!-- Solo nube (sin círculo) -->
-									<g transform="translate(8,8)">
-										<path d="M55 46c0-2.2-1.8-4-4-4-1.1 0-2.1.5-2.8 1.2C47.5 42.5 46.8 42 46 42
+                      <!-- Solo nube (sin círculo) -->
+                      <g transform="translate(8,8)">
+                        <path
+                          d="M55 46c0-2.2-1.8-4-4-4-1.1 0-2.1.5-2.8 1.2C47.5 42.5 46.8 42 46 42
 												c-1.7 0-3 1.3-3 3 0 .3 0 .5.1.8C41.3 46.3 40 47.9 40 50c0 2.2 1.8 4 4 4h12
 												c2.2 0 4-1.8 4-4 0-2-1.5-3.7-3.5-4z"
-											fill="#424242"/>
-									</g>
+                          fill="#424242"
+                        />
+                      </g>
 
-									<circle cx="48" cy="31" r="1.6" fill="#FFFFFF" opacity="0.9" />
-									</svg>
+                      <circle
+                        cx="48"
+                        cy="31"
+                        r="1.6"
+                        fill="#FFFFFF"
+                        opacity="0.9"
+                      />
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Servicios rest
+                    </p>
+                    <div class="card-description">
+                      <p id="f46q8">
+                        Servicios rest para visualizar mapas en un visor de
+                        mapas o un Software de Sistema de Información Geográfica
+                        - GIS.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Medio Ambiente"
+                href="/catalogos/metadatos"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 96 96"
+                      width="55"
+                      height="55"
+                      role="img"
+                      aria-label="Metadatos geográficos"
+                    >
+                      <!-- Documento -->
+                      <rect
+                        x="24"
+                        y="20"
+                        width="48"
+                        height="56"
+                        rx="4"
+                        fill="#F5F5F5"
+                        stroke="#424242"
+                        stroke-width="3"
+                      />
 
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Servicios rest</p>
-									<div class="card-description">
-										<p id="f46q8">Servicios rest para visualizar mapas en un visor de mapas o un
-											Software de Sistema de Información Geográfica - GIS.</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Medio Ambiente" href="/catalogos/metadatos">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="55" height="55" role="img" aria-label="Metadatos geográficos">
-									<!-- Documento -->
-									<rect x="24" y="20" width="48" height="56" rx="4" fill="#F5F5F5" stroke="#424242" stroke-width="3"/>
+                      <!-- Varias líneas de texto -->
+                      <path
+                        d="M28 30 H56"
+                        stroke="#9E9E9E"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M28 38 H56"
+                        stroke="#9E9E9E"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M28 46 H56"
+                        stroke="#9E9E9E"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M28 54 H56"
+                        stroke="#9E9E9E"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                      <path
+                        d="M28 62 H56"
+                        stroke="#9E9E9E"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
 
-									<!-- Varias líneas de texto -->
-									<path d="M28 30 H56" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
-									<path d="M28 38 H56" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
-									<path d="M28 46 H56" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
-									<path d="M28 54 H56" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
-									<path d="M28 62 H56" stroke="#9E9E9E" stroke-width="2" stroke-linecap="round"/>
+                      <!-- Pin geográfico dentro del documento, pegado a la derecha -->
+                      <g transform="translate(52,50)">
+                        <path
+                          d="M12 0c-5 0-9 4-9 9c0 6 7.3 12.8 8.7 14.1a1 1 0 0 0 1.3 0C13.9 21.8 21 15 21 9c0-5-4-9-9-9z"
+                          fill="#E53935"
+                          stroke="#424242"
+                          stroke-width="2"
+                        />
+                        <circle
+                          cx="12"
+                          cy="9"
+                          r="3.5"
+                          fill="#FAFAFA"
+                          stroke="#424242"
+                          stroke-width="1"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Servicio de catalogación de metadatos
+                    </p>
+                    <div class="card-description">
+                      <p id="c2nv9">
+                        El servicio OGC: CSW permite publicar y generar
+                        metadatos geográficos a través de la web.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+              <a
+                class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
+                data-ga-element-type="link"
+                data-ga-label="Mercados"
+                href="/catalogos/otros"
+              >
+                <div class="card-header flex w-full h-29">
+                  <div class="card-logo" style="width: 25%">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 96 96"
+                      width="65"
+                      height="65"
+                      role="img"
+                      aria-label="Otros servicios"
+                    >
+                      <!-- Grid de módulos -->
+                      <g fill="#424242">
+                        <rect x="26" y="28" width="16" height="16" rx="3" />
+                        <rect x="46" y="28" width="16" height="16" rx="3" />
+                        <rect x="26" y="48" width="16" height="16" rx="3" />
+                        <rect x="46" y="48" width="16" height="16" rx="3" />
+                      </g>
 
-									<!-- Pin geográfico dentro del documento, pegado a la derecha -->
-									<g transform="translate(52,50)">
-										<path d="M12 0c-5 0-9 4-9 9c0 6 7.3 12.8 8.7 14.1a1 1 0 0 0 1.3 0C13.9 21.8 21 15 21 9c0-5-4-9-9-9z"
-											fill="#E53935" stroke="#424242" stroke-width="2"/>
-										<circle cx="12" cy="9" r="3.5" fill="#FAFAFA" stroke="#424242" stroke-width="1"/>
-									</g>
-									</svg>
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Servicio de catalogación de metadatos
-									</p>
-									<div class="card-description">
-										<p id="c2nv9">El servicio OGC: CSW permite publicar y generar metadatos
-											geográficos a través de la web.</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-						<a class="card-index flex flex-col items-center bg-white px-6 py-8 rounded-lg shadow-md focus:bg-white no-underline text-inherit track-ga-interaction"
-							data-ga-element-type="link" data-ga-label="Mercados" href="/catalogos/otros">
-							<div class="card-header flex w-full h-29">
-								<div class="card-logo" style="width: 25%;">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="65" height="65" role="img" aria-label="Otros servicios">
-  <!-- Grid de módulos -->
-  <g fill="#424242">
-    <rect x="26" y="28" width="16" height="16" rx="3"/>
-    <rect x="46" y="28" width="16" height="16" rx="3"/>
-    <rect x="26" y="48" width="16" height="16" rx="3"/>
-    <rect x="46" y="48" width="16" height="16" rx="3"/>
-  </g>
-
-  <!-- Pin geográfico abajo a la derecha -->
-  <g transform="translate(50,40)">
-    <path d="M12 0c-5.5 0-10 4.5-10 10c0 7 8.1 14.8 9.6 16.3a1 1 0 0 0 1.4 0C14.9 24.8 22 17 22 10c0-5.5-4.5-10-10-10z"
-          fill="#E53935" stroke="#424242" stroke-width="1.5"/>
-    <circle cx="12" cy="10" r="3.5" fill="#FAFAFA" stroke="#424242" stroke-width="1"/>
-  </g>
-</svg>
-
-								</div>
-								<div class="card-title" style="width: 75%;">
-									<p class="font-bold text-blue-700 underline">Otros servicios</p>
-									<div class="card-description">
-										<p id="1t577">Información espacial para visualización y descarga en diferentes
-											formatos.
-										</p>
-									</div>
-								</div>
-							</div>
-							<div class="card-link w-full flex justify-end">
-								<div class="w-fit font-bold text-center underline text-blue-700">Ver<svg
-										xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-										version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 10.1 16.3"
-										style="enable-background:new 0 0 10.1 16.3;" xml:space="preserve" width="10.1"
-										height="16.3" aria-hidden="true" class="ml-6 inline">
-										<path fill="currentColor" d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z">
-										</path>
-									</svg></div>
-							</div>
-						</a>
-					</div>
-				</div>
-			</section>
-		</div>
-	</main>
-	{% include 'geoportal/pie_pagina.html' %}
-</body>
-
+                      <!-- Pin geográfico abajo a la derecha -->
+                      <g transform="translate(50,40)">
+                        <path
+                          d="M12 0c-5.5 0-10 4.5-10 10c0 7 8.1 14.8 9.6 16.3a1 1 0 0 0 1.4 0C14.9 24.8 22 17 22 10c0-5.5-4.5-10-10-10z"
+                          fill="#E53935"
+                          stroke="#424242"
+                          stroke-width="1.5"
+                        />
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="3.5"
+                          fill="#FAFAFA"
+                          stroke="#424242"
+                          stroke-width="1"
+                        />
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="card-title" style="width: 75%">
+                    <p class="font-bold text-blue-700 underline">
+                      Otros servicios
+                    </p>
+                    <div class="card-description">
+                      <p id="1t577">
+                        Información espacial para visualización y descarga en
+                        diferentes formatos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-link w-full flex justify-end">
+                  <div
+                    class="w-fit font-bold text-center underline text-blue-700"
+                  >
+                    Ver<svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      version="1.1"
+                      id="Capa_1"
+                      x="0px"
+                      y="0px"
+                      viewBox="0 0 10.1 16.3"
+                      style="enable-background: new 0 0 10.1 16.3"
+                      xml:space="preserve"
+                      width="10.1"
+                      height="16.3"
+                      aria-hidden="true"
+                      class="ml-6 inline"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    {% include 'geoportal/pie_pagina.html' %}
+  </body>
 </html>

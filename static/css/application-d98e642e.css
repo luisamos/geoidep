@@ -8863,14 +8863,14 @@ hr {
     font-family: Roboto;
     font-style: normal;
     font-weight: 400;
-    src: url("/assets/Roboto-Regular-e590b124.woff2") format("woff2"), url("/assets/Roboto-Regular-10745054.woff") format("woff")
+    src: url("./Roboto-Regular-e590b124.woff2") format("woff2"), url("./Roboto-Regular-10745054.woff") format("woff")
 }
 
 @font-face {
     font-family: Roboto;
     font-style: normal;
     font-weight: 700;
-    src: url("/assets/Roboto-Bold-f9d126b0.woff2") format("woff2"), url("/assets/Roboto-Bold-de8215b7.woff") format("woff")
+    src: url("./Roboto-Bold-f9d126b0.woff2") format("woff2"), url("./Roboto-Bold-de8215b7.woff") format("woff")
 }
 
 @font-face {
@@ -10356,7 +10356,7 @@ input:focus {
 }
 
 #search_sort_by_selector {
-    background-image: url("/assets/icons/arrow_down-6f489d0c.svg");
+    background-image: url("../images/icons/arrow_down-6f489d0c.svg");
     background-position: calc(100% - 15px);
     background-repeat: no-repeat;
     background-size: 12px
@@ -10368,7 +10368,7 @@ input:focus {
     --tw-bg-opacity: 1;
     background-color: rgb(246 249 252/var(--tw-bg-opacity, 1));
     --tw-text-opacity: 1;
-    background-image: url("/assets/icons/arrow_down_darkgray-4f4e4d75.svg");
+    background-image: url("../images/icons/arrow_down_darkgray-4f4e4d75.svg");
     color: rgb(138 148 162/var(--tw-text-opacity, 1))
 }
 
@@ -10668,7 +10668,7 @@ input:focus {
     margin: 0;
     --tw-bg-opacity: 1;
     background-color: rgb(38 41 46/var(--tw-bg-opacity, 1));
-    background-image: url("/assets/icons/frame_footer_2-818dd620.svg");
+    background-image: url("../images/icons/frame_footer_2-818dd620.svg");
     background-position: bottom;
     padding: 0
 }
@@ -10778,7 +10778,7 @@ input:focus {
 }
 
 .candidates-index .choices-candidates.no-selected .choices[data-type*=select-multiple] .choices__inner__custom {
-    background: url("/assets/icons/chevron-down-mini-black-e8f9a34a.svg") no-repeat;
+    background: url("../images/icons/chevron-down-mini-black-e8f9a34a.svg") no-repeat;
     background-position: calc(100% - 10px) 50%;
     background-position-x: calc(100% - 8px);
     background-position-y: 50%;
@@ -11483,7 +11483,7 @@ form.js-elecciones-congresales .candidates-filters select {
 
 .checkbox input:checked+span:after {
     background-color: #333;
-    background-image: url("/assets/icons/check-481bdcd4.svg");
+    background-image: url("../images/icons/check-481bdcd4.svg");
     background-repeat: no-repeat;
     background-size: 16px 16px
 }
@@ -13271,7 +13271,7 @@ span.boton {
 
 .custom-arrow-down-white {
     -webkit-appearance: none;
-    background: url("/assets/icons/arrow_down_select-4cb56d84.svg") no-repeat 100%
+    background: url("../images/icons/arrow_down_select-4cb56d84.svg") no-repeat 100%
 }
 
 .subpages {
@@ -14083,13 +14083,13 @@ a.page__content .important p:-webkit-any-link {
 }
 
 .page .box-collapsable--show.box-collapsable:before {
-    content: url("/assets/icons/arrow_collapsable-668842bc.svg");
+    content: url("../images/icons/arrow_collapsable-668842bc.svg");
     cursor: pointer;
     transform: rotate(90deg)
 }
 
 .page .box-collapsable:not(.box-collapsable--show):before {
-    content: url("/assets/icons/arrow_collapsable-668842bc.svg");
+    content: url("../images/icons/arrow_collapsable-668842bc.svg");
     cursor: pointer;
     transform: rotate(0deg)
 }
@@ -18359,7 +18359,7 @@ header.home {
 }
 
 .has-icon--alert:before {
-    background: url("/assets/icons/alert-7e8ebafc.svg") no-repeat;
+    background: url("../images/icons/alert-7e8ebafc.svg") no-repeat;
     background-size: cover
 }
 
@@ -18955,7 +18955,7 @@ header.home {
 }
 
 .search_rule {
-    background-image: url("/assets/icons/arrow_down-6f489d0c.svg");
+    background-image: url("../images/icons/arrow_down-6f489d0c.svg");
     background-position: calc(100% - 15px);
     background-size: 12px;
     border-color: rgb(0 0 0/var(--tw-border-opacity, 1));
@@ -18985,7 +18985,7 @@ header.home {
 }
 
 .search_filter {
-    background-image: url("/assets/icons/arrow_down-6f489d0c.svg");
+    background-image: url("../images/icons/arrow_down-6f489d0c.svg");
     background-position: calc(100% - 15px);
     background-size: 12px
 }
@@ -19716,7 +19716,7 @@ trix-editor .attachment__metadata .attachment__size {
 }
 
 .airports-select {
-    background: url("/assets/icons/arrow_down-6f489d0c.svg") no-repeat right .75rem center/1em 1em;
+    background: url("../images/icons/arrow_down-6f489d0c.svg") no-repeat right .75rem center/1em 1em;
     padding-right: 2rem
 }
 
@@ -19785,7 +19785,7 @@ trix-editor .attachment__metadata .attachment__size {
 }
 
 .search-form-social-networks .select {
-    background-image: url("/assets/icons/arrow_down-6f489d0c.svg");
+    background-image: url("../images/icons/arrow_down-6f489d0c.svg");
     background-position: calc(100% - 15px);
     background-repeat: no-repeat;
     background-size: 12px
@@ -19834,7 +19834,7 @@ trix-editor .attachment__metadata .attachment__size {
 }
 
 .select-directories-filter {
-    background: url("/assets/icons/arrow_down-6f489d0c.svg") no-repeat right .75rem center/1em 1em;
+    background: url("../images/icons/arrow_down-6f489d0c.svg") no-repeat right .75rem center/1em 1em;
     background-size: 11px 7px;
     padding-left: 1rem;
     padding-right: 2.5rem

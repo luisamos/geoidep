@@ -127,7 +127,7 @@ def catalogo_por_tipo(slug):
     )
 
     return render_template(
-        'geoportal/sub_catalogo.html',
+        'geoportal/subcatalogo.html',
         slug=slug,
         tipo_nombre=tipo_nombre,
         tipo_titulo=tipo_titulo,
