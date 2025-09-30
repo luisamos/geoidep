@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS public.alembic_version CASCADE;
+DROP TABLE IF EXISTS public.def_categorias CASCADE;
+DROP TABLE IF EXISTS public.def_entidades CASCADE;
+DROP TABLE IF EXISTS public.def_herramientas_digitales CASCADE;
+DROP TABLE IF EXISTS public.def_instituciones CASCADE;
+DROP TABLE IF EXISTS public.def_sectores CASCADE;
+DROP TABLE IF EXISTS public.def_servicios_geograficos CASCADE;
+DROP TABLE IF EXISTS public.def_tipos_servicios CASCADE;
+DROP TABLE IF EXISTS public.def_usuarios CASCADE;
+DROP TABLE IF EXISTS public.def_capas_geograficas CASCADE;

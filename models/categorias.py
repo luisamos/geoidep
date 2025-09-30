@@ -6,6 +6,7 @@ class Categoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo = db.Column(db.String(5), unique=True, nullable=False)
     nombre = db.Column(db.String(500), nullable=False)
+    sigla = db.Column(db.String(500), nullable=False)
     definicion = db.Column(db.Text)
     id_padre = db.Column(db.Integer)
 
