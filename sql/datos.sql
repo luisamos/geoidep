@@ -40,7 +40,7 @@ CREATE TABLE tmp.datos (
     estado_actu TEXT
 );
 
---\copy tmp.datos FROM 'C:/Users/lvaler/Downloads/datos.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
+--\copy tmp.datos FROM 'C:/Users/lvaler/Downloads/datos_final.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
 
 --\copy tmp.datos FROM 'C:/Users/luisa/Downloads/datos.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
 

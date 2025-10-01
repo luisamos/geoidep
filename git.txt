@@ -3,7 +3,7 @@
 #
 git init
 git add .
-git commit -m "v.2.0.2 | 30/09/2025 17:21"
+git commit -m "v.2.0.2 | 01/10/2025 17:21"
 git branch -M main
 git remote add origin https://github.com/luisamos/geoidep.git
 git push -u origin main

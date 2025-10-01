@@ -26,7 +26,7 @@ class Institucion(db.Model):
     __tablename__ = 'def_instituciones'
 
     id = db.Column(db.Integer, primary_key=True)
-    pliego = db.Column(db.String(10))
+    pliego = db.Column(db.String(20))
     nombre = db.Column(db.String(800), nullable=False)
     logotipo = db.Column(db.Text)
     sigla = db.Column(db.String(20))

@@ -14,8 +14,7 @@ INSERT INTO public.def_entidades (codigo, nombre) VALUES
 ('GR', 'Gobiernos Regionales'),
 ('GL', 'Gobiernos Locales'),
 ('ONG', 'Organismos No Gubernamentales'),
-('I', 'Organismos Internacionales'),
-('ND', 'NO DEFINIDO');
+('I', 'Organismos Internacionales');
 
 SELECT * FROM public.def_entidades ORDER BY 1;
 
@@ -55,12 +54,12 @@ INSERT INTO public.def_sectores (codigo, nombre , id_entidad) VALUES
 ('40', 'DESARROLLO E INCLUSION SOCIAL', 1),
 ('99', 'GOBIERNOS REGIONALES', 5),
 ('M', 'GOBIERNOS MUNICIPALES', 6),
-('B', 'BOMBEROS', 4),
-('ND', 'NO DEFINIDO',9);
+('B', 'BOMBEROS', 4);
 
 SELECT * FROM public.def_sectores ORDER BY 1;
 
-
 --\copy public.def_instituciones (pliego, nombre, id_sector, sigla) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
-SELECT * FROM public.def_instituciones;
+--\copy public.def_instituciones (pliego, nombre, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\municipalidades.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+
+SELECT id, nombre, sigla FROM public.def_instituciones;
