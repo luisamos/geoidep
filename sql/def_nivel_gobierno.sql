@@ -68,4 +68,5 @@ SELECT * FROM public.def_sectores ORDER BY 1;
 
 --\copy public.def_instituciones (pliego, nombre, sigla, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones2.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
-SELECT id, nombre, sigla FROM public.def_instituciones;
+SELECT id, nombre, sigla FROM public.def_instituciones
+WHERE sigla = 'SERNANP';

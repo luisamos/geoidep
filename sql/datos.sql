@@ -48,16 +48,24 @@ CREATE TABLE IF NOT EXISTS tmp.datos(
 	id_tipo INTEGER
 );
 
---\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_check, estado_servicio, estado_actu) FROM 'C:\apps\python\flask\geoidep\sql\datos.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
+--\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_actu, id_categoria, id_institucion) FROM 'C:\apps\python\flask\geoidep\sql\datos.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
 
-SELECT entidad FROM tmp.datos
-GROUP BY 1
-ORDER BY 1;
+SELECT * FROM tmp.datos;
+
+UPDATE tmp.datos SET id_tipo = 16 WHERE tipo_pub = 'KML';
+UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
+UPDATE tmp.datos SET id_tipo = 2 WHERE tipo_pub = 'Geoportal';
+UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WMTS';
+UPDATE tmp.datos SET id_tipo = 3 WHERE tipo_pub = 'Dashboard';
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Servicio WMS';
+UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Geoprocesamiento';
+UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WFS';
+UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Descarga GIS';
+UPDATE tmp.datos SET id_tipo = 4 WHERE tipo_pub = 'Geovisor';
 
 
-SELECT DISTINCT ON (a.id)
- UPPER(a.institucion),  'UPDATE tmp.datos SET id_instituciones=' || b.id || ', WHERE id=' || a.id || ';' AS sql
-FROM tmp.datos a
-JOIN public.def_instituciones b
-  ON UPPER(a.entidad) = b.nombre || ' (' || b.sigla || ')'
-ORDER BY a.id;
+INSERT INTO public.def_herramientas_digitales(
+	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
+SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
+WHERE id_tipo IN (2,3,4,5);
