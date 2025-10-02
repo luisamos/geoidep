@@ -3,3 +3,8 @@ flask --app app db init
 flask --app app db migrate -m "creando las tablas"
 
 flask --app app db upgrade
+
+
+#INSTITUTO VIAL PROVINCIAL MUNICIPAL DE RIOJA
+#ORGANISMO SUPERVISOR DE LAS CONTRATACIONES DEL ESTADO (OSCE)
+#PROGRAMA NACIONAL PLATAFORMAS DE ACCIÓN PARA LA INCLUSIÓN SOCIAL (PNAIS)

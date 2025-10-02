@@ -29,7 +29,7 @@ class Institucion(db.Model):
     pliego = db.Column(db.String(20))
     nombre = db.Column(db.String(800), nullable=False)
     logotipo = db.Column(db.Text)
-    sigla = db.Column(db.String(20))
+    sigla = db.Column(db.String(50))
     id_sector = db.Column('id_sector', db.Integer, db.ForeignKey('def_sectores.id'), nullable=False)
 
     sector = db.relationship('Sector', back_populates='instituciones')
