@@ -21,7 +21,14 @@ def principal():
 def idep():
     return render_template('geoportal/idep.html')
 
-CATALOGO_TIPO_IDS = (5, 6, 7)
+CATALOGO_TIPO_IDS = (5, 6, 7, 8)
+
+SLUG_OVERRIDES = {
+    5: 'geoportales',
+    6: 'visores',
+    7: 'apps',
+    8: 'descargas',
+}
 
 
 def _slugify(value):
@@ -52,11 +59,10 @@ def _obtener_tipos_servicio_catalogo():
             'nombre': tipo.nombre,
             'descripcion': tipo.descripcion,
             'logotipo': tipo.logotipo,
-            'slug': _slugify(tipo.nombre),
+            'slug': SLUG_OVERRIDES.get(tipo.id, _slugify(tipo.nombre)),
         }
         for tipo in tipos
     ]
-
 
 @bp.route('/catalogo')
 def catalogo():
@@ -64,7 +70,7 @@ def catalogo():
     return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
 
 
-@bp.route('/catalogos/<slug>')
+@bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
     tipos_servicio = _obtener_tipos_servicio_catalogo()
     slug_normalizado = slug.lower()
