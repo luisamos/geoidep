@@ -2,7 +2,7 @@ INSERT INTO public.def_categorias (codigo, nombre, sigla, definicion, id_padre) 
 ('1', 'Categoría ISO 19115', 'ISO19115', 'Es una norma internacional que define un esquema estándar para la creación de metadatos, que son descripciones detalladas de los datos geográficos', 0),
 ('001', 'Agricultura', 'farming', 'Cría de animales y/o cultivo de plantas. Ejemplos: agricultura, irrigación, acuicultura, plantaciones, plagas, epidemias y enfermedades que afectan a las cosechas y al ganado', 1),
 ('002', 'Biología', 'biota', 'Flora y fauna en el medio natural. Ejemplos: fauna, vegetación, ciencias biológicas, ecología, vida salvaje, vida marina, pantanos, hábitat', 1),
-('003', 'Límites, ', 'boundaries', 'Descripciones legales del terreno. Ejemplos: límites administrativos y políticos', 1),
+('003', 'Límites', 'boundaries', 'Descripciones legales del terreno. Ejemplos: límites administrativos y políticos', 1),
 ('004', 'Atmósfera, Climatología, Meteorología', 'climatologyMeteorologyAtmosphere', 'Procesos y fenómenos de la atmósfera. Ejemplos: cobertura nubosa, tiempo, clima, condiciones atmosféricas, cambio climático, precipitación', 1),
 ('005', 'Economía', 'economy', 'Actividades económicas, condiciones y empleo. Ejemplos: producción, trabajo, ingresos, comercio, industria, turismo y ecoturismo, silvicultura, políticas pesqueras, caza comercial y de subsistencia, exploración y explotación de recursos tales como minerales, aceite y gas', 1),
 ('006', 'Elevación', 'elevation', 'Altura sobre o bajo el nivel del mar. Ejemplos: altitud, batimetría, modelos digitales del terreno, pendiente y productos derivados', 1),

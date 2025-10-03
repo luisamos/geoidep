@@ -21,13 +21,13 @@ def principal():
 def idep():
     return render_template('geoportal/idep.html')
 
-CATALOGO_TIPO_IDS = (5, 6, 7, 8)
+CATALOGO_TIPO_IDS = (4, 5, 6, 7)
 
 CATALOGO_SLUGS = {
-    5: 'geoportales',
-    6: 'visores',
-    7: 'apps',
-    8: 'descargas',
+    4: 'geoportales',
+    5: 'visores',
+    6: 'apps',
+    7: 'descargas',
 }
 
 CATALOGO_SLUG_TO_ID = {slug: tipo_id for tipo_id, slug in CATALOGO_SLUGS.items()}
@@ -80,8 +80,7 @@ def catalogo():
     tipos_servicio = _obtener_tipos_servicio_catalogo()
     return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
 
-
-@bp.route('/catalogos/<slug>')
+@bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
     slug_normalizado = slug.lower()
     tipo_id = CATALOGO_SLUG_TO_ID.get(slug_normalizado)

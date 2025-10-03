@@ -54,25 +54,24 @@ SELECT * FROM tmp.datos;
 
 SELECT * FROM public.def_tipos_servicios WHERE id_padre = 3 ORDER BY orden;
 
-UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geoportal';
-UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Geovisor';
-UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Dashboard';
-UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Descarga GIS';
+UPDATE tmp.datos SET id_tipo = 4 WHERE tipo_pub = 'Geoportal';
+UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geovisor';
+UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Dashboard';
+UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Descarga GIS';
 
-UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'Servicio WMS';
-UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WFS';
-UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WMTS';
-UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+--UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WMS';
+--UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'Servicio WFS';
+--UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WMTS';
+--UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
 
-UPDATE tmp.datos SET id_tipo = 15 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
-UPDATE tmp.datos SET id_tipo = 18 WHERE tipo_pub = 'KML';
-UPDATE tmp.datos SET id_tipo = 19 WHERE tipo_pub = 'Geoprocesamiento';
-
+--UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
+--UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'KML';
+--UPDATE tmp.datos SET id_tipo = 19 WHERE tipo_pub = 'Geoprocesamiento';
 
 INSERT INTO public.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
 SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
-WHERE id_tipo IN (5,6,7,8)
+WHERE id_tipo IN (4,5,6,7)
 GROUP BY 1,2,3,4,5,6,7;
 
-SELECT * FROM public.def_herramientas_digitales WHERE id_tipo_servicio = 8;
+SELECT * FROM public.def_herramientas_digitales WHERE id_tipo_servicio = 7;

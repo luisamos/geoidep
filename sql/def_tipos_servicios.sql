@@ -6,14 +6,12 @@ INSERT INTO public.def_tipos_servicios (nombre, descripcion, estado, id_padre, o
 ('Visores de mapas', 'Visores de mapas institucionales.', True, 1, 2),
 ('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', True, 1, 3),
 ('Descarga GIS (HTTPS, FTP)', 'Servicio de descarga.', True, 1, 4),
-
 ('OGC:WMS', 'Servicio de visualización de mapas.', True, 2, 1),
 ('OGC:WFS', 'Servicio de consulta y descarga de mapas.', True, 2, 2),
 ('OGC:WCS', 'Servicio de imagenes de mapas.', True, 2, 3),
 ('OGC:WMTS', 'Servicio de mosaicos de mapas.', True, 2, 4),
 ('OGC:CSW', 'Servicio de catalogación de metadatos.', True, 2, 5),
 ('OGC:WPS', 'Servicio de geoprocesamiento', True, 2, 6),
-
 ('REST:ArcGIS MapServer', 'Servicio Rest de visualización de mapas', True, 3, 1),
 ('REST:ArcGIS FeatureServer', 'Servicio Rest de acceso a mapas', True, 3, 2),
 ('REST:ArcGIS ImageServer', 'Servicio Rest de imagenes', True, 3, 3),
