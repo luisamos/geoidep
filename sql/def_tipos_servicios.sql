@@ -10,7 +10,7 @@ INSERT INTO public.def_tipos_servicios (nombre, descripcion, estado, id_padre, o
 ('OGC:WMS', 'Servicio de visualización de mapas.', True, 2, 1),
 ('OGC:WFS', 'Servicio de consulta y descarga de mapas.', True, 2, 2),
 ('OGC:WCS', 'Servicio de imagenes de mapas.', True, 2, 3),
-('OGC:WMTS', 'servicio de mosaicos de mapas.', True, 2, 4),
+('OGC:WMTS', 'Servicio de mosaicos de mapas.', True, 2, 4),
 ('OGC:CSW', 'Servicio de catalogación de metadatos.', True, 2, 5),
 ('OGC:WPS', 'Servicio de geoprocesamiento', True, 2, 6),
 
@@ -20,4 +20,5 @@ INSERT INTO public.def_tipos_servicios (nombre, descripcion, estado, id_padre, o
 ('REST:ArcGIS KML', 'Servicio Rest de exportación a formato KML', True, 3, 4),
 ('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5);
 
-SELECT id AS id_tipo_servicio, nombre FROM public.def_tipos_servicios WHERE id_padre=1;
+SELECT id AS id_tipo_servicio, nombre 
+FROM public.def_tipos_servicios WHERE id_padre=1;

@@ -1,4 +1,6 @@
 from collections import OrderedDict
+import re
+import unicodedata
 
 from flask import Blueprint, render_template, request, abort
 from sqlalchemy.orm import joinedload
@@ -7,6 +9,7 @@ from sqlalchemy import func, or_
 from models.herramientas_digitales import HerramientaDigital
 from models.categorias import Categoria
 from models.niveles_gobierno import Institucion
+from models.tipos_servicios import TipoServicio
 
 bp = Blueprint('geoportal', __name__)
 
@@ -18,38 +21,68 @@ def principal():
 def idep():
     return render_template('geoportal/idep.html')
 
+CATALOGO_TIPO_IDS = (5, 6, 7)
+
+
+def _slugify(value):
+    if not value:
+        return ''
+    normalized = unicodedata.normalize('NFKD', value)
+    without_accents = ''.join(
+        character for character in normalized if not unicodedata.combining(character)
+    )
+    slug = re.sub(r'[^a-z0-9]+', '-', without_accents.lower())
+    return slug.strip('-')
+
+
+def _obtener_tipos_servicio_catalogo():
+    tipos = (
+        TipoServicio.query.filter(
+            TipoServicio.id_padre == 1,
+            TipoServicio.id.in_(CATALOGO_TIPO_IDS),
+            or_(TipoServicio.estado.is_(True), TipoServicio.estado.is_(None)),
+        )
+        .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
+        .all()
+    )
+
+    return [
+        {
+            'id': tipo.id,
+            'nombre': tipo.nombre,
+            'descripcion': tipo.descripcion,
+            'logotipo': tipo.logotipo,
+            'slug': _slugify(tipo.nombre),
+        }
+        for tipo in tipos
+    ]
+
+
 @bp.route('/catalogo')
 def catalogo():
-    return render_template('geoportal/catalogo.html')
-
-
-TIPO_SERVICIO_SLUGS = {
-    'geoportales': {
-        'id': 2,
-        'nombre': 'Geoportales',
-        'titulo': 'Geoportales en entidades públicas',
-        'descripcion': (
-            'Geoportales administrados por entidades públicas del Estado peruano.'
-        ),
-    },
-}
+    tipos_servicio = _obtener_tipos_servicio_catalogo()
+    return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
 
 
 @bp.route('/catalogos/<slug>')
 def catalogo_por_tipo(slug):
-    tipo_config = TIPO_SERVICIO_SLUGS.get(slug.lower())
+    tipos_servicio = _obtener_tipos_servicio_catalogo()
+    slug_normalizado = slug.lower()
+    tipo_config = next(
+        (tipo for tipo in tipos_servicio if tipo['slug'] == slug_normalizado), None
+    )
     if not tipo_config:
         abort(404)
 
     tipo_id = tipo_config['id']
     tipo_nombre = tipo_config['nombre']
-    tipo_titulo = tipo_config.get('titulo', tipo_nombre)
+    tipo_titulo = tipo_config.get('descripcion') or tipo_nombre
     tipo_descripcion = tipo_config.get('descripcion')
 
     institucion_id = request.args.get('institucion_id', type=int)
     filter_terms = request.args.get('filter_terms', default='', type=str).strip()
 
-    if tipo_id != 2:
+    if tipo_id not in CATALOGO_TIPO_IDS:
         abort(404)
 
     query = (
@@ -130,6 +163,7 @@ def catalogo_por_tipo(slug):
     return render_template(
         'geoportal/subcatalogo.html',
         slug=slug,
+        tipos_servicio=tipos_servicio,
         tipo_nombre=tipo_nombre,
         tipo_titulo=tipo_titulo,
         tipo_descripcion=tipo_descripcion,
