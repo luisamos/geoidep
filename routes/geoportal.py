@@ -5,7 +5,6 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, or_
 
 from models.herramientas_digitales import HerramientaDigital
-from models.tipos_servicios import TipoServicio
 from models.categorias import Categoria
 from models.niveles_gobierno import Institucion
 
@@ -26,7 +25,8 @@ def catalogo():
 
 TIPO_SERVICIO_SLUGS = {
     'geoportales': {
-        'nombre': 'Geoportal',
+        'id': 2,
+        'nombre': 'Geoportales',
         'titulo': 'Geoportales en entidades públicas',
         'descripcion': (
             'Geoportales administrados por entidades públicas del Estado peruano.'
@@ -41,6 +41,7 @@ def catalogo_por_tipo(slug):
     if not tipo_config:
         abort(404)
 
+    tipo_id = tipo_config['id']
     tipo_nombre = tipo_config['nombre']
     tipo_titulo = tipo_config.get('titulo', tipo_nombre)
     tipo_descripcion = tipo_config.get('descripcion')
@@ -48,14 +49,15 @@ def catalogo_por_tipo(slug):
     institucion_id = request.args.get('institucion_id', type=int)
     filter_terms = request.args.get('filter_terms', default='', type=str).strip()
 
+    if tipo_id != 2:
+        abort(404)
+
     query = (
         HerramientaDigital.query.options(
             joinedload(HerramientaDigital.categoria),
             joinedload(HerramientaDigital.institucion),
-            joinedload(HerramientaDigital.tipo_servicio),
         )
-        .join(HerramientaDigital.tipo_servicio)
-        .filter(func.lower(TipoServicio.nombre) == tipo_nombre.lower())
+        .filter(HerramientaDigital.id_tipo_servicio == tipo_id)
         .join(HerramientaDigital.categoria)
     )
 
@@ -105,8 +107,7 @@ def catalogo_por_tipo(slug):
 
     instituciones_disponibles = (
         Institucion.query.join(Institucion.herramientas)
-        .join(HerramientaDigital.tipo_servicio)
-        .filter(func.lower(TipoServicio.nombre) == tipo_nombre.lower())
+        .filter(HerramientaDigital.id_tipo_servicio == tipo_id)
         .with_entities(Institucion.id, Institucion.nombre)
         .distinct()
         .order_by(Institucion.nombre.asc())

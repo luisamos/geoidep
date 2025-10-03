@@ -2,7 +2,7 @@
 <html lang="es-pe">
   <head>
     <meta
-      content='&lt;p id="6rqhe"&gt;Notificaciones por eventos de riesgo como sismos y accidentes.&lt;/p&gt;'
+      content="{{ (tipo_descripcion or tipo_titulo)|striptags }}"
       name="description"
     />
 
@@ -48,19 +48,16 @@
     ></script>
     <meta content="@gobpePCM" name="twitter:site" />
     <meta content="@gobpePCM" name="twitter:creator" />
-    <meta content="[Nombre del tipo de servicio]" name="twitter:title" />
+    <meta content="{{ tipo_titulo }}" name="twitter:title" />
     <meta
-      content='&lt;p id="6rqhe"&gt;Notificaciones por eventos de riesgo como sismos y accidentes.&lt;/p&gt; #gobpe'
+      content="{{ (tipo_descripcion or tipo_titulo)|striptags }}"
       name="twitter:description"
     />
-    <meta
-      content="https://www.gob.pe/catalogos/1-apps/temas/1-alertas-y-emergencias"
-      property="og:url"
-    />
+    <meta content="{{ request.url }}" property="og:url" />
     <meta content="article" property="og:type" />
-    <meta content="[Nombre del tipo de servicio]" property="og:title" />
+    <meta content="{{ tipo_titulo }}" property="og:title" />
     <meta
-      content='&lt;p id="6rqhe"&gt;Notificaciones por eventos de riesgo como sismos y accidentes.&lt;/p&gt; #gobpe'
+      content="{{ (tipo_descripcion or tipo_titulo)|striptags }}"
       property="og:description"
     />
     <meta content="summary" name="twitter:card" />
@@ -91,7 +88,7 @@
     <link
       rel="apple-touch-icon"
       type="image/x-icon"
-      href="/{{ url_for('static', filename='images/apple-icon-76x76-6deed722.png') }}"
+      href="{{ url_for('static', filename='images/apple-icon-76x76-6deed722.png') }}"
       sizes="76x76"
     />
     <link
@@ -383,7 +380,7 @@
                   class="track-ga-interaction font-bold"
                   data-ga-element-type="link"
                   data-ga-label="Infraestructura de Datos Espaciales del Perú (IDEP)"
-                  href="/"
+                  href="{{ url_for('geoportal.idep') }}"
                   >Infraestructura de Datos Espaciales del Perú (IDEP)</a
                 >
               </li>
@@ -408,7 +405,36 @@
                       fill="currentColor"
                       d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
                     ></path></svg></span
-                ><a aria-current="page">[Tipo de servicio]</a>
+                ><a
+                  class="track-ga-interaction font-bold"
+                  data-ga-element-type="link"
+                  data-ga-label="Catálogo"
+                  href="{{ url_for('geoportal.catalogo') }}"
+                  >Catálogo</a
+                >
+              </li>
+              <li class="breadcrumb-item hidden-sm-down hidden-md-down">
+                <span class="hidden-sm-down hidden-md-down mx-1 md:mx-3"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    version="1.1"
+                    id="Capa_1"
+                    x="0px"
+                    y="0px"
+                    viewBox="0 0 10.1 16.3"
+                    style="enable-background: new 0 0 10.1 16.3"
+                    xml:space="preserve"
+                    width="10.1"
+                    height="16.3"
+                    aria-hidden="true"
+                    class="w-2"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M0,14.4l6.2-6.2L0,1.9L2,0l8.1,8.1L2,16.3L0,14.4z"
+                    ></path></svg></span
+                ><a aria-current="page">{{ tipo_titulo }}</a>
               </li>
             </ol>
           </nav>
@@ -431,204 +457,114 @@
             <aside class="bg-indigo-50 py-8 px-8 lg:px-0 lg:block">
               <form
                 class="simple_form js-search-form"
-                novalidate="novalidate"
-                action="/catalogos/1-apps/temas/1-alertas-y-emergencias"
-                accept-charset="UTF-8"
-                data-remote="true"
+                action="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}"
                 method="get"
               >
                 <div class="catalog-header">
                   <div class="flex lg:block">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="56"
-                      height="56"
-                      viewBox="0 0 68 67"
-                      fill="none"
-                      class="block my-2"
+                      width="65"
+                      height="65"
+                      viewBox="0 0 65 65"
                     >
-                      <g clip-path="url(#clip0_8023_2310)">
-                        <path
-                          d="M34.0045 61.5295H12.3465C9.29593 61.5295 7.41996 58.1396 9.05932 55.5334L30.7174 20.8855C32.2469 18.4496 35.7622 18.4496 37.2832 20.8855L58.9413 55.5334C60.5638 58.1396 58.7132 61.5295 55.6542 61.5295H33.9961H34.0045Z"
-                          fill="#FFF3F3"
-                        ></path>
-                        <path
-                          d="M34.1141 46.1058C32.4579 46.1058 31.1396 44.6579 31.1396 42.9033V34.5735C31.1396 32.7935 32.4832 31.3711 34.1141 31.3711C35.7451 31.3711 37.0886 32.819 37.0886 34.5735V42.9033C37.0886 44.6834 35.7451 46.1058 34.1141 46.1058Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          d="M34.1139 54.2144C35.9645 54.2144 37.4602 52.7068 37.4602 50.8415C37.4602 48.9763 35.9645 47.4688 34.1139 47.4688C32.2633 47.4688 30.7676 48.9763 30.7676 50.8415C30.7676 52.7068 32.2633 54.2144 34.1139 54.2144Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          d="M52.1215 10.7605C52.0117 11.1523 51.8089 11.51 51.53 11.8081L48.4034 14.951C47.4232 16.0156 45.7669 16.0838 44.7106 15.0958C43.6543 14.1078 43.5867 12.4384 44.567 11.3738L47.6936 8.23092C48.6738 7.16628 50.3216 7.09814 51.3863 8.08613C52.1131 8.76751 52.4004 9.79808 52.1215 10.7605Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          d="M25.8668 11.2873L22.5458 8.00818C21.498 7.00316 19.8502 7.04574 18.8531 8.10187C17.8559 9.158 17.8982 10.8189 18.946 11.8239L22.267 15.103C23.3148 16.108 24.9626 16.0654 25.9597 15.0093C26.9569 13.9532 26.9146 12.2923 25.8668 11.2873Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          d="M35.0272 3C33.5822 3 32.416 4.17537 32.416 5.63181V10.1544C32.416 11.6109 33.5822 12.7862 35.0272 12.7862C36.4721 12.7862 37.6383 11.6109 37.6383 10.1544V5.63181C37.6383 4.17537 36.4721 3 35.0272 3Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          opacity="0.18"
-                          d="M58.3915 56.9141H9.59961V60.9086H58.3915V56.9141Z"
-                          fill="#EF1630"
-                        ></path>
-                        <path
-                          d="M34.0045 61.5295H12.3465C9.29593 61.5295 7.41996 58.1396 9.05932 55.5334L30.7174 20.8855C32.2469 18.4496 35.7622 18.4496 37.2832 20.8855L58.9413 55.5334C60.5638 58.1396 58.7132 61.5295 55.6542 61.5295H33.9961H34.0045Z"
-                          stroke="#534C89"
-                          stroke-width="5.8"
-                          stroke-miterlimit="10"
-                        ></path>
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_8023_2310">
-                          <rect
-                            width="56"
-                            height="61"
-                            fill="white"
-                            transform="translate(6 3)"
-                          ></rect>
-                        </clipPath>
-                      </defs>
+                      <image
+                        href="data:image/png;base64,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"
+                        x="0"
+                        y="0"
+                        width="65"
+                        height="65"
+                      />
                     </svg>
                     <div class="catalog-title my-4">
-                      <h1 class="ml-3 lg:ml-0">
-                        [Nombre del tipo de servicio]
-                      </h1>
+                      <h1 class="ml-3 lg:ml-0">{{ tipo_nombre }}</h1>
                     </div>
                   </div>
                 </div>
                 <div class="catalog-children w-full">
                   <p class="my-0 lg:my-4 font-bold">Categorías</p>
                   <nav class="hidden lg:block">
-                    <button
-                      class="px-4 w-full font-bold hover:bg-gray-85 hover:text-gray-900 py-6 text-left rounded-tl-lg rounded-bl-lg transition duration-500 bg-white text-gray-900"
-                      data-action="click-&gt;catalog#scrollToSmooth"
-                      data-id="container-2"
-                      data-catalog-target="button"
-                      type="button"
-                    >
-                      [Categoria 1]</button
-                    ><button
-                      class="px-4 w-full font-bold hover:bg-gray-85 hover:text-gray-900 py-6 text-left rounded-tl-lg rounded-bl-lg transition duration-500 text-blue-700"
-                      data-action="click-&gt;catalog#scrollToSmooth"
-                      data-id="container-3"
-                      data-catalog-target="button"
-                      type="button"
-                    >
-                      [Categoria 2]
-                    </button>
+                    {% for categoria in categorias %}
+                      <button
+                        class="px-4 w-full font-bold hover:bg-gray-85 hover:text-gray-900 py-6 text-left rounded-tl-lg rounded-bl-lg transition duration-500 {% if loop.first %}bg-white text-gray-900{% else %}text-blue-700{% endif %}"
+                        data-action="click->catalog#scrollToSmooth"
+                        data-id="container-{{ categoria.id }}"
+                        data-catalog-target="button"
+                        type="button"
+                      >
+                        {{ categoria.nombre }}
+                      </button>
+                    {% endfor %}
                   </nav>
                 </div>
                 <div class="lg:hidden">
                   <div class="filters">
-                    <form
-                      class="simple_form js-search-form"
-                      novalidate="novalidate"
-                      action="/catalogos/1-apps/temas/1-alertas-y-emergencias"
-                      accept-charset="UTF-8"
-                      data-remote="true"
-                      method="get"
-                    >
-                      <div class="catalog-filter">
-                        <div
-                          class="js-select-themes block lg:hidden js-choice-border-radius mb-4"
-                        >
-                          <div
-                            class="input-control select required filter_order"
-                          >
+                    <div class="catalog-filter">
+                      <div class="js-select-themes block lg:hidden js-choice-border-radius mb-4">
+                        <div class="input-control select required filter_order">
+                          <div class="">
+                            <select
+                              class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter my-4"
+                              style="border-radius: 8px"
+                              onchange="const target=document.getElementById(this.value); if(target){ target.scrollIntoView({behavior: 'smooth'}); }"
+                            >
+                              {% for categoria in categorias %}
+                                <option value="container-{{ categoria.id }}">{{ categoria.nombre }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="filters mt-6">
+                    <div class="catalog-filter">
+                      <div class="flex gap-x-6 js-choice-border-radius">
+                        <label class="block mb-4 w-full md:w-1/2 mt-4">
+                          <span class="font-bold">Filtrar por entidad</span>
+                          <div class="input-control select required filter_institution_id">
                             <div class="">
                               <select
-                                class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter my-4"
-                                style="border-radius: 8px"
-                                name="filter[order]"
-                                id="filter_order"
+                                class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter"
+                                name="institucion_id"
+                                id="filter_institution_id"
+                                onchange="this.form.submit()"
                               >
-                                <option value="2">[Categoria 1]</option>
-                                <option value="3">[Categoria 2]</option>
+                                <option value="">Selecciona</option>
+                                {% for institucion in instituciones %}
+                                  <option value="{{ institucion.id }}" {% if institucion_id == institucion.id %}selected{% endif %}>
+                                    {{ institucion.nombre }}
+                                  </option>
+                                {% endfor %}
                               </select>
                             </div>
                           </div>
-                        </div>
-                        <label class="w-full w-full"
-                          ><span class="font-bold"
-                            >Filtrar por palabra clave</span
-                          >
-                          <div
-                            class="relative border-2 border-gray-900 flex justify-between focus-within:border-yellow-500 h-12 mt-2 w-full rounded-lg bg-white"
-                          >
-                            <input
-                              class="js-search-input border-none pl-2 w-full focus:outline-none placeholder:text-gray-600 placeholder:text-base rounded-lg"
-                              placeholder="Buscar"
-                              type="text"
-                              name="filter[terms]"
-                              id="filter_terms"
-                            /><button
-                              aria-label="Buscar"
-                              class="absolute right-1 rounded p-0 h-fit"
-                              style="top: 6px; right: 6px"
-                              type="submit"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="25"
-                                height="25"
-                                viewBox="0 0 25 25"
-                                class="bg-gray-900 text-white p-2 border border-white text-4xl h-8 w-8 rounded"
-                              >
-                                <g>
-                                  <g>
-                                    <path
-                                      fill="currentColor"
-                                      d="M9.291 15.723a6.424 6.424 0 0 1-6.432-6.432A6.424 6.424 0 0 1 9.29 2.859a6.424 6.424 0 0 1 6.432 6.432 6.424 6.424 0 0 1-6.432 6.432zm8.576 0h-1.129l-.4-.386a9.25 9.25 0 0 0 2.244-6.046A9.29 9.29 0 0 0 9.291 0 9.29 9.29 0 0 0 0 9.291a9.29 9.29 0 0 0 9.291 9.291 9.25 9.25 0 0 0 6.046-2.244l.386.4v1.13L22.87 25 25 22.87z"
-                                    ></path>
-                                  </g>
-                                </g>
-                              </svg>
-                            </button></div
-                        ></label>
-                        <div class="flex gap-x-6 js-choice-border-radius">
-                          <label class="block mb-4 w-full md:w-1/2 mt-4"
-                            ><span class="font-bold">Entidad</span>
-                            <div
-                              class="input-control select required filter_institution_id"
-                            >
-                              <div class="">
-                                <select
-                                  class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter"
-                                  onchange="this.closest(&#39;form&#39;).submit()"
-                                  name="filter[institution_id]"
-                                  id="filter_institution_id"
-                                >
-                                  <option value="">Selecciona</option>
-                                  <option value="47">
-                                    Instituto Nacional de Defensa Civil (INDECI)
-                                  </option>
-                                  <option value="77">
-                                    Instituto Geofísico del Perú (IGP)
-                                  </option>
-                                  <option value="411">
-                                    Centro Nacional de Estimación, Prevención y
-                                    Reducción del Riesgo de Desastres (CENEPRED)
-                                  </option>
-                                </select>
-                              </div>
-                            </div></label
-                          >
-                        </div>
+                        </label>
                       </div>
-                    </form>
+                    </div>
+                  </div>
+                  <div class="flex gap-4 mt-4">
+                    <button
+                      class="bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 hover:bg-blue-800 transition"
+                      type="submit"
+                    >
+                      Aplicar filtros
+                    </button>
+                    {% if institucion_id or filter_terms %}
+                      <a
+                        class="text-blue-700 font-semibold hover:underline"
+                        href="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}"
+                      >
+                        Limpiar filtros
+                      </a>
+                    {% endif %}
                   </div>
                 </div>
               </form>
             </aside>
             <div class="bg-white col-span-3 px-8">
               <div class="flex items-center mt-2">
-                <h2 class="mr-4 py-4">[Nombre del tipo de servicio]</h2>
+                <h2 class="mr-4 py-4">{{ tipo_titulo }}</h2>
                 <div class="js-catalog-theme-search-loader">
                   <div class="flex js-search-loader hidden">
                     <div class="mx-auto">
@@ -643,579 +579,132 @@
                 <div class="filters">
                   <form
                     class="simple_form js-search-form"
-                    novalidate="novalidate"
-                    action="/catalogos/1-apps/temas/1-alertas-y-emergencias"
-                    accept-charset="UTF-8"
-                    data-remote="true"
+                    action="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}"
                     method="get"
                   >
                     <div class="catalog-filter">
-                      <div
-                        class="js-select-themes block lg:hidden js-choice-border-radius mb-4"
-                      >
-                        <div class="input-control select required filter_order">
-                          <div class="">
-                            <select
-                              class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter my-4"
-                              style="border-radius: 8px"
-                              name="filter[order]"
-                              id="filter_order"
-                            >
-                              <option value="2">[Categoria 1]</option>
-                              <option value="3">[Categoria 2]</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                      <label class="w-full w-full"
-                        ><span class="font-bold"
-                          >Filtrar por palabra clave</span
-                        >
-                        <div
-                          class="relative border-2 border-gray-900 flex justify-between focus-within:border-yellow-500 h-12 mt-2 w-full rounded-lg bg-white"
-                        >
-                          <input
-                            class="js-search-input border-none pl-2 w-full focus:outline-none placeholder:text-gray-600 placeholder:text-base rounded-lg"
-                            placeholder="Buscar"
-                            type="text"
-                            name="filter[terms]"
-                            id="filter_terms"
-                          /><button
-                            aria-label="Buscar"
-                            class="absolute right-1 rounded p-0 h-fit"
-                            style="top: 6px; right: 6px"
-                            type="submit"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="25"
-                              height="25"
-                              viewBox="0 0 25 25"
-                              class="bg-gray-900 text-white p-2 border border-white text-4xl h-8 w-8 rounded"
-                            >
-                              <g>
-                                <g>
-                                  <path
-                                    fill="currentColor"
-                                    d="M9.291 15.723a6.424 6.424 0 0 1-6.432-6.432A6.424 6.424 0 0 1 9.29 2.859a6.424 6.424 0 0 1 6.432 6.432 6.424 6.424 0 0 1-6.432 6.432zm8.576 0h-1.129l-.4-.386a9.25 9.25 0 0 0 2.244-6.046A9.29 9.29 0 0 0 9.291 0 9.29 9.29 0 0 0 0 9.291a9.29 9.29 0 0 0 9.291 9.291 9.25 9.25 0 0 0 6.046-2.244l.386.4v1.13L22.87 25 25 22.87z"
-                                  ></path>
-                                </g>
-                              </g>
-                            </svg>
-                          </button></div
-                      ></label>
                       <div class="flex gap-x-6 js-choice-border-radius">
-                        <label class="block mb-4 w-full md:w-1/2 mt-4"
-                          ><span class="font-bold">Entidad</span>
-                          <div
-                            class="input-control select required filter_institution_id"
-                          >
+                        <label class="block mb-4 w-full md:w-1/2 mt-4">
+                          <span class="font-bold">Filtrar por entidad</span>
+                          <div class="input-control select required filter_institution_id">
                             <div class="">
                               <select
                                 class="form-control select required js-choice border-gray-900 bg-white h-12 focus-within:border-yellow-500 search_filter"
-                                onchange="this.closest(&#39;form&#39;).submit()"
-                                name="filter[institution_id]"
-                                id="filter_institution_id"
+                                name="institucion_id"
+                                id="filter_institution_id_desktop"
+                                onchange="this.form.submit()"
                               >
                                 <option value="">Selecciona</option>
-                                <option value="47">
-                                  Instituto Nacional de Defensa Civil (INDECI)
-                                </option>
-                                <option value="77">
-                                  Instituto Geofísico del Perú (IGP)
-                                </option>
-                                <option value="411">
-                                  Centro Nacional de Estimación, Prevención y
-                                  Reducción del Riesgo de Desastres (CENEPRED)
-                                </option>
+                                {% for institucion in instituciones %}
+                                  <option value="{{ institucion.id }}" {% if institucion_id == institucion.id %}selected{% endif %}>
+                                    {{ institucion.nombre }}
+                                  </option>
+                                {% endfor %}
                               </select>
                             </div>
-                          </div></label
-                        >
+                          </div>
+                        </label>
                       </div>
                     </div>
+                    {% if institucion_id or filter_terms %}
+                      <div class="mt-4">
+                        <a
+                          class="text-blue-700 font-semibold hover:underline"
+                          href="{{ url_for('geoportal.catalogo_por_tipo', slug=slug) }}"
+                        >
+                          Limpiar filtros
+                        </a>
+                      </div>
+                    {% endif %}
                   </form>
                 </div>
               </div>
               <div class="catalog_content">
                 <div class="js-catalog-theme-search-results-count mt-6">
-                  <span class="font-bold"></span>
+                  <span class="font-bold">
+                    {{ total_herramientas }} {{ 'resultado' if total_herramientas == 1 else 'resultados' }}
+                  </span>
                 </div>
                 <div class="js-catalog-theme-search-results">
-                  <div class="child my-6" id="container-2">
-                    <div class="child-title"><h3>[Categoria 1]</h3></div>
-                    <div class="child-pages mt-4">
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-66388"
-                              href="/66388-reportar-danos-por-desastres-naturales-en-la-aplicacion-edan"
-                              >[Nombre]</a
-                            >[Descripcion]<a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/66388-reportar-danos-por-desastres-naturales-en-la-aplicacion-edan"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
+                  {% for categoria in categorias %}
+                    <div class="child my-6" id="container-{{ categoria.id }}">
+                      <div class="child-title"><h3>{{ categoria.nombre }}</h3></div>
+
+                      <div class="child-pages mt-4">
+                        {% for herramienta in categoria.herramientas %}
+                          <div class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0">
+                            <div class="flex flex-col md:flex-row gap-x-6 align-center">
+                              <div class="card-title w-full md:w-5/6">
+                                <span class="mb-2 block text-blue-700 font-bold w-fit">
+                                  {% if herramienta.recurso %}
+                                    <a
+                                      class="text-blue-700 hover:underline"
+                                      href="{{ herramienta.recurso }}"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {{ herramienta.nombre }}
+                                    </a>
+                                  {% else %}
+                                    {{ herramienta.nombre }}
+                                  {% endif %}
+                                </span>
+                                {% if herramienta.descripcion %}
+                                  <p class="text-gray-700">{{ herramienta.descripcion }}</p>
+                                {% endif %}
+                                {% if herramienta.institucion %}
+                                  <p class="mt-3 text-sm text-gray-600">
+                                    <span class="font-bold">Elaborado por</span>
+                                    {{ herramienta.institucion.nombre }}
+                                  </p>
+                                {% endif %}
+                              </div>
+                              <div class="card-button w-full md:w-1/6 flex flex-col gap-4">
+                                {% if herramienta.recurso %}
+                                  <a
+                                    class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
+                                    href="{{ herramienta.recurso }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <span class="flex-align-center justify-center">
+                                      <span class="mr-2">Ir</span>
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="none"
+                                        aria-hidden="true"
+                                        class="ml-3"
+                                      >
+                                        <g id="keyboard_arrow_right">
+                                          <path
+                                            id="Vector"
+                                            d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
+                                            fill="#0056AC"
+                                          ></path>
+                                        </g>
+                                      </svg>
+                                    </span>
+                                  </a>
+                                {% endif %}
+                              </div>
+                            </div>
                           </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="EDAN"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzA1NjAxLCJwdXIiOiJibG9iX2lkIn19--e4409f994b1ccff779b7be9b4bab35949a9af4ae/unnamed%20(6).jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=pe.gob.indeci.edan"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
-                        </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/indeci"
-                            >Instituto Nacional de Defensa Civil</a
-                          >
-                        </p>
-                      </div>
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-66386"
-                              href="/66386-prepararse-ante-una-emergencia-o-desastre-con-la-aplicacion-familia-preparada-de-indeci"
-                              >Familia Preparada</a
-                            >Aplicación que te permite prepararte y fortalecer
-                            las capacidades de tu familia para organizarse mejor
-                            y responder ante eventuales emergencias o desastres.
-                            <a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/66386-prepararse-ante-una-emergencia-o-desastre-con-la-aplicacion-familia-preparada-de-indeci"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
-                          </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="Familia Preparada"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzA1NTkzLCJwdXIiOiJibG9iX2lkIn19--17714951b939b0fcbee370f49086589eae9bfa4d/Familia%20preparada.jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=com.plan.familiar.emergencia.unicef.unicef_plan_familiar_de_emergencia&amp;hl=es_GT"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
-                        </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/indeci"
-                            >Instituto Nacional de Defensa Civil</a
-                          >
-                        </p>
-                      </div>
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-71443"
-                              href="/71443-revisar-las-ultimas-alertas-del-instituto-geofisico-del-peru-desde-tu-celular"
-                              >IGP</a
-                            >Aplicación que te permite acceder a las últimas
-                            alertas geofísicas emitidas por el Instituto
-                            Geofísico del Perú, como sismos y volcanes, y más.<a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/71443-revisar-las-ultimas-alertas-del-instituto-geofisico-del-peru-desde-tu-celular"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
-                          </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="IGP"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzQwNjY4LCJwdXIiOiJibG9iX2lkIn19--96e7d524ef0ebc009d8209031c42ab85e17adf60/IGP.jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=app.igps.igpservicios&amp;hl=es_419"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
-                        </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/igp">Instituto Geofísico del Perú</a>
-                        </p>
-                      </div>
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-67438"
-                              href="/67438-calcular-el-nivel-de-vulnerabilidad-ante-fenomenos-naturales-mediante-la-aplicacion-sigrid-collect"
-                              >Sigrid Collect</a
-                            >Aplicación que te permite estimar o calcular las
-                            probables pérdidas ante un escenario de riesgo, como
-                            un desastre natural, desde tu celular.<a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/67438-calcular-el-nivel-de-vulnerabilidad-ante-fenomenos-naturales-mediante-la-aplicacion-sigrid-collect"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
-                          </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="Sigrid Collect"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzEyODcxLCJwdXIiOiJibG9iX2lkIn19--e184841af6e67b5caa82075ff1009e77fe2106ed/sigrid.jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=org.sigrid.collectv41.android"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
-                        </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/cenepred"
-                            >Centro Nacional de Estimación, Prevención y
-                            Reducción del Riesgo de Desastres</a
-                          >
-                        </p>
-                      </div>
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-66378"
-                              href="/66378-recibir-alertas-y-reportes-de-sismos-en-tu-celular-a-traves-de-la-aplicacion-sismos-peru"
-                              >Sismos Perú</a
-                            >Aplicación que monitorea la ocurrencia de sismos en
-                            el país y envía alertas de estos eventos reportados
-                            por el Instituto Geofísico del Perú (IGP) a través
-                            del Centro Sismológico Nacional.<a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/66378-recibir-alertas-y-reportes-de-sismos-en-tu-celular-a-traves-de-la-aplicacion-sismos-peru"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
-                          </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="Sismos Perú"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzA1NDY3LCJwdXIiOiJibG9iX2lkIn19--52688e2feaa433afd74d1143f533300c1eb5add9/sismos.jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=sistemasfireg.igp.org.sismosperu&amp;hl=es_PE&amp;pli=1"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
-                        </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/igp">[Institucion 2]</a>
-                        </p>
+                        {% endfor %}
                       </div>
                     </div>
-                  </div>
-                  <div class="child my-6" id="container-3">
-                    <div class="child-title"><h3>[Categoria 2]</h3></div>
-                    <div class="child-pages mt-4">
-                      <div
-                        class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0"
-                      >
-                        <div
-                          class="flex flex-col md:flex-row gap-x-6 align-center"
-                        >
-                          <div class="card-title w-full md:w-3/5">
-                            <a
-                              class="mb-2 block text-blue-700 font-bold w-fit"
-                              aria-labelledby="p-filter-item-66382"
-                              href="/66382-revisar-las-caracteristicas-de-los-volcanes-activos-a-traves-de-la-aplicacion-volcanes-peru"
-                              >Volcanes Perú</a
-                            >Aplicación que te permite conocer las
-                            características de los principales volcanes activos,
-                            presentes en la región sur del Perú desde tu
-                            celular.<a
-                              class="flex w-fit"
-                              aria-hidden="true"
-                              href="/66382-revisar-las-caracteristicas-de-los-volcanes-activos-a-traves-de-la-aplicacion-volcanes-peru"
-                              ><span
-                                class="flex text-blue-700 w-auto font-bold text-sm"
-                                >Leer más<svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  aria-hidden="true"
-                                  class="ml-3"
-                                >
-                                  <g id="keyboard_arrow_right">
-                                    <path
-                                      id="Vector"
-                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                      fill="#0056AC"
-                                    ></path>
-                                  </g></svg></span
-                            ></a>
-                          </div>
-                          <div class="card-icon w-full md:w-1/5 my-4">
-                            <img
-                              class="block m-auto"
-                              width="109"
-                              height="109"
-                              alt="Volcanes Perú"
-                              src="https://www.gob.pe/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzA1NTExLCJwdXIiOiJibG9iX2lkIn19--523ef8437b0af86e272a3c44997e04e0d51a158e/volcanes.jpg"
-                            />
-                          </div>
-                          <div
-                            class="card-button w-full md:w-1/4 flex flex-col gap-4"
-                          >
-                            <a
-                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                              href="https://play.google.com/store/apps/details?id=peru.volcanes.volcanesper&amp;hl=es_PE&amp;gl=US"
-                              ><span class="flex-align-center justify-center"
-                                ><span class="mr-2">Ir</span
-                                ><svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 17 17"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 0.999878L1.00001 0.899878L0.9 0.899865V0.999878V15.9999V16.0999L0.999986 16.0999H1.00002H1.00012H1.00053H1.00214L1.00854 16.0999L1.03366 16.0999L1.13033 16.0999L1.48645 16.0999L2.66667 16.1H14.3333H14.3387H14.3441H14.3494H14.3548H14.3601H14.3655H14.3708H14.3762H14.3815H14.3868H14.3922H14.3975H14.4028H14.4081H14.4135H14.4188H14.4241H14.4294H14.4347H14.44H14.4452H14.4505H14.4558H14.4611H14.4664H14.4716H14.4769H14.4821H14.4874H14.4926H14.4979H14.5031H14.5083H14.5136H14.5188H14.524H14.5292H14.5344H14.5396H14.5448H14.55H14.5552H14.5604H14.5656H14.5708H14.5759H14.5811H14.5863H14.5914H14.5966H14.6017H14.6069H14.612H14.6171H14.6223H14.6274H14.6325H14.6376H14.6427H14.6478H14.6529H14.658H14.6631H14.6681H14.6732H14.6783H14.6833H14.6884H14.6934H14.6985H14.7035H14.7085H14.7136H14.7186H14.7236H14.7286H14.7336H14.7386H14.7436H14.7486H14.7536H14.7585H14.7635H14.7685H14.7734H14.7784H14.7833H14.7883H14.7932H14.7981H14.803H14.8079H14.8129H14.8178H14.8226H14.8275H14.8324H14.8373H14.8422H14.847H14.8519H14.8567H14.8616H14.8664H14.8712H14.8761H14.8809H14.8857H14.8905H14.8953H14.9001H14.9049H14.9096H14.9144H14.9192H14.9239H14.9287H14.9334H14.9382H14.9429H14.9476H14.9523H14.957H14.9617H14.9664H14.9711H14.9758H14.9805H14.9851H14.9898H14.9944H14.9991H15.0037H15.0084H15.013H15.0176H15.0222H15.0268H15.0314H15.036H15.0406H15.0451H15.0497H15.0542H15.0588H15.0633H15.0679H15.0724H15.0769H15.0814H15.0859H15.0904H15.0949H15.0994H15.1038H15.1083H15.1128H15.1172H15.1216H15.1261H15.1305H15.1349H15.1393H15.1437H15.1481H15.1525H15.1569H15.1612H15.1656H15.1699H15.1743H15.1786H15.1829H15.1873H15.1916H15.1959H15.2002H15.2044H15.2087H15.213H15.2172H15.2215H15.2257H15.23H15.2342H15.2384H15.2426H15.2468H15.251H15.2552H15.2593H15.2635H15.2677H15.2718H15.2759H15.2801H15.2842H15.2883H15.2924H15.2965H15.3006H15.3046H15.3087H15.3128H15.3168H15.3208H15.3249H15.3289H15.3329H15.3369H15.3409H15.3449H15.3488H15.3528H15.3568H15.3607H15.3646H15.3686H15.3725H15.3764H15.3803H15.3842H15.388H15.3919H15.3958H15.3996H15.4035H15.4073H15.4111H15.4149H15.4187H15.4225H15.4263H15.43H15.4338H15.4376H15.4413H15.445H15.4487H15.4525H15.4562H15.4598H15.4635H15.4672H15.4708H15.4745H15.4781H15.4818H15.4854H15.489H15.4926H15.4962H15.4997H15.5033H15.5069H15.5104H15.514H15.5175H15.521H15.5245H15.528H15.5315H15.5349H15.5384H15.5418H15.5453H15.5487H15.5521H15.5555H15.5589H15.5623H15.5657H15.5691H15.5724H15.5758H15.5791H15.5824H15.5857H15.589H15.5923H15.5956H15.5988H15.6021H15.6053H15.6086H15.6118H15.615H15.6182H15.6214H15.6245H15.6277H15.6309H15.634H15.6371H15.6402H15.6433H15.6464H15.6495H15.6526H15.6557H15.6587H15.6617H15.6648H15.6678H15.6708H15.6738H15.6767H15.6797H15.6827H15.6856H15.6885H15.6914H15.6944H15.6972H15.7001H15.703H15.7059H15.7087H15.7115H15.7144H15.7172H15.72H15.7227H15.7255H15.7283H15.731H15.7338H15.7365H15.7392H15.7419H15.7446H15.7473H15.7499H15.7526H15.7552H15.7578H15.7604H15.763H15.7656H15.7682H15.7708H15.7733H15.7758H15.7784H15.7809H15.7834H15.7858H15.7883H15.7908H15.7932H15.7957H15.7981H15.8005H15.8029H15.8053H15.8076H15.81H15.8123H15.8146H15.817H15.8193H15.8215H15.8238H15.8261H15.8283H15.8306H15.8328H15.835H15.8372H15.8394H15.8415H15.8437H15.8458H15.848H15.8501H15.8522H15.8543H15.8563H15.8584H15.8604H15.8625H15.8645H15.8665H15.8685H15.8705H15.8724H15.8744H15.8763H15.8782H15.8801H15.882H15.8839H15.8858H15.8876H15.8895H15.8913H15.8931H15.8949H15.8967H15.8984H15.9002H15.9019H15.9037H15.9054H15.9071H15.9087H15.9104H15.9121H15.9137H15.9153H15.9169H15.9185H15.9201H15.9217H15.9232H15.9247H15.9263H15.9278H15.9293H15.9307H15.9322H15.9336H15.9351H15.9365H15.9379H15.9393H15.9407H15.942H15.9434H15.9447H15.946H15.9473H15.9486H15.9498H15.9511H15.9523H15.9536H15.9548H15.956H15.9571H15.9583H15.9594H15.9606H15.9617H15.9628H15.9639H15.9649H15.966H15.967H15.968H15.969H15.97H15.971H15.972H15.9729H15.9738H15.9748H15.9757H15.9765H15.9774H15.9783H15.9791H15.9799H15.9807H15.9815H15.9823H15.983H15.9838H15.9845H15.9852H15.9859H15.9865H15.9872H15.9878H15.9885H15.9891H15.9897H15.9902H15.9908H15.9914H15.9919H15.9924H15.9929H15.9934H15.9938H15.9943H15.9947H15.9951H15.9955H15.9959H15.9963H15.9966H15.9969H15.9972H15.9975H15.9978H15.9981H15.9983H15.9986H15.9988H15.999H15.9991H15.9993H15.9995H15.9996H15.9997H15.9998H15.9999H15.9999H16H16H16.1L16.1 16L16.0999 12.6665L16.0999 12.5665H15.9999H14.3332H14.2332L14.2332 12.6665L14.2333 14.2333H2.76667V2.76664H4.33333H4.43333V2.66664V0.999976V0.899976H4.33333H2.66667L1.48647 0.899927L1.13035 0.899893L1.03369 0.899882L1.00857 0.899879L1.00217 0.899878L1.00055 0.899878L1.00015 0.899878L1.00005 0.899878L1.00002 0.899878L1 0.999878ZM10.1667 0.899976H10.0667V0.999976V2.66664V2.76664H10.1667H12.9169L4.89596 10.7876L4.82525 10.8583L4.89596 10.929L6.07096 12.104L6.14167 12.1747L6.21238 12.104L14.2333 4.08307V6.83331V6.93331H14.3333H16H16.1V6.83331V0.999976V0.899976H16H10.1667Z"
-                                    fill="#0056AC"
-                                    stroke="#0056AC"
-                                    stroke-width="0.2"
-                                  ></path></svg></span
-                            ></a>
-                          </div>
+                  {% endfor %}
+                  {% if not categorias %}
+                    <div class="child my-6">
+                      <div class="child-pages mt-4">
+                        <div class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0">
+                          <p>No se encontraron resultados para los filtros seleccionados.</p>
                         </div>
-                        <p class="mt-4">
-                          Elaborado por:
-                          <a href="/igp">[Nombre de la institución]</a>
-                        </p>
                       </div>
                     </div>
-                  </div>
+                  {% endif %}
                 </div>
               </div>
             </div>
