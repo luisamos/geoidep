@@ -52,17 +52,19 @@ CREATE TABLE IF NOT EXISTS tmp.datos(
 
 SELECT * FROM tmp.datos;
 
-UPDATE tmp.datos SET id_tipo = 16 WHERE tipo_pub = 'KML';
-UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
 UPDATE tmp.datos SET id_tipo = 2 WHERE tipo_pub = 'Geoportal';
-UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WMTS';
-UPDATE tmp.datos SET id_tipo = 3 WHERE tipo_pub = 'Dashboard';
-UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
-UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Servicio WMS';
-UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Geoprocesamiento';
-UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WFS';
-UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Descarga GIS';
 UPDATE tmp.datos SET id_tipo = 4 WHERE tipo_pub = 'Geovisor';
+UPDATE tmp.datos SET id_tipo = 3 WHERE tipo_pub = 'Dashboard';
+UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Descarga GIS';
+
+UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Servicio WMS';
+UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WFS';
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WMTS';
+
+UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
+UPDATE tmp.datos SET id_tipo = 16 WHERE tipo_pub = 'KML';
+UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Geoprocesamiento';
 
 
 INSERT INTO public.def_herramientas_digitales(

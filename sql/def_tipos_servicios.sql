@@ -3,8 +3,8 @@ INSERT INTO public.def_tipos_servicios (nombre,descripcion, estado, id_padre) VA
 ('Servicios OGC', 'Los servicios del Open Geospatial Consortium son estándares internacionales que permiten a diferentes sistemas compartir y acceder a datos e información geográfica a través de la web de forma abierta e interoperable.', 1, 0),
 ('Servicios Rest de ArcGIS', 'Los Servicios REST de ArcGIS son una tecnología que permite a las aplicaciones conectarse y consultar datos y funcionalidades geográficas a través de la red usando el protocolo HTTP', 1, 0),
 ('Geoportales', 'Geoportales de entidades públicas.', 1, 1),
-('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', 1, 1),
 ('Visores de mapas', 'Visores de mapas institucionales.', 1, 1),
+('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', 1, 1),
 ('Descarga GIS (HTTPS, FTP)', 'Servicio de descarga.', 1, 1),
 
 ('OGC:WMS', 'Servicio de visualización de mapas.' 2),
