@@ -23,12 +23,14 @@ def idep():
 
 CATALOGO_TIPO_IDS = (5, 6, 7, 8)
 
-SLUG_OVERRIDES = {
+CATALOGO_SLUGS = {
     5: 'geoportales',
     6: 'visores',
     7: 'apps',
     8: 'descargas',
 }
+
+CATALOGO_SLUG_TO_ID = {slug: tipo_id for tipo_id, slug in CATALOGO_SLUGS.items()}
 
 
 def _slugify(value):
@@ -53,16 +55,25 @@ def _obtener_tipos_servicio_catalogo():
         .all()
     )
 
-    return [
-        {
-            'id': tipo.id,
-            'nombre': tipo.nombre,
-            'descripcion': tipo.descripcion,
-            'logotipo': tipo.logotipo,
-            'slug': SLUG_OVERRIDES.get(tipo.id, _slugify(tipo.nombre)),
-        }
-        for tipo in tipos
-    ]
+    tipos_por_id = {tipo.id: tipo for tipo in tipos}
+    tipos_catalogo = []
+
+    for tipo_id in CATALOGO_TIPO_IDS:
+        tipo = tipos_por_id.get(tipo_id)
+        if not tipo:
+            continue
+        tipos_catalogo.append(
+            {
+                'id': tipo.id,
+                'nombre': tipo.nombre,
+                'descripcion': tipo.descripcion,
+                'logotipo': tipo.logotipo,
+                'slug': CATALOGO_SLUGS.get(tipo.id, _slugify(tipo.nombre)),
+            }
+        )
+
+    return tipos_catalogo
+
 
 @bp.route('/catalogo')
 def catalogo():
@@ -70,17 +81,18 @@ def catalogo():
     return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
 
 
-@bp.route('/catalogo/<slug>')
+@bp.route('/catalogos/<slug>')
 def catalogo_por_tipo(slug):
-    tipos_servicio = _obtener_tipos_servicio_catalogo()
     slug_normalizado = slug.lower()
-    tipo_config = next(
-        (tipo for tipo in tipos_servicio if tipo['slug'] == slug_normalizado), None
-    )
+    tipo_id = CATALOGO_SLUG_TO_ID.get(slug_normalizado)
+    if not tipo_id:
+        abort(404)
+
+    tipos_servicio = _obtener_tipos_servicio_catalogo()
+    tipo_config = next((tipo for tipo in tipos_servicio if tipo['id'] == tipo_id), None)
     if not tipo_config:
         abort(404)
 
-    tipo_id = tipo_config['id']
     tipo_nombre = tipo_config['nombre']
     tipo_titulo = tipo_config.get('descripcion') or tipo_nombre
     tipo_descripcion = tipo_config.get('descripcion')

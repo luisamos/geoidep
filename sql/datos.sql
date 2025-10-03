@@ -74,3 +74,5 @@ INSERT INTO public.def_herramientas_digitales(
 SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
 WHERE id_tipo IN (5,6,7,8)
 GROUP BY 1,2,3,4,5,6,7;
+
+SELECT * FROM public.def_herramientas_digitales WHERE id_tipo_servicio = 8;
