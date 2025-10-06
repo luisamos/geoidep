@@ -63,7 +63,9 @@
             <label for="txtFiltro">Nombre del recurso</label>
           </div>
           <div class="input-field col s2">
-            <button id="btnBuscar" class="btn waves-effect blue">Buscar</button>
+            <button id="btnBuscar" class="btn waves-effect blue">
+              <i class="material-icons left">search</i> Buscar
+            </button>
           </div>
           <div class="input-field col s2">
             <button
@@ -71,7 +73,7 @@
               class="btn waves-effect green modal-trigger"
               data-target="modalHerramienta"
             >
-              Agregar
+              <i class="material-icons left">add</i>Nuevo
             </button>
           </div>
         </div>
@@ -90,7 +92,6 @@
                   <th>Tipo de recurso</th>
                   <th>Nombre</th>
                   <th>Estado</th>
-                  <th>Recurso</th>
                   <th>Institución</th>
                   <th>Opciones</th>
                 </tr>
@@ -111,7 +112,18 @@
 
     <div id="modalHerramienta" class="modal">
       <div class="modal-content">
-        <h5 id="modalTituloHerramienta">Nueva herramienta digital</h5>
+        <div
+          class="row center"
+          style="border-bottom: 3px solid rgba(1, 11, 100, 0.14)"
+        >
+          <h5 id="modalTituloHerramienta">NUEVA HERRAMIENTA DIGITAL</h5>
+          <img
+            id="imgClose_modal_layer"
+            alt="Cerrar ventana"
+            src="{{ url_for('static', filename='images/close.png') }}"
+            style="position: absolute; right: 10px; top: 10px"
+          />
+        </div>
         <form id="formHerramienta">
           <div class="input-field">
             <input id="nombre_herramienta" type="text" maxlength="200" />
@@ -172,7 +184,6 @@
       </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -191,7 +202,7 @@
             document.getElementById("formHerramienta").reset();
             herramientaEditandoId = null;
             document.getElementById("modalTituloHerramienta").textContent =
-              "Nueva herramienta digital";
+              "NUEVA HERRAMIENTA DIGITAL";
             setTimeout(() => {
               inicializarSelects();
               M.updateTextFields();
@@ -209,6 +220,8 @@
         M.FormSelect.init(selectElems);
       }
 
+      const iconoEnlace =
+        "{{ url_for('static', filename='images/enlace.png') }}";
       const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
@@ -251,18 +264,22 @@
           filtrados.forEach((herramienta, index) => {
             const fila = document.createElement("tr");
             const estado = herramienta.estado_display || "Sin estado";
-            const recurso = herramienta.recurso
-              ? `<a href="${herramienta.recurso}" target="_blank" rel="noopener">Ver recurso</a>`
-              : "-";
+
             fila.innerHTML = `
               <td style="padding-left: 20px">${index + 1}</td>
               <td>${herramienta.categoria || "-"}</td>
               <td>${herramienta.tipo_servicio || "-"}</td>
               <td>${herramienta.nombre}</td>
               <td>${estado}</td>
-              <td>${recurso}</td>
               <td>${herramienta.institucion || "-"}</td>
               <td>
+                <img
+                  src="${iconoEnlace}"
+                  class="icono-tabla accion-enlace"
+                  data-id="${herramienta.recurso}"
+                  alt="Ir al recurso"
+                  title="Ir al recurso"
+                />
                 <img
                   src="${iconoEditar}"
                   class="icono-tabla accion-editar"
@@ -371,7 +388,7 @@
           inicializarSelects();
           M.updateTextFields();
           document.getElementById("modalTituloHerramienta").textContent =
-            "Nueva herramienta digital";
+            "NUEVA HERRAMIENTA DIGITAL";
           herramientaEditandoId = null;
           cargarHerramientas();
         } catch (err) {
@@ -402,7 +419,7 @@
       function abrirModalEdicion(herramienta) {
         herramientaEditandoId = herramienta.id;
         document.getElementById("modalTituloHerramienta").textContent =
-          "Editar herramienta digital";
+          "EDITAR HERRAMIENTA DIGITAL";
 
         document.getElementById("nombre_herramienta").value =
           herramienta.nombre || "";

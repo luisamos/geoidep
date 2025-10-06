@@ -4,8 +4,8 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 ('Servicios Rest de ArcGIS', 'Los Servicios REST de ArcGIS son una tecnología que permite a las aplicaciones conectarse y consultar datos y funcionalidades geográficas a través de la red usando el protocolo HTTP', True, 0, 3),
 ('Geoportales', 'Geoportales de entidades públicas.', True, 1, 1),
 ('Visores de mapas', 'Visores de mapas institucionales.', True, 1, 2),
-('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', True, 1, 3),
-('Descarga GIS (HTTPS, FTP)', 'Servicio de descarga.', True, 1, 4),
+('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', True, 1, 4),
+('Descarga GIS (HTTPS, FTP)', 'Servicio de descarga.', True, 1, 5),
 ('OGC:WMS', 'Servicio de visualización de mapas.', True, 2, 1),
 ('OGC:WFS', 'Servicio de consulta y descarga de mapas.', True, 2, 2),
 ('OGC:WCS', 'Servicio de imagenes de mapas.', True, 2, 3),
@@ -16,7 +16,8 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 ('REST:ArcGIS FeatureServer', 'Servicio Rest de acceso a mapas', True, 3, 2),
 ('REST:ArcGIS ImageServer', 'Servicio Rest de imagenes', True, 3, 3),
 ('REST:ArcGIS KML', 'Servicio Rest de exportación a formato KML', True, 3, 4),
-('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5);
+('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5),
+('Observatorios digitales', 'Un observatorio digital es una plataforma o sistema diseñado para recopilar, procesar, analizar y clasificar información de diversos entornos digitales con el fin de extraer conocimiento y apoyar la toma de decisiones', True, 1, 3);
 
 SELECT id AS id_tipo_servicio, nombre 
-FROM ide.def_tipos_servicios WHERE id_padre=1;
+FROM ide.def_tipos_servicios WHERE id_padre=1 ORDER BY orden ASC;

@@ -25,12 +25,12 @@ def _obtener_usuario_actual():
 def inicio():
     categorias = (
         Categoria.query.filter_by(id_padre=1)
-        .order_by(Categoria.nombre)
+        .order_by(Categoria.id)
         .all()
     )
     tipos_servicio = (
         TipoServicio.query.filter_by(id_padre=1)
-        .order_by(TipoServicio.nombre)
+        .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
         .all()
     )
     institucion_usuario = None
@@ -282,7 +282,7 @@ def actualizar(herramienta_id):
     if not herramienta:
         return jsonify({'status': 'error', 'message': 'Herramienta no encontrada.'}), 404
 
-    if herramienta.id_institucion != usuario.institucion.id:
+    if herramienta.id_institucion not in (None, usuario.institucion.id):
         return (
             jsonify(
                 {
@@ -297,6 +297,9 @@ def actualizar(herramienta_id):
     datos, error = _validar_payload_herramienta(payload)
     if error:
         return error
+
+    if herramienta.id_institucion is None:
+        herramienta.id_institucion = usuario.institucion.id
 
     herramienta.nombre = datos['nombre']
     herramienta.descripcion = datos['descripcion']
@@ -350,16 +353,16 @@ def eliminar(herramienta_id):
     if not herramienta:
         return jsonify({'status': 'error', 'message': 'Herramienta no encontrada.'}), 404
 
-    if herramienta.id_institucion != usuario.institucion.id:
-        return (
-            jsonify(
-                {
-                    'status': 'error',
-                    'message': 'No puedes eliminar herramientas de otra institución.',
-                }
-            ),
-            403,
-        )
+    if herramienta.id_institucion not in (None, usuario.institucion.id):
+      return (
+          jsonify(
+              {
+                  'status': 'error',
+                  'message': 'No puedes eliminar herramientas de otra institución.',
+              }
+          ),
+          403,
+      )
 
     db.session.delete(herramienta)
     try:

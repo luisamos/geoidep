@@ -9,7 +9,11 @@ bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 @bp.route('/')
 def inicio():
     categorias = Categoria.query.order_by(Categoria.codigo).all()
-    tipos_serv  = TipoServicio.query.order_by(TipoServicio.nombre).all()
+    tipos_serv  = (
+        TipoServicio.query.order_by(
+            TipoServicio.orden.asc(), TipoServicio.nombre.asc()
+        ).all()
+    )
     capas        = CapaGeografica.query.options(
                       db.joinedload(CapaGeografica.servicios)
                         .joinedload(ServicioGeografico.tipo_servicio)
