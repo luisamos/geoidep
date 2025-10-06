@@ -25,7 +25,7 @@ class Sector(db.Model):
 
 class Institucion(db.Model):
     __tablename__ = 'def_instituciones'
-    __table_args__ = {"schema": "geo"}
+    __table_args__ = {"schema": "ide"}
 
     id = db.Column(db.Integer, primary_key=True)
     pliego = db.Column(db.String(20))

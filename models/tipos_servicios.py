@@ -2,7 +2,7 @@ from app import db
 
 class TipoServicio(db.Model):
     __tablename__ = 'def_tipos_servicios'
-    __table_args__ = {"schema": "geo"}
+    __table_args__ = {"schema": "ide"}
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)

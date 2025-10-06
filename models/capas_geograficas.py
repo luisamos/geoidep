@@ -2,7 +2,7 @@ from app import db
 
 class CapaGeografica(db.Model):
     __tablename__ = 'def_capas_geograficas'
-    __table_args__ = {"schema": "geo"}
+    __table_args__ = {"schema": "ide"}
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
