@@ -1,8 +1,8 @@
 from app import db
 
 class TipoServicio(db.Model):
-    #__tablename__ = 'def_tipos_herramientas_servicios'
     __tablename__ = 'def_tipos_servicios'
+    __table_args__ = {"schema": "geo"}
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)

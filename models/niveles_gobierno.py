@@ -12,6 +12,7 @@ class Entidad(db.Model):
 
 class Sector(db.Model):
     __tablename__ = 'def_sectores'
+    __table_args__ = {"schema": "geo"}
 
     id = db.Column(db.Integer, primary_key=True)
     codigo = db.Column(db.String(3), nullable=False)
@@ -24,6 +25,7 @@ class Sector(db.Model):
 
 class Institucion(db.Model):
     __tablename__ = 'def_instituciones'
+    __table_args__ = {"schema": "geo"}
 
     id = db.Column(db.Integer, primary_key=True)
     pliego = db.Column(db.String(20))

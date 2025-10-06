@@ -2,6 +2,7 @@ from app import db
 
 class HerramientaDigital(db.Model):
     __tablename__ = 'def_herramientas_digitales'
+    __table_args__ = {"schema": "geo"}
 
     id = db.Column(db.Integer, primary_key=True)
     id_tipo_servicio = db.Column('id_tipo_servicio', db.Integer, db.ForeignKey('def_tipos_servicios.id'), nullable=False)

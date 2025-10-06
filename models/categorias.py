@@ -2,6 +2,7 @@ from app import db
 
 class Categoria(db.Model):
     __tablename__ = 'def_categorias'
+    __table_args__ = {"schema": "geo"}
 
     id = db.Column(db.Integer, primary_key=True)
     codigo = db.Column(db.String(5), unique=True, nullable=False)

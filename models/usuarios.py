@@ -5,6 +5,7 @@ from models.niveles_gobierno import Institucion
 
 class Usuario(db.Model):
     __tablename__ = 'def_usuarios'
+    __table_args__ = {"schema": "geo"}
     id              = db.Column(db.Integer, primary_key=True)
     username        = db.Column(db.String(80), unique=True, nullable=False)
     email           = db.Column(db.String(255), unique=True, nullable=False)
