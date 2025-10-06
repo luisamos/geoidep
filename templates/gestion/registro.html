@@ -1,73 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Registro de Usuario - GEOIDEP</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/subsistema.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/subsistema.css') }}"
+    />
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <div id="modal_login" class="modal__login">
-        <div class="modal__content">
-            <div class="content__controls center-align">
-                <h5>CREAR UNA NUEVA CUENTA</h5>
-                <div class="row">
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-                        <div class="row">
-                            <div class="input-field col s12">
-                                {{ form.username.label }}
-                                {{ form.username(class="validate") }}
-                            </div>
-                            <div class="input-field col s12">
-                                {{ form.email.label }}
-                                {{ form.email(class="validate") }}
-                            </div>
-                            <div class="input-field col s12">
-                                {{ form.password.label }}
-                                {{ form.password(class="validate") }}
-                            </div>
-                            <div class="input-field col s12">
-                                {{ form.confirm_password.label }}
-                                {{ form.confirm_password(class="validate") }}
-                            </div>
-                            <div class="input-field col s12">
-                                {{ form.recaptcha }}
-                            </div>
-                        </div>
-                        {{ form.submit(class="button__primary", type="submit") }}
-                    </form>
-                    <p>¿Ya tienes cuenta? <a href="{{ url_for('gestion.ingreso') }}">Inicia sesión aquí</a>.</p>
+      <div class="modal__content">
+        <div class="content__controls center-align">
+          <h5>CREAR UNA NUEVA CUENTA</h5>
+          <div class="row">
+            <form method="POST">
+              {{ form.hidden_tag() }}
+              <div class="row">
+                <div class="input-field col s12 m6">
+                  {{ form.nombres.label }} {{ form.nombres(class="validate") }}
                 </div>
-            </div>
-            <div class="login__image"></div>
+                <div class="input-field col s12 m6">
+                  {{ form.apellidos.label }} {{ form.apellidos(class="validate")
+                  }}
+                </div>
+                <div class="input-field col s12">
+                  {{ form.email.label }} {{ form.email(class="validate") }}
+                </div>
+                <div class="input-field col s12">
+                  {{ form.password.label }} {{ form.password(class="validate")
+                  }}
+                </div>
+                <div class="input-field col s12">
+                  {{ form.confirm_password.label }} {{
+                  form.confirm_password(class="validate") }}
+                </div>
+                <div class="input-field col s12">{{ form.recaptcha }}</div>
+              </div>
+              {{ form.submit(class="button__primary", type="submit") }}
+            </form>
+            <p>
+              ¿Ya tienes cuenta?
+              <a href="{{ url_for('gestion.ingreso') }}">Inicia sesión aquí</a>.
+            </p>
+          </div>
         </div>
+        <div class="login__image"></div>
+      </div>
     </div>
 
     <div class="modal_wait">
-        <div class="ventana">
-            <img alt="Cargando..." src="{{ url_for('static', filename='images/wait_geoperu.gif') }}" height="150px">
-        </div>
+      <div class="ventana">
+        <img
+          alt="Cargando..."
+          src="{{ url_for('static', filename='images/wait_geoperu.gif') }}"
+          height="150px"
+        />
+      </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const msgs = {{ get_flashed_messages(with_categories = true) | tojson }};
-            msgs.forEach(([category, msg]) => {
-                const classes = category === 'success' ? 'green'
-                    : category === 'error' ? 'red'
-                        : category === 'info' ? 'blue'
-                            : '';
-                M.toast({ html: msg, classes });
-            });
-        });
+      document.addEventListener('DOMContentLoaded', function () {
+          const msgs = {{ get_flashed_messages(with_categories = true) | tojson }};
+          msgs.forEach(([category, msg]) => {
+              const classes = category === 'success' ? 'green'
+                  : category === 'error' ? 'red'
+                      : category === 'warning' ? 'orange'
+                          : '';
+              M.toast({ html: msg, classes });
+          });
+      });
     </script>
-</body>
-
+  </body>
 </html>

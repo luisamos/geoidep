@@ -54,7 +54,7 @@ SELECT tipo_pub FROM tmp.datos
 GROUP BY 1
 ORDER BY 1;
 
-SELECT * FROM public.def_tipos_servicios WHERE id_padre = 3 ORDER BY orden;
+SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 3 ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 4 WHERE tipo_pub = 'Geoportal';
 UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geovisor';
@@ -75,5 +75,7 @@ INSERT INTO ide.def_herramientas_digitales(
 SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
 WHERE id_tipo IN (4,5,6,7)
 GROUP BY 1,2,3,4,5,6,7;
+
+SELECT * FROM ide.def_instituciones ORDER BY 1 DESC;
 
 SELECT * FROM ide.def_herramientas_digitales WHERE id_tipo_servicio = 4;

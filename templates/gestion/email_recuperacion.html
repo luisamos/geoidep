@@ -2,9 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Confirma tu cuenta</title>
+    <title>Recupera tu contraseña</title>
   </head>
-
   <body
     style="
       font-family: Arial, Helvetica, sans-serif;
@@ -34,19 +33,20 @@
             text-align: center;
           "
         >
-          <h2 style="margin: 0">Bienvenido a GEOIDEP</h2>
+          <h2 style="margin: 0">Recupera tu contraseña</h2>
         </td>
       </tr>
       <tr>
         <td style="padding: 24px; color: #37474f">
           <p>Hola <strong>{{ usuario.nombre_completo }}</strong>,</p>
           <p>
-            Gracias por registrarte en GEOIDEP. Para activar tu cuenta confirma
-            tu correo electrónico dando clic en el siguiente botón:
+            Hemos recibido una solicitud para restablecer tu contraseña en
+            GEOIDEP. Para continuar haz clic en el siguiente botón. El enlace es
+            válido por un tiempo limitado.
           </p>
           <p style="text-align: center; margin: 32px 0">
             <a
-              href="{{ confirm_url }}"
+              href="{{ reset_url }}"
               style="
                 background-color: #1976d2;
                 color: #ffffff;
@@ -56,19 +56,18 @@
                 display: inline-block;
               "
             >
-              Confirmar cuenta
+              Restablecer contraseña
             </a>
           </p>
           <p>
             Si el botón no funciona, copia y pega este enlace en tu navegador:
           </p>
           <p style="word-break: break-all">
-            <a href="{{ confirm_url }}" style="color: #1976d2"
-              >{{ confirm_url }}</a
-            >
+            <a href="{{ reset_url }}" style="color: #1976d2">{{ reset_url }}</a>
           </p>
-          <p style="margin-top: 32px">
-            Si tú no solicitaste esta cuenta, puedes ignorar este mensaje.
+          <p>
+            Si no solicitaste este cambio, puedes ignorar este mensaje. Tu
+            contraseña permanecerá sin cambios.
           </p>
           <p style="margin-bottom: 0">Saludos,<br />Equipo GEOIDEP</p>
         </td>

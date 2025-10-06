@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Capas Geográficas</title>
+    <title>Gestión de Usuarios</title>
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
@@ -16,6 +16,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/index.css') }}"
     />
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
   </head>
 
   <body>
@@ -26,234 +27,199 @@
         <h4>Usuarios</h4>
 
         <div class="row">
-          <div class="input-field col s4">
-            <select id="tipo_capa">
-              <option value="" disabled selected>Seleccione tipo</option>
-              <option value="publico">Público</option>
-              <option value="privado">Privado</option>
-            </select>
-            <label>Tipo de Capa</label>
-          </div>
-          <div class="input-field col s2">
-            <button id="btnBuscar" class="btn waves-effect blue">Buscar</button>
-          </div>
-          <div class="input-field col s2">
-            <button
-              id="btnAgregar"
-              class="btn waves-effect green modal-trigger"
-              data-target="modalCapa"
+          <form method="GET" class="col s12 m8">
+            <div class="input-field">
+              <i class="material-icons prefix">search</i>
+              <input
+                id="termino"
+                type="text"
+                name="q"
+                value="{{ termino }}"
+                placeholder="Buscar por nombre, correo o documento"
+              />
+              <label for="termino">Buscar usuario</label>
+            </div>
+            <button class="btn blue waves-effect" type="submit">Buscar</button>
+            {% if termino %}
+            <a
+              href="{{ url_for('gestion.usuarios') }}"
+              class="btn grey lighten-1 black-text"
+              >Limpiar</a
             >
-              Agregar
-            </button>
+            {% endif %}
+          </form>
+          <div class="col s12 m4 right-align" style="margin-top: 24px">
+            <a
+              href="{{ url_for('gestion.usuarios') }}"
+              class="btn green waves-effect"
+            >
+              <i class="material-icons left">person_add</i>
+              Nuevo usuario
+            </a>
           </div>
         </div>
 
-        <table class="highlight" id="tblLayers" style="background-color: #fff">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nombre</th>
-              <th>En GeoPerú</th>
-              <th>Servicios</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for capa in capas %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ capa.nombre }}</td>
-              <td>{{ 'Sí' if capa.publicar_geoperu else 'No' }}</td>
-              <td>
-                {% for serv in capa.servicios %} {{ serv.tipo_servicio.nombre
-                }}{% if not loop.last %}, {% endif %} {% endfor %}
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="4">No hay capas disponibles.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title"
+              >{{ 'Editar usuario' if usuario_editar else 'Nuevo usuario'
+              }}</span
+            >
+            <form
+              method="POST"
+              action="{{ url_for('gestion.guardar_usuario') }}"
+            >
+              {{ form.hidden_tag() }}
+              <div class="row">
+                <div class="input-field col s12 m6">
+                  {{ form.nombres.label }} {{ form.nombres(class="validate") }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.apellidos.label }} {{ form.apellidos(class="validate")
+                  }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.email.label }} {{ form.email(class="validate") }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.numero_documento.label }} {{
+                  form.numero_documento(class="validate") }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.fecha.label }} {{ form.fecha(class="validate",
+                  type="date") }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.id_institucion.label }} {{
+                  form.id_institucion(class="browser-default") }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col s12 m4">
+                  <label>
+                    {{ form.estado() }}
+                    <span>{{ form.estado.label.text }}</span>
+                  </label>
+                </div>
+                <div class="col s12 m4">
+                  <label>
+                    {{ form.geoidep() }}
+                    <span>{{ form.geoidep.label.text }}</span>
+                  </label>
+                </div>
+                <div class="col s12 m4">
+                  <label>
+                    {{ form.geoperu() }}
+                    <span>{{ form.geoperu.label.text }}</span>
+                  </label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="input-field col s12 m6">
+                  {{ form.password.label }} {{ form.password(class="validate")
+                  }}
+                  <span class="helper-text">
+                    {% if usuario_editar %} Deja el campo vacío para mantener la
+                    contraseña actual. {% else %} Ingresa una contraseña
+                    temporal para el nuevo usuario. {% endif %}
+                  </span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col s12 right-align">
+                  <button type="submit" class="btn blue waves-effect">
+                    <i class="material-icons left">save</i>
+                    Guardar
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">Listado de usuarios</span>
+            <div class="table-responsive">
+              <table class="highlight" style="background-color: #fff">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Correo</th>
+                    <th>Documento</th>
+                    <th>Institución</th>
+                    <th>GeoIDEP</th>
+                    <th>GeoPerú</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for usuario in usuarios %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ usuario.nombres or '-' }}</td>
+                    <td>{{ usuario.apellidos or '-' }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.numero_documento or '-' }}</td>
+                    <td>
+                      {{ usuario.institucion.nombre if usuario.institucion else
+                      '-' }}
+                    </td>
+                    <td>{{ 'Sí' if usuario.geoidep else 'No' }}</td>
+                    <td>{{ 'Sí' if usuario.geoperu else 'No' }}</td>
+                    <td>{{ 'Activo' if usuario.estado else 'Inactivo' }}</td>
+                    <td>
+                      <a
+                        href="{{ url_for('gestion.usuarios', editar=usuario.id, q=termino) }}"
+                        class="btn-small waves-effect blue"
+                      >
+                        <i class="material-icons">edit</i>
+                      </a>
+                      <form
+                        method="POST"
+                        action="{{ url_for('gestion.eliminar_usuario', usuario_id=usuario.id) }}"
+                        style="display: inline"
+                        onsubmit="return confirm('¿Desea eliminar al usuario {{ usuario.nombre_completo }}?');"
+                      >
+                        {{ delete_form.hidden_tag() }}
+                        <button
+                          class="btn-small red waves-effect"
+                          type="submit"
+                        >
+                          <i class="material-icons">delete</i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="10" class="center-align">
+                      No se encontraron usuarios con los criterios ingresados.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Modal para registro capa y servicios -->
-    <div id="modalCapa" class="modal">
-      <div class="modal-content">
-        <h5>Nueva Capa Geográfica</h5>
-
-        <div class="input-field">
-          <input id="nombre_capa" type="text" />
-          <label for="nombre_capa">Nombre</label>
-        </div>
-
-        <div class="input-field">
-          <textarea
-            id="descripcion_capa"
-            class="materialize-textarea"
-          ></textarea>
-          <label for="descripcion_capa">Descripción</label>
-        </div>
-
-        <div class="input-field">
-          <select id="tipo_capa_modal">
-            <option value="1">Público</option>
-            <option value="0">Privado</option>
-          </select>
-          <label>Tipo de Capa</label>
-        </div>
-
-        <div class="input-field">
-          <select id="categoria_capa" name="categoria_id">
-            <option value="" disabled selected>Seleccione categoría</option>
-            {% for cat in categorias %}
-            <option value="{{ cat.id }}">{{ cat.nombre }}</option>
-            {% endfor %}
-          </select>
-          <label>Categoría</label>
-        </div>
-
-        <p>
-          <label>
-            <input type="checkbox" id="publicar_geoperu" />
-            <span>Publicar en GeoPerú</span>
-          </label>
-        </p>
-
-        <h6>Servicios Asociados</h6>
-        <table class="highlight" id="tablaServicios">
-          <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>URL</th>
-              <th>Layer</th>
-              <th>Visible</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- filas dinámicas con JS -->
-          </tbody>
-        </table>
-        <button class="btn orange" id="btnAddServicio">Agregar Servicio</button>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-close btn grey">Cancelar</button>
-        <button class="btn blue" id="btnGuardar">Guardar</button>
-      </div>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
-      // Inicialización de Materialize
-      document.addEventListener("DOMContentLoaded", function () {
-        var elems = document.querySelectorAll("select");
-        M.FormSelect.init(elems);
-        var modals = document.querySelectorAll(".modal");
-        M.Modal.init(modals);
+      document.addEventListener('DOMContentLoaded', function () {
+        const msgs = {{ get_flashed_messages(with_categories = true) | tojson }};
+        msgs.forEach(([category, msg]) => {
+          const classes = category === 'success' ? 'green'
+            : category === 'error' ? 'red'
+              : category === 'warning' ? 'orange'
+                : '';
+          M.toast({ html: msg, classes });
+        });
       });
-
-      // Agregar fila de servicio
-      document
-        .getElementById("btnAddServicio")
-        .addEventListener("click", function () {
-          var tbody = document.querySelector("#tablaServicios tbody");
-          var tr = document.createElement("tr");
-          tr.innerHTML = `
-        <td>
-          <select class="tipo_servicio">
-            <option value="" disabled selected>Seleccione</option>
-            <option value="OGC:WMS">OGC:WMS</option>
-            <option value="OGC:WFS">OGC:WFS</option>
-            <option value="OGC:WCS">OGC:WCS</option>
-            <option value="OGC:WMTS">OGC:WMTS</option>
-            <option value="REST:ArcGIS">REST:ArcGIS</option>
-            <option value="REST:GeoServer">REST:GeoServer</option>
-            <option value="REST:MapServer">REST:MapServer</option>
-            <option value="REST:QGIS Server">REST:QGIS Server</option>
-            <option value="Otros">Otros</option>
-          </select>
-        </td>
-        <td><input type="text" class="url_servicio"></td>
-        <td><input type="text" class="nombre_layer"></td>
-        <td>
-          <label>
-            <input type="checkbox" class="visible_servicio" checked />
-            <span></span>
-          </label>
-        </td>
-        <td><button class="btn-small red eliminar-servicio">X</button></td>
-      `;
-          tbody.appendChild(tr);
-          // Inicializar nuevo select
-          M.FormSelect.init(tr.querySelectorAll("select"));
-        });
-
-      // Eliminar fila de servicio
-      document
-        .querySelector("#tablaServicios")
-        .addEventListener("click", function (e) {
-          if (e.target && e.target.matches("button.eliminar-servicio")) {
-            var tr = e.target.closest("tr");
-            tr.parentNode.removeChild(tr);
-          }
-        });
-
-      // Guardar capa y servicios
-      document
-        .getElementById("btnGuardar")
-        .addEventListener("click", async function () {
-          var nombre = document.getElementById("nombre_capa").value;
-          var descripcion = document.getElementById("descripcion_capa").value;
-          var tipoModal = document.getElementById("tipo_capa_modal").value;
-          var tipo_capa = tipoModal === "1" ? "publico" : "privado";
-          var categoriaId = document.getElementById("categoria_capa").value;
-          var publicar = document.getElementById("publicar_geoperu").checked;
-
-          var servicios = [];
-          document
-            .querySelectorAll("#tablaServicios tbody tr")
-            .forEach(function (row) {
-              servicios.push({
-                tipo: row.querySelector(".tipo_servicio").value,
-                url: row.querySelector(".url_servicio").value,
-                layer: row.querySelector(".nombre_layer").value,
-                visible: row.querySelector(".visible_servicio").checked,
-              });
-            });
-
-          var payload = {
-            nombre: nombre,
-            descripcion: descripcion,
-            tipo_capa: tipo_capa,
-            categoria_id: Number(categoriaId),
-            publicar_geoperu: publicar,
-            servicios: servicios,
-          };
-
-          try {
-            var resp = await fetch("/capas/api/save", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            var json = await resp.json();
-            if (resp.ok) {
-              M.toast({ html: "Capa creada con ID " + json.capa_id });
-              // Cerrar modal
-              var modalElem = document.getElementById("modalCapa");
-              var instance = M.Modal.getInstance(modalElem);
-              instance.close();
-              // Opcional: limpiar formulario
-            } else {
-              M.toast({ html: "Error: " + (json.message || resp.statusText) });
-            }
-          } catch (err) {
-            M.toast({ html: "Error de red" });
-          }
-        });
     </script>
   </body>
 </html>

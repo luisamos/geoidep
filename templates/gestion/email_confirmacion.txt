@@ -1,4 +1,4 @@
-Hola {{ usuario.username }},
+Hola {{ usuario.nombre_completo }},
 
 Gracias por registrarte en GEOIDEP. Para activar tu cuenta solo debes confirmar tu correo electrónico haciendo clic en el siguiente enlace:
 

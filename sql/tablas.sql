@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS ide.alembic_version CASCADE;
+DROP TABLE IF EXISTS public.alembic_version CASCADE;
 DROP TABLE IF EXISTS ide.def_categorias CASCADE;
 DROP TABLE IF EXISTS ide.def_sectores CASCADE;
 DROP TABLE IF EXISTS ide.def_entidades CASCADE;
