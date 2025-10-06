@@ -1,8 +1,9 @@
 from app import db
+from models import SCHEMA_IDE
 
 class Categoria(db.Model):
     __tablename__ = 'def_categorias'
-    __table_args__ = {"schema": "ide"}
+    __table_args__ = {'schema': SCHEMA_IDE}
 
     id = db.Column(db.Integer, primary_key=True)
     codigo = db.Column(db.String(5), unique=True, nullable=False)

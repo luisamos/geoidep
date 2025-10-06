@@ -1,8 +1,10 @@
 from app import db
+from models import SCHEMA_IDE
 
 class TipoServicio(db.Model):
+    #__tablename__ = 'def_tipos_herramientas_servicios'
     __tablename__ = 'def_tipos_servicios'
-    __table_args__ = {"schema": "ide"}
+    __table_args__ = {'schema': SCHEMA_IDE}
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)

@@ -23,35 +23,3 @@ CREATE TABLE IF NOT EXISTS public.def_usuario
         ON DELETE NO ACTION
 );
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE OR REPLACE FUNCTION fn_login_usuario(p_username TEXT, p_password TEXT)
-RETURNS BOOLEAN AS $$
-DECLARE
-    v_password TEXT;
-BEGIN
-    SELECT password_hash INTO v_password FROM def_usuario WHERE username = p_username;
-
-    IF v_password IS NULL THEN
-        RETURN FALSE;
-    END IF;
-
-    IF crypt(p_password, v_password) = v_password THEN
-        RETURN TRUE;
-    ELSE
-        RETURN FALSE;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION fn_registrar_usuario(p_username TEXT, p_password TEXT)
-RETURNS BOOLEAN AS $$
-BEGIN
-    INSERT INTO def_usuario (username, password_hash)
-    VALUES (p_username, crypt(p_password, gen_salt('bf')));
-    RETURN TRUE;
-EXCEPTION
-    WHEN unique_violation THEN
-        RETURN FALSE; -- Usuario ya existe
-END;
-$$ LANGUAGE plpgsql;

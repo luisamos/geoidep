@@ -6,7 +6,7 @@
 -- ENTIDAD
 --
 
-INSERT INTO public.def_entidades (codigo, nombre) VALUES
+INSERT INTO ide.def_entidades (codigo, nombre) VALUES
 ('PE', 'Poder Ejecutivo'),
 ('PL', 'Poder Legislativo'),
 ('PJ', 'Poder Judicial'),
@@ -17,12 +17,12 @@ INSERT INTO public.def_entidades (codigo, nombre) VALUES
 ('I', 'Organismos Internacionales'),
 ('P', 'Instituciones Privadas');
 
-SELECT * FROM public.def_entidades ORDER BY 1;
+SELECT * FROM ide.def_entidades ORDER BY 1;
 
 --
 -- SECTOR
 --
-INSERT INTO public.def_sectores (codigo, nombre , id_entidad) VALUES
+INSERT INTO ide.def_sectores (codigo, nombre , id_entidad) VALUES
 ('01', 'PRESIDENCIA CONSEJO MINISTROS', 1),
 ('03', 'CULTURA', 1),
 ('04', 'PODER JUDICIAL', 1),
@@ -60,13 +60,13 @@ INSERT INTO public.def_sectores (codigo, nombre , id_entidad) VALUES
 ('I', 'ORGANIZACIONES INTERNACIONALES', 8),
 ('P', 'PRIVADO',9);
 
-SELECT * FROM public.def_sectores ORDER BY 1;
+SELECT * FROM ide.def_sectores ORDER BY 1;
 
---\copy public.def_instituciones (pliego, nombre, id_sector, sigla) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+--\copy ide.def_instituciones (pliego, nombre, id_sector, sigla) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
---\copy public.def_instituciones (pliego, nombre, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\municipalidades.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+--\copy ide.def_instituciones (pliego, nombre, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\municipalidades.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
---\copy public.def_instituciones (pliego, nombre, sigla, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones2.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+--\copy ide.def_instituciones (pliego, nombre, sigla, id_sector) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones2.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
-SELECT id, nombre, sigla FROM public.def_instituciones
+SELECT id, nombre, sigla FROM ide.def_instituciones
 WHERE sigla = 'SERNANP';

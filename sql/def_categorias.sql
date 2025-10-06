@@ -1,4 +1,4 @@
-INSERT INTO public.def_categorias (codigo, nombre, sigla, definicion, id_padre) VALUES
+INSERT INTO ide.def_categorias (codigo, nombre, sigla, definicion, id_padre) VALUES
 ('1', 'Categoría ISO 19115', 'ISO19115', 'Es una norma internacional que define un esquema estándar para la creación de metadatos, que son descripciones detalladas de los datos geográficos', 0),
 ('001', 'Agricultura', 'farming', 'Cría de animales y/o cultivo de plantas. Ejemplos: agricultura, irrigación, acuicultura, plantaciones, plagas, epidemias y enfermedades que afectan a las cosechas y al ganado', 1),
 ('002', 'Biología', 'biota', 'Flora y fauna en el medio natural. Ejemplos: fauna, vegetación, ciencias biológicas, ecología, vida salvaje, vida marina, pantanos, hábitat', 1),
@@ -20,4 +20,4 @@ INSERT INTO public.def_categorias (codigo, nombre, sigla, definicion, id_padre) 
 ('018', 'Transporte', 'transportation', 'Medios y ayudas para transportar personas y mercancías. Ejemplos: carreteras, aeropuertos, pistas de aterrizaje, rutas, vías marítimas, túneles, cartas náuticas, localización de barcos o vehículos, cartas aeronáuticas, ferrocarriles', 1),
 ('019', 'Redes de Suministro', 'utilitiesCommunication', 'Redes de agua, de energía, de retirada de residuos, de infraestructura de comunicaciones y servicios. Ejemplos: hidroeléctricas, fuentes de energía geotermal, solar y nuclear, distribución y depuración de agua, recogida y almacenamiento de aguas residuales, distribución de gas y energía, comunicación de datos, telecomunicaciones, radio, redes de comunicación', 1); 
 
-SELECT id, nombre, definicion FROM public.def_categorias WHERE id_padre = 1;
+SELECT id, nombre, definicion FROM ide.def_categorias WHERE id_padre = 1;

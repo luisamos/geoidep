@@ -1,16 +1,28 @@
 from app import db
+from models import SCHEMA_IDE
+
 
 class CapaGeografica(db.Model):
     __tablename__ = 'def_capas_geograficas'
-    __table_args__ = {"schema": "ide"}
+    __table_args__ = {'schema': SCHEMA_IDE}
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.String(500))
     tipo_capa = db.Column(db.Boolean, default=True)
     publicar_geoperu = db.Column(db.Boolean, default=False)
-    id_categoria = db.Column('id_categoria', db.Integer, db.ForeignKey('def_categorias.id'), nullable=False)
-    id_institucion = db.Column('id_institucion', db.Integer, db.ForeignKey('def_instituciones.id'), nullable=False)
+    id_categoria = db.Column(
+        'id_categoria',
+        db.Integer,
+        db.ForeignKey(f"{SCHEMA_IDE}.def_categorias.id"),
+        nullable=False,
+    )
+    id_institucion = db.Column(
+        'id_institucion',
+        db.Integer,
+        db.ForeignKey(f"{SCHEMA_IDE}.def_instituciones.id"),
+        nullable=False,
+    )
 
     categoria = db.relationship('Categoria', back_populates='capas')
     institucion = db.relationship('Institucion', back_populates='capas')
@@ -19,10 +31,19 @@ class CapaGeografica(db.Model):
 
 class ServicioGeografico(db.Model):
     __tablename__ = 'def_servicios_geograficos'
+    __table_args__ = {'schema': SCHEMA_IDE}
 
     id = db.Column(db.Integer, primary_key=True)
-    id_capa = db.Column(db.Integer, db.ForeignKey('def_capas_geograficas.id'), nullable=False)
-    id_tipo_servicio = db.Column(db.Integer, db.ForeignKey('def_tipos_servicios.id'), nullable=False)
+    id_capa = db.Column(
+        db.Integer,
+        db.ForeignKey(f"{SCHEMA_IDE}.def_capas_geograficas.id"),
+        nullable=False,
+    )
+    id_tipo_servicio = db.Column(
+        db.Integer,
+        db.ForeignKey(f"{SCHEMA_IDE}.def_tipos_servicios.id"),
+        nullable=False,
+    )
     direccion_web = db.Column(db.Text, nullable=False)
     nombre_layer = db.Column(db.String(200))
     visible = db.Column(db.Boolean, default=True)

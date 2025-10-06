@@ -80,7 +80,8 @@ def catalogo():
     tipos_servicio = _obtener_tipos_servicio_catalogo()
     return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
 
-@bp.route('/catalogo/<slug>')
+
+@bp.route('/catalogos/<slug>')
 def catalogo_por_tipo(slug):
     slug_normalizado = slug.lower()
     tipo_id = CATALOGO_SLUG_TO_ID.get(slug_normalizado)

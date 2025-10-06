@@ -70,10 +70,10 @@ UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Descarga GIS';
 --UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'KML';
 --UPDATE tmp.datos SET id_tipo = 19 WHERE tipo_pub = 'Geoprocesamiento';
 
-INSERT INTO public.def_herramientas_digitales(
+INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
 SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
 WHERE id_tipo IN (4,5,6,7)
 GROUP BY 1,2,3,4,5,6,7;
 
-SELECT * FROM public.def_herramientas_digitales WHERE id_tipo_servicio = 7;
+SELECT * FROM ide.def_herramientas_digitales WHERE id_tipo_servicio = 4;

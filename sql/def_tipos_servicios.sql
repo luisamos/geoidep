@@ -1,4 +1,4 @@
-INSERT INTO public.def_tipos_servicios (nombre, descripcion, estado, id_padre, orden) VALUES
+INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orden) VALUES
 ('Herramientas digitales', 'Son un conjunto de herramientas GIS que pertite compartir diferentes datos geográficos.', True, 0, 1),
 ('Servicios OGC', 'Los servicios del Open Geospatial Consortium son estándares internacionales que permiten a diferentes sistemas compartir y acceder a datos e información geográfica a través de la web de forma abierta e interoperable.', True, 0, 2),
 ('Servicios Rest de ArcGIS', 'Los Servicios REST de ArcGIS son una tecnología que permite a las aplicaciones conectarse y consultar datos y funcionalidades geográficas a través de la red usando el protocolo HTTP', True, 0, 3),
@@ -19,4 +19,4 @@ INSERT INTO public.def_tipos_servicios (nombre, descripcion, estado, id_padre, o
 ('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5);
 
 SELECT id AS id_tipo_servicio, nombre 
-FROM public.def_tipos_servicios WHERE id_padre=1;
+FROM ide.def_tipos_servicios WHERE id_padre=1;
