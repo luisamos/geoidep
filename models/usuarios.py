@@ -42,31 +42,31 @@ class Usuario(db.Model):
 
     @property
     def nombre_completo(self) -> str:
-        partes = [self.nombres or '', self.apellidos or '']
-        return ' '.join(p for p in partes if p).strip() or self.email
+      partes = [self.nombres or '', self.apellidos or '']
+      return ' '.join(p for p in partes if p).strip() or self.email
 
     def set_password(self, raw: str) -> None:
-        self.password_hash = generate_password_hash(raw)
+      self.password_hash = generate_password_hash(raw)
 
     def check_password(self, raw: str) -> bool:
-        return check_password_hash(self.password_hash, raw)
+      return check_password_hash(self.password_hash, raw)
 
     def generar_token_confirmacion(self) -> str:
-        self.confirmation_token = secrets.token_urlsafe(32)
-        return self.confirmation_token
+      self.confirmation_token = secrets.token_urlsafe(32)
+      return self.confirmation_token
 
     def generar_token_recuperacion(self, duracion_horas: int = 2) -> str:
-        self.reset_token = secrets.token_urlsafe(32)
-        self.reset_token_expiration = datetime.utcnow() + timedelta(hours=duracion_horas)
-        return self.reset_token
+      self.reset_token = secrets.token_urlsafe(32)
+      self.reset_token_expiration = datetime.utcnow() + timedelta(hours=duracion_horas)
+      return self.reset_token
 
     def token_recuperacion_valido(self, token: str) -> bool:
-        if not token or not self.reset_token or token != self.reset_token:
-            return False
-        if not self.reset_token_expiration:
-            return False
-        return datetime.utcnow() <= self.reset_token_expiration
+      if not token or not self.reset_token or token != self.reset_token:
+        return False
+      if not self.reset_token_expiration:
+        return False
+      return datetime.utcnow() <= self.reset_token_expiration
 
     def limpiar_token_recuperacion(self) -> None:
-        self.reset_token = None
-        self.reset_token_expiration = None
+      self.reset_token = None
+      self.reset_token_expiration = None

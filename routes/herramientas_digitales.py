@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, jsonify, request, session
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -11,10 +12,14 @@ from app import db
 bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_digitales')
 
 def _obtener_usuario_actual():
-    username = session.get('usuario')
-    if not username:
-        return None
-    return Usuario.query.filter_by(username=username).first()
+  email = session.get('usuario')
+  if not email:
+      return None
+  return (
+      Usuario.query.filter(func.lower(Usuario.email) == email.lower())
+      .options(joinedload(Usuario.institucion))
+      .first()
+  )
 
 @bp.route('/')
 def inicio():
@@ -29,11 +34,9 @@ def inicio():
         .all()
     )
     institucion_usuario = None
-    username = session.get('usuario')
-    if username:
-        usuario = Usuario.query.filter_by(username=username).first()
-        if usuario:
-            institucion_usuario = usuario.institucion
+    usuario = _obtener_usuario_actual()
+    if usuario:
+        institucion_usuario = usuario.institucion
     return render_template(
         'gestion/herramientas_digitales.html',
         categorias=categorias,
