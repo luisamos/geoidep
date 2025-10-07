@@ -65,10 +65,7 @@
               >{{ 'Editar usuario' if usuario_editar else 'Nuevo usuario'
               }}</span
             >
-            <form
-              method="POST"
-              action="{{ url_for('gestion.guardar_usuario') }}"
-            >
+            <form method="POST" action="{{ url_for('usuarios.guardar') }}">
               {{ form.hidden_tag() }}
               <div class="row">
                 <div class="input-field col s12 m6">

@@ -1,3 +1,7 @@
+{% set rol = session.get('rol', 'Administrador') %}
+{% set rol_lower = rol|lower %}
+{% set es_admin = rol_lower == 'Administrador' %}
+
 <!-- Barra superior -->
 <div
   id="nav-superior"
@@ -39,12 +43,11 @@
       <a href="#!"
         ><span id="spanRol" class="white-text"
           ><label
-            style="font-size: 14px; font-weight: 400; color: white"
-            id="lblRol"
-            >{{ session.get('rol', 'Administrador') }}</label
-          ></span
-        ></a
-      >
+            style="font-size: 14px; font-weight: 400; color: white" id="lblRol"␊
+            >{{ rol }}</label
+          ></span␊
+        ></a␊
+      >␊
     </div>
   </li>
   <li><a class="subheader white-text">GESTION DE INFORMACIÓN</a></li>
@@ -66,12 +69,13 @@
       <i class="material-icons white-text">layers</i> Capas geográficos
     </a>
   </li>
+  {% if es_admin %}
   <li>
     <div class="divider"></div>
   </li>
   <li><a class="subheader white-text">CONFIGURACIÓN</a></li>
   <li id="menuUsuarios">
-    <a href="{{ url_for('gestion.usuarios') }}" class="white-text"
+    <a href="{{ url_for('usuarios.listar') }}" class="white-text"
       ><i class="material-icons white-text">people</i> Usuarios</a
     >
   </li>
@@ -89,6 +93,11 @@
   <li>
     <div class="divider"></div>
   </li>
+  {% else %}
+  <li>
+    <div class="divider"></div>
+  </li>
+  {% endif %}
 
   <li><a class="subheader white-text">MI CUENTA</a></li>
   <li id="menu09">

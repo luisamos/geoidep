@@ -109,9 +109,14 @@ class UsuarioForm(FlaskForm):
         coerce=int,
         validators=[DataRequired(message="Este campo es obligatorio")],
     )
+    id_perfil = SelectField(
+        "Perfil",
+        coerce=int,
+        validators=[DataRequired(message="Este campo es obligatorio")],
+    )
     estado = BooleanField("Activo", default=True)
     geoidep = BooleanField("Acceso GEOIDEP")
-    geoperu = BooleanField("Acceso GeoPerú")
+    geoperu = BooleanField("Acceso GEOPERU")
     password = PasswordField("Contraseña", validators=[Optional()])
     submit = SubmitField("Guardar")
 

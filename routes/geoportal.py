@@ -5,6 +5,7 @@ import unicodedata
 from flask import Blueprint, render_template, request, abort
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, or_
+from markupsafe import escape
 
 from models.herramientas_digitales import HerramientaDigital
 from models.categorias import Categoria
@@ -13,181 +14,185 @@ from models.tipos_servicios import TipoServicio
 
 bp = Blueprint('geoportal', __name__)
 
-@bp.route('/')
-def principal():
-    return render_template('geoportal/inicio.html')
-
-@bp.route('/idep')
-def idep():
-    return render_template('geoportal/idep.html')
-
 CATALOGO_TIPO_IDS = (4, 5, 6, 7)
 
 CATALOGO_SLUGS = {
-    4: 'geoportales',
-    5: 'visores',
-    6: 'apps',
-    7: 'descargas',
+  4: 'geoportales',
+  5: 'visores',
+  6: 'apps',
+  7: 'descargas',
 }
 
-CATALOGO_SLUG_TO_ID = {slug: tipo_id for tipo_id, slug in CATALOGO_SLUGS.items()}
+CATALOGO_SLUG_TO_ID = {slug: id_tipo for id_tipo, slug in CATALOGO_SLUGS.items()}
 
+def slugify(value):
+  if not value:
+    return ''
+  normalized = unicodedata.normalize('NFKD', value)
+  without_accents = ''.join(
+    character for character in normalized if not unicodedata.combining(character)
+  )
+  slug = re.sub(r'[^a-z0-9]+', '-', without_accents.lower())
+  return slug.strip('-')
 
-def _slugify(value):
-    if not value:
-        return ''
-    normalized = unicodedata.normalize('NFKD', value)
-    without_accents = ''.join(
-        character for character in normalized if not unicodedata.combining(character)
+def sanitize_text(value):
+  if value is None:
+    return None
+  return str(escape(value))
+
+def obtener_tipos_servicios_catalogo():
+  tipos = (
+    TipoServicio.query.filter(
+      TipoServicio.id_padre == 1,
+      TipoServicio.id.in_(CATALOGO_TIPO_IDS),
+      or_(TipoServicio.estado.is_(True), TipoServicio.estado.is_(None)),
     )
-    slug = re.sub(r'[^a-z0-9]+', '-', without_accents.lower())
-    return slug.strip('-')
+    .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
+    .all()
+  )
 
+  tipos_por_id = {tipo.id: tipo for tipo in tipos}
+  tipos_catalogo = []
 
-def _obtener_tipos_servicio_catalogo():
-    tipos = (
-        TipoServicio.query.filter(
-            TipoServicio.id_padre == 1,
-            TipoServicio.id.in_(CATALOGO_TIPO_IDS),
-            or_(TipoServicio.estado.is_(True), TipoServicio.estado.is_(None)),
-        )
-        .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
-        .all()
+  for tipo_id in CATALOGO_TIPO_IDS:
+    tipo = tipos_por_id.get(tipo_id)
+    if not tipo:
+        continue
+    tipos_catalogo.append(
+      {
+        'id': tipo.id,
+        'nombre': sanitize_text(tipo.nombre),
+        'descripcion': sanitize_text(tipo.descripcion),
+        'logotipo': tipo.logotipo,
+        'slug': CATALOGO_SLUGS.get(tipo.id, slugify(tipo.nombre)),
+      }
     )
 
-    tipos_por_id = {tipo.id: tipo for tipo in tipos}
-    tipos_catalogo = []
+  return tipos_catalogo
 
-    for tipo_id in CATALOGO_TIPO_IDS:
-        tipo = tipos_por_id.get(tipo_id)
-        if not tipo:
-            continue
-        tipos_catalogo.append(
-            {
-                'id': tipo.id,
-                'nombre': tipo.nombre,
-                'descripcion': tipo.descripcion,
-                'logotipo': tipo.logotipo,
-                'slug': CATALOGO_SLUGS.get(tipo.id, _slugify(tipo.nombre)),
-            }
-        )
+@bp.route('/')
+def principal():
+  return render_template('geoportal/inicio.html')
 
-    return tipos_catalogo
-
+@bp.route('/idep')
+def idep():
+  return render_template('geoportal/idep.html')
 
 @bp.route('/catalogo')
 def catalogo():
-    tipos_servicio = _obtener_tipos_servicio_catalogo()
-    return render_template('geoportal/catalogo.html', tipos_servicio=tipos_servicio)
-
+  tipos_servicios = obtener_tipos_servicios_catalogo()
+  return render_template('geoportal/catalogo.html', tipos_servicios=tipos_servicios)
 
 @bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
-    slug_normalizado = slug.lower()
-    tipo_id = CATALOGO_SLUG_TO_ID.get(slug_normalizado)
-    if not tipo_id:
-        abort(404)
+  slug_normalizado = slug.lower()
+  id_tipo = CATALOGO_SLUG_TO_ID.get(slug_normalizado)
+  if not id_tipo:
+    abort(404)
 
-    tipos_servicio = _obtener_tipos_servicio_catalogo()
-    tipo_config = next((tipo for tipo in tipos_servicio if tipo['id'] == tipo_id), None)
-    if not tipo_config:
-        abort(404)
+  tipos_servicios = obtener_tipos_servicios_catalogo()
+  tipo_config = next((tipo for tipo in tipos_servicios if tipo['id'] == id_tipo), None)
+  if not tipo_config:
+    abort(404)
 
-    tipo_nombre = tipo_config['nombre']
-    tipo_titulo = tipo_config.get('descripcion') or tipo_nombre
-    tipo_descripcion = tipo_config.get('descripcion')
+  tipo_nombre = sanitize_text(tipo_config['nombre'])
+  descripcion_config = tipo_config.get('descripcion')
+  tipo_titulo = descripcion_config or tipo_nombre
+  tipo_descripcion = descripcion_config
 
-    institucion_id = request.args.get('institucion_id', type=int)
-    filter_terms = request.args.get('filter_terms', default='', type=str).strip()
+  id_institucion = request.args.get('id_institucion', type=int)
+  filter_terms = request.args.get('filter_terms', default='', type=str).strip()
+  if filter_terms:
+      filter_terms = re.sub(r'[<>"\'`]', '', filter_terms)
 
-    if tipo_id not in CATALOGO_TIPO_IDS:
-        abort(404)
+  if id_tipo not in CATALOGO_TIPO_IDS:
+    abort(404)
 
-    query = (
-        HerramientaDigital.query.options(
-            joinedload(HerramientaDigital.categoria),
-            joinedload(HerramientaDigital.institucion),
-        )
-        .filter(HerramientaDigital.id_tipo_servicio == tipo_id)
-        .join(HerramientaDigital.categoria)
+  query = (
+    HerramientaDigital.query.options(
+      joinedload(HerramientaDigital.categoria),
+      joinedload(HerramientaDigital.institucion),
+    )
+    .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
+    .join(HerramientaDigital.categoria)
+  )
+
+  if id_institucion:
+    query = query.filter(HerramientaDigital.id_institucion == id_institucion)
+
+  if filter_terms:
+    pattern = f"%{filter_terms}%"
+    query = query.filter(
+      or_(
+          HerramientaDigital.nombre.ilike(pattern),
+          HerramientaDigital.descripcion.ilike(pattern),
+      )
     )
 
-    if institucion_id:
-        query = query.filter(HerramientaDigital.id_institucion == institucion_id)
+  herramientas = query.order_by(
+    func.lower(Categoria.nombre), func.lower(HerramientaDigital.nombre)
+  ).all()
 
-    if filter_terms:
-        pattern = f"%{filter_terms}%"
-        query = query.filter(
-            or_(
-                HerramientaDigital.nombre.ilike(pattern),
-                HerramientaDigital.descripcion.ilike(pattern),
-            )
-        )
+  categorias = OrderedDict()
+  instituciones = OrderedDict()
 
-    herramientas = query.order_by(
-        func.lower(Categoria.nombre), func.lower(HerramientaDigital.nombre)
-    ).all()
-
-    categorias = OrderedDict()
-    instituciones = OrderedDict()
-
-    for herramienta in herramientas:
-        categoria = herramienta.categoria
-        if not categoria:
-            continue
-        categoria_data = categorias.setdefault(
-            categoria.id,
-            {
-                'id': categoria.id,
-                'nombre': categoria.nombre,
-                'descripcion': categoria.definicion,
-                'herramientas': [],
-            },
-        )
-        categoria_data['herramientas'].append(herramienta)
-
-        institucion = herramienta.institucion
-        if institucion:
-            instituciones.setdefault(
-                institucion.id,
-                {
-                    'id': institucion.id,
-                    'nombre': institucion.nombre,
-                },
-            )
-
-    instituciones_disponibles = (
-        Institucion.query.join(Institucion.herramientas)
-        .filter(HerramientaDigital.id_tipo_servicio == tipo_id)
-        .with_entities(Institucion.id, Institucion.nombre)
-        .distinct()
-        .order_by(Institucion.nombre.asc())
-        .all()
+  for herramienta in herramientas:
+    categoria = herramienta.categoria
+    if not categoria:
+        continue
+    categoria_data = categorias.setdefault(
+      categoria.id,
+      {
+        'id': categoria.id,
+        'nombre': sanitize_text(categoria.nombre),
+        'descripcion': sanitize_text(categoria.definicion),
+        'herramientas': [],
+      },
     )
+    categoria_data['herramientas'].append(herramienta)
 
-    instituciones_catalogo = [
-        {'id': inst_id, 'nombre': nombre}
-        for inst_id, nombre in instituciones_disponibles
-    ]
+    institucion = herramienta.institucion
+    if institucion:
+      instituciones.setdefault(
+        institucion.id,
+        {
+          'id': institucion.id,
+          'nombre': sanitize_text(institucion.nombre),
+        },
+      )
 
-    if not instituciones_catalogo and instituciones:
-        instituciones_catalogo = list(instituciones.values())
+  instituciones_disponibles = (
+    Institucion.query.join(Institucion.herramientas)
+    .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
+    .with_entities(Institucion.id, Institucion.nombre)
+    .distinct()
+    .order_by(Institucion.nombre.asc())
+    .all()
+  )
 
-    categorias_list = list(categorias.values())
-    total_herramientas = sum(
-        len(categoria_data['herramientas']) for categoria_data in categorias_list
-    )
+  instituciones_catalogo = [
+    {'id': inst_id, 'nombre': sanitize_text(nombre)}
+    for inst_id, nombre in instituciones_disponibles
+  ]
 
-    return render_template(
-        'geoportal/subcatalogo.html',
-        slug=slug,
-        tipos_servicio=tipos_servicio,
-        tipo_nombre=tipo_nombre,
-        tipo_titulo=tipo_titulo,
-        tipo_descripcion=tipo_descripcion,
-        categorias=categorias_list,
-        instituciones=instituciones_catalogo,
-        institucion_id=institucion_id,
-        filter_terms=filter_terms,
-        total_herramientas=total_herramientas,
-    )
+  if not instituciones_catalogo and instituciones:
+    instituciones_catalogo = list(instituciones.values())
+
+  categorias_list = list(categorias.values())
+  total_herramientas = sum(
+    len(categoria_data['herramientas']) for categoria_data in categorias_list
+  )
+
+  return render_template(
+    'geoportal/subcatalogo.html',
+    slug=slug,
+    tipos_servicios=tipos_servicios,
+    tipo_nombre=tipo_nombre,
+    tipo_titulo=tipo_titulo,
+    tipo_descripcion=tipo_descripcion,
+    categorias=categorias_list,
+    instituciones=instituciones_catalogo,
+    id_institucion=id_institucion,
+    filter_terms=filter_terms,
+    total_herramientas=total_herramientas,
+  )
