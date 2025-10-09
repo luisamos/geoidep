@@ -1,10 +1,8 @@
 from flask import (
     Blueprint,
-    current_app,
     flash,
     redirect,
     render_template,
-    session,
     url_for,
 )
 from flask_jwt_extended import (
@@ -16,7 +14,7 @@ from flask_jwt_extended import (
 
 from sqlalchemy import func
 
-from extensions import db, mail
+from extensions import db
 from forms.autenticacion import LoginForm, RegisterForm
 
 from models.perfiles import Perfil
@@ -26,8 +24,18 @@ from routes.usuarios import enviar_correo_confirmacion
 
 bp = Blueprint('gestion', __name__, url_prefix='/gestion')
 
+
+def _redirect_to_login():
+  respuesta = redirect(url_for('gestion.ingreso'))
+  unset_jwt_cookies(respuesta)
+  return respuesta
+
 @bp.route('/', methods=['GET', 'POST'])
 def ingreso():
+  usuario_actual = obtener_usuario_actual()
+  if usuario_actual:
+    return redirect(url_for('gestion.principal'))
+
   form = LoginForm()
   if form.validate_on_submit():
     email = form.email.data.strip().lower()
@@ -39,12 +47,6 @@ def ingreso():
     elif not usuario.confirmed:
       flash('Debes confirmar tu correo antes de ingresar.', 'error')
     else:
-      session['usuario'] = usuario.email
-      session['id_usuario'] = usuario.id
-      session['id_perfil'] = usuario.id_perfil
-      session['rol'] = usuario.nombre_perfil
-      session['id_institucion'] = usuario.id_institucion
-
       token_identity = {
         'id_usuario': usuario.id,
         'id_rol': usuario.id_perfil,
@@ -61,14 +63,7 @@ def ingreso():
 def principal():
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
-    session.clear()
-    return redirect(url_for('gestion.ingreso'))
-  if 'usuario' not in session:
-    session['usuario'] = usuario.email
-    session['id_usuario'] = usuario.id
-    session['id_perfil'] = usuario.id_perfil
-    session['rol'] = usuario.nombre_perfil
-    session['id_institucion'] = usuario.id_institucion
+    return _redirect_to_login()
   return render_template('gestion/principal.html')
 
 @bp.route('/registro', methods=['GET', 'POST'])
@@ -121,7 +116,6 @@ def registro():
 @bp.route('/salir', endpoint='logout')
 @jwt_required(optional=True)
 def salir():
-  session.clear()
   respuesta = redirect(url_for('gestion.ingreso'))
   unset_jwt_cookies(respuesta)
   return respuesta

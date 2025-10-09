@@ -1,6 +1,7 @@
-{% set rol = session.get('rol', 'Administrador') %}
-{% set rol_lower = rol|lower %}
-{% set es_admin = rol_lower == 'Administrador' %}
+{% set usuario_menu = usuario_actual %} {% set rol = usuario_menu.nombre_perfil
+if usuario_menu else 'Administrador' %} {% set rol_lower = rol | lower %} {% set
+es_admin = rol_lower == 'administrador' %} {% set nombre_usuario =
+usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
 
 <!-- Barra superior -->
 <div
@@ -25,29 +26,32 @@
 <ul id="slide-out" class="sidenav sidenav-fixed">
   <li>
     <div class="user-view">
-      <a href="#user"
-        ><img
+      <a href="#user">
+        <img
           id="imgFotoPerfil"
           class="circle"
           src="../static/images/photo_init.png"
-      /></a>
-      <a href="#!"
-        ><span id="spanUsuario" class="white-text"
-          ><label
+        />
+      </a>
+      <a href="#!">
+        <span id="spanUsuario" class="white-text">
+          <label
             style="font-size: 20px; font-weight: 600; color: white"
             id="lblUsuario"
-            >{{ session['usuario'] }}</label
-          ></span
-        ></a
-      ><br />
-      <a href="#!"
-        ><span id="spanRol" class="white-text"
-          ><label
-            style="font-size: 14px; font-weight: 400; color: white" id="lblRol"␊
+            >{{ nombre_usuario }}</label
+          >
+        </span>
+      </a>
+      <br />
+      <a href="#!">
+        <span id="spanRol" class="white-text">
+          <label
+            style="font-size: 14px; font-weight: 400; color: white"
+            id="lblRol"
             >{{ rol }}</label
-          ></span␊
-        ></a␊
-      >␊
+          >
+        </span>
+      </a>
     </div>
   </li>
   <li><a class="subheader white-text">GESTION DE INFORMACIÓN</a></li>

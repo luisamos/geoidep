@@ -88,8 +88,10 @@ class Usuario(db.Model):
 
   @property
   def es_administrador(self) -> bool:
-      return self.nombre_perfil.lower() == 'Administrador'
+      perfil = (self.nombre_perfil or '').strip().lower()
+      return perfil == 'administrador'
 
   @property
   def es_gestor(self) -> bool:
-      return self.nombre_perfil.lower() == 'Gestor de información'
+      perfil = (self.nombre_perfil or '').strip().lower()
+      return perfil == 'gestor de información'

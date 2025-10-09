@@ -26,6 +26,39 @@ def create_app():
   app.register_blueprint(capas_geograficas_bp)
   app.register_blueprint(geoportal_bp)
 
+  @app.before_first_request
+  def asegurar_perfiles_basicos():
+    from sqlalchemy import func
+    from models.perfiles import Perfil
+
+    nombres_basicos = ['Administrador', 'Gestor de información']
+    creados = False
+    for nombre in nombres_basicos:
+      existe = (
+        Perfil.query.filter(func.lower(Perfil.nombre) == nombre.lower())
+        .filter_by(estado=True)
+        .first()
+      )
+      if existe:
+        continue
+      perfil_existente = (
+        Perfil.query.filter(func.lower(Perfil.nombre) == nombre.lower()).first()
+      )
+      if perfil_existente:
+        perfil_existente.estado = True
+        creados = True
+        continue
+      db.session.add(Perfil(nombre=nombre, estado=True))
+      creados = True
+    if creados:
+      db.session.commit()
+
+  @app.context_processor
+  def inyectar_usuario_actual():
+    from routes._helpers import obtener_usuario_actual
+
+    return {'usuario_actual': obtener_usuario_actual()}
+
   @app.after_request
   def aplicar_cabeceras_seguridad(response):
       response.headers.pop("Server", None)
