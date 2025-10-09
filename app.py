@@ -26,7 +26,6 @@ def create_app():
   app.register_blueprint(capas_geograficas_bp)
   app.register_blueprint(geoportal_bp)
 
-  @app.before_first_request
   def asegurar_perfiles_basicos():
     from sqlalchemy import func
     from models.perfiles import Perfil
@@ -52,6 +51,9 @@ def create_app():
       creados = True
     if creados:
       db.session.commit()
+
+  with app.app_context():
+    asegurar_perfiles_basicos()
 
   @app.context_processor
   def inyectar_usuario_actual():
