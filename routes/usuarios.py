@@ -48,7 +48,7 @@ def enviar_correo_confirmacion(usuario: Usuario) -> bool:
     usuario.generar_token_confirmacion()
     db.session.commit()
 
-  confirm_url = url_for('gestion.confirmar_cuenta', token=usuario.confirmation_token, _external=True)
+  confirm_url = url_for('usuarios.confirmar_cuenta', token=usuario.confirmation_token, _external=True)
   asunto = 'Confirma tu cuenta en GEOIDEP'
   cuerpo = render_template('gestion/email_confirmacion.txt', usuario=usuario, confirm_url=confirm_url)
   cuerpo_html = render_template('gestion/email_confirmacion.html', usuario=usuario, confirm_url=confirm_url)

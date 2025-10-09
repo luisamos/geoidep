@@ -22,7 +22,7 @@ from models.usuarios import Usuario
 from routes._helpers import obtener_usuario_actual
 from routes.usuarios import enviar_correo_confirmacion
 
-bp = Blueprint('gestion', __name__, url_prefix='/gestion')
+bp = Blueprint('gestion', __name__)
 
 
 def _redirect_to_login():
@@ -30,7 +30,7 @@ def _redirect_to_login():
   unset_jwt_cookies(respuesta)
   return respuesta
 
-@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/gestion', methods=['GET', 'POST'])
 def ingreso():
   usuario_actual = obtener_usuario_actual()
   if usuario_actual:
