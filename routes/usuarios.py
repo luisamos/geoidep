@@ -329,7 +329,7 @@ def recuperar_contrasena():
         )
     else:
       flash('Si el correo está registrado, recibirás un mensaje con los pasos a seguir.', 'info')
-    return redirect(url_for('gestion.recuperar_contrasena'))
+    return redirect(url_for('usuarios.recuperar_contrasena'))
   return render_template('gestion/recuperar.html', form=form)
 
 @bp.route('/restablecer/<token>', methods=['GET', 'POST'])
@@ -337,7 +337,7 @@ def restablecer_contrasena(token):
   usuario = Usuario.query.filter_by(reset_token=token).first()
   if not usuario or not usuario.token_recuperacion_valido(token):
     flash('El enlace de recuperación no es válido o ha expirado.', 'error')
-    return redirect(url_for('gestion.recuperar_contrasena'))
+    return redirect(url_for('usuarios.recuperar_contrasena'))
 
   form = ResetPasswordForm()
   if form.validate_on_submit():

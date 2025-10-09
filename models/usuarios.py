@@ -40,6 +40,7 @@ class Usuario(db.Model):
   fecha = db.Column(db.Date)
   estado = db.Column(db.Boolean, default=True, nullable=False)
   geoidep = db.Column(db.Boolean, default=False, nullable=False)
+  metadatos = db.Column(db.Boolean, default=False, nullable=False)
   geoperu = db.Column(db.Boolean, default=False, nullable=False)
   confirmed = db.Column(db.Boolean, default=False, nullable=False)
   confirmation_token = db.Column(db.String(255), unique=True)
