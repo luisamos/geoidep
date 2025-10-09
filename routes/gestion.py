@@ -47,12 +47,13 @@ def ingreso():
     elif not usuario.confirmed:
       flash('Debes confirmar tu correo antes de ingresar.', 'error')
     else:
-      token_identity = {
-        'id_usuario': usuario.id,
-        'id_rol': usuario.id_perfil,
-        'id_institucion': usuario.id_institucion,
-      }
-      access_token = create_access_token(identity=token_identity)
+      access_token = create_access_token(
+        identity=str(usuario.id),
+        additional_claims={
+          'id_rol': usuario.id_perfil,
+          'id_institucion': usuario.id_institucion,
+        },
+      )
       respuesta = redirect(url_for('gestion.principal'))
       set_access_cookies(respuesta, access_token)
       return respuesta

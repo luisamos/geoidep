@@ -13,6 +13,13 @@ from models.usuarios import Usuario
 def _obtener_id_desde_identidad(identity):
     if isinstance(identity, dict):
         return identity.get('id_usuario')
+
+    if isinstance(identity, str):
+        try:
+            return int(identity)
+        except ValueError:
+            return identity
+
     return identity
 
 
