@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
 
 import config
 from extensions import db, jwt, mail, migrate
+from flask_jwt_extended import unset_jwt_cookies
 
 def create_app():
   app = Flask(__name__)
@@ -11,6 +12,13 @@ def create_app():
   migrate.init_app(app, db)
   jwt.init_app(app)
   mail.init_app(app)
+
+  @jwt.expired_token_loader
+  def manejar_token_expirado(jwt_header, jwt_payload):
+    flash('Tu sesión ha expirado. Vuelve a iniciar sesión.', 'warning')
+    respuesta = redirect(url_for('gestion.ingreso'))
+    unset_jwt_cookies(respuesta)
+    return respuesta
 
   from routes.capas_geograficas import bp as capas_geograficas_bp
   from routes.gestion import bp as gestion_bp

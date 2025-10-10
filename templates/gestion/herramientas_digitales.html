@@ -63,7 +63,7 @@
             <label for="txtFiltro">Nombre del recurso</label>
           </div>
           <div class="input-field col s2">
-            <button id="btnBuscar" class="btn waves-effect blue">
+            <button id="btnBuscar" class="btn waves-effect blue" type="button">
               <i class="material-icons left">search</i> Buscar
             </button>
           </div>
@@ -72,6 +72,7 @@
               id="btnAgregar"
               class="btn waves-effect green modal-trigger"
               data-target="modalHerramienta"
+              type="button"
             >
               <i class="material-icons left">add</i>Nuevo
             </button>
@@ -131,7 +132,7 @@
           </div>
 
           <div class="input-field">
-            <input id="descripcion_herramienta" type="text" maxlength="20" />
+            <input id="descripcion_herramienta" type="text" maxlength="800" />
             <label for="descripcion_herramienta">Descripción (opcional)</label>
           </div>
 
@@ -179,15 +180,15 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button class="modal-close btn-flat">Cancelar</button>
-        <button class="btn blue" id="btnGuardar">Guardar</button>
+        <button class="modal-close btn-flat" type="button">Cancelar</button>
+        <button class="btn blue" id="btnGuardar" type="button">Guardar</button>
       </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        var modalElems = document.querySelectorAll(".modal");
+        const modalElems = document.querySelectorAll(".modal");
         M.Modal.init(modalElems);
         inicializarSelects();
         cargarHerramientas();
@@ -196,6 +197,16 @@
         document
           .getElementById("btnBuscar")
           .addEventListener("click", cargarHerramientas);
+        document
+          .getElementById("filtro_tipo")
+          .addEventListener("change", cargarHerramientas);
+        document
+          .getElementById("txtFiltro")
+          .addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+              cargarHerramientas();
+            }
+          });
         document
           .getElementById("btnAgregar")
           .addEventListener("click", function () {
@@ -211,13 +222,22 @@
 
         document
           .getElementById("btnGuardar")
-          .addEventListener("click", guardarHerramienta);
+          .addEventListener("click", function (event) {
+            event.preventDefault();
+            guardarHerramienta();
+          });
         tbody.addEventListener("click", manejarAccionesTabla);
       });
 
       function inicializarSelects() {
-        var selectElems = document.querySelectorAll("select");
-        M.FormSelect.init(selectElems);
+        const selectElems = document.querySelectorAll("select");
+        selectElems.forEach((elem) => {
+          const instancia = M.FormSelect.getInstance(elem);
+          if (instancia) {
+            instancia.destroy();
+          }
+          M.FormSelect.init(elem);
+        });
       }
 
       const iconoEnlace =
@@ -249,7 +269,7 @@
               !filtroNombre || item.nombre.toLowerCase().includes(filtroNombre);
             const coincideTipo =
               !filtroTipo ||
-              Number(item.tipo_servicio_id) === Number(filtroTipo);
+              Number(item.id_tipo_servicio) === Number(filtroTipo);
             return coincideNombre && coincideTipo;
           });
 
@@ -276,7 +296,6 @@
                 <img
                   src="${iconoEnlace}"
                   class="icono-tabla accion-enlace"
-                  data-id="${herramienta.recurso}"
                   alt="Ir al recurso"
                   title="Ir al recurso"
                 />
@@ -296,6 +315,11 @@
                 />
               </td>
             `;
+            const iconoRecurso = fila.querySelector(".accion-enlace");
+            if (iconoRecurso) {
+              iconoRecurso.dataset.recurso = herramienta.recurso || "";
+            }
+
             tbody.appendChild(fila);
           });
         } catch (err) {
@@ -398,6 +422,16 @@
 
       function manejarAccionesTabla(event) {
         const target = event.target;
+        if (target.classList.contains("accion-enlace")) {
+          const recurso = target.dataset.recurso;
+          if (!recurso) {
+            M.toast({ html: "La herramienta no tiene un recurso disponible." });
+            return;
+          }
+          window.open(recurso, "_blank", "noopener");
+          return;
+        }
+
         if (target.classList.contains("accion-editar")) {
           const id = Number(target.dataset.id);
           const herramienta = herramientasCache.find(
@@ -425,10 +459,14 @@
           herramienta.nombre || "";
         document.getElementById("descripcion_herramienta").value =
           herramienta.descripcion || "";
-        document.getElementById("tipo_servicio_herramienta").value =
-          herramienta.tipo_servicio_id || "";
-        document.getElementById("categoria_herramienta").value =
-          herramienta.categoria_id || "";
+        establecerValorSelect(
+          "tipo_servicio_herramienta",
+          herramienta.id_tipo_servicio
+        );
+        establecerValorSelect(
+          "categoria_herramienta",
+          herramienta.id_categoria
+        );
         document.getElementById("recurso_herramienta").value =
           herramienta.recurso || "";
         document.getElementById("estado_herramienta").value =
@@ -443,6 +481,19 @@
           document.getElementById("modalHerramienta")
         );
         modal.open();
+      }
+
+      function establecerValorSelect(idSelect, valor) {
+        const select = document.getElementById(idSelect);
+        if (!select) {
+          return;
+        }
+        select.value = valor == null ? "" : String(valor);
+        const instanciaExistente = M.FormSelect.getInstance(select);
+        if (instanciaExistente) {
+          instanciaExistente.destroy();
+        }
+        M.FormSelect.init(select);
       }
 
       async function eliminarHerramienta(id) {

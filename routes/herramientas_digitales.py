@@ -95,7 +95,7 @@ def listar():
 @jwt_required()
 def guardar():
     payload = request.get_json(silent=True) or {}
-    datos, error = _validar_payload_herramienta(payload)
+    datos, error = validar_payload_herramienta(payload)
     if error:
       return error
 
