@@ -1,6 +1,7 @@
 from app import db
 from models import SCHEMA_IDE
 
+
 class HerramientaDigital(db.Model):
   __tablename__ = 'def_herramientas_digitales'
   __table_args__ = {'schema': SCHEMA_IDE}
@@ -32,3 +33,18 @@ class HerramientaDigital(db.Model):
   tipo_servicio = db.relationship('TipoServicio', back_populates='herramientas')
   institucion = db.relationship('Institucion', back_populates='herramientas')
   categoria = db.relationship('Categoria', back_populates='herramientas')
+
+  @property
+  def esta_activa(self) -> bool:
+    return self.estado == 1
+
+  @property
+  def esta_inactiva(self) -> bool:
+    return self.estado == 0
+
+  @property
+  def estado_icono(self) -> str:
+    if self.esta_activa:
+      return '🟢'
+    if self.esta_inactiva:
+      return '🔴'

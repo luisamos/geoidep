@@ -78,4 +78,9 @@ GROUP BY 1,2,3,4,5,6,7;
 
 SELECT * FROM ide.def_instituciones ORDER BY 1 DESC;
 
-SELECT * FROM ide.def_herramientas_digitales WHERE id_tipo_servicio = 4;
+SELECT * FROM ide.def_herramientas_digitales ORDER BY 1 DESC;
+
+SELECT * FROM ide.def_usuarios;
+
+UPDATE ide.def_usuarios SET id_perfil=1 WHERE id= 1;
+SELECT * FROM ide.def_rol;

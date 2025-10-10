@@ -22,11 +22,50 @@
         width: 32px;
         height: 32px;
         cursor: pointer;
-        margin-right: 10px;
       }
 
-      .icono-tabla:last-child {
-        margin-right: 0;
+      .estado-icono {
+        font-size: 1.3rem;
+        display: inline-block;
+      }
+
+      .tabla-herramientas {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-herramientas th,
+      .tabla-herramientas td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .tabla-herramientas .col-indice {
+        width: 40px;
+      }
+
+      .tabla-herramientas .col-categoria,
+      .tabla-herramientas .col-tipo {
+        width: 140px;
+        white-space: normal;
+      }
+
+      .tabla-herramientas .col-nombre,
+      .tabla-herramientas .col-institucion {
+        max-width: 200px;
+      }
+
+      .tabla-herramientas .col-estado {
+        width: 90px;
+        text-align: center;
+      }
+
+      .tabla-herramientas .col-opciones {
+        width: 150px;
+      }
+
+      .icono-tabla.inferior {
+        margin: 0;
       }
     </style>
   </head>
@@ -44,7 +83,7 @@
               Espaciales del Perú.
             </p>
           </div>
-          <div class="input-field col s3">
+          <div class="input-field col s12 m4 l3">
             <select id="filtro_tipo">
               <option value="" selected>Todos los tipos</option>
               {% for tipo in tipos_servicio %}
@@ -53,7 +92,7 @@
             </select>
             <label>Tipo de recurso</label>
           </div>
-          <div class="input-field col s5">
+          <div class="input-field col s12 m4 l4">
             <input
               id="txtFiltro"
               type="text"
@@ -62,15 +101,29 @@
             />
             <label for="txtFiltro">Nombre del recurso</label>
           </div>
-          <div class="input-field col s2">
-            <button id="btnBuscar" class="btn waves-effect blue" type="button">
+          <div class="col s6 m2 l2">
+            <button id="btnBuscar" class="btn btn-small blue" type="button">
               <i class="material-icons left">search</i> Buscar
             </button>
           </div>
-          <div class="input-field col s2">
+        </div>
+
+        <div class="row">
+          <div class="estado-filtros">
+            <span class="grey-text text-darken-2">Estados visibles</span>
+            <div class="switch">
+              <label>
+                Inactivo
+                <input type="checkbox" id="switchActivos" checked />
+                <span class="lever"></span>
+                Activo
+              </label>
+            </div>
+          </div>
+          <div class="right">
             <button
               id="btnAgregar"
-              class="btn waves-effect green modal-trigger"
+              class="btn waves-light btn-small green"
               data-target="modalHerramienta"
               type="button"
             >
@@ -81,20 +134,16 @@
 
         <div class="row" style="max-height: 600px; overflow-y: auto">
           <div class="col s12">
-            <table
-              class="highlight"
-              id="tablaHerramientas"
-              style="background-color: #fff"
-            >
+            <table class="highlight tabla-herramientas" id="tablaHerramientas">
               <thead>
                 <tr>
-                  <th style="padding-left: 20px">N°</th>
-                  <th>Categoría</th>
-                  <th>Tipo de recurso</th>
-                  <th>Nombre</th>
-                  <th>Estado</th>
-                  <th>Institución</th>
-                  <th>Opciones</th>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th class="col-categoria">Categoría</th>
+                  <th class="col-tipo">Tipo de recurso</th>
+                  <th class="col-nombre">Nombre</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-institucion">Institución</th>
+                  <th class="col-opciones">Opciones</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -168,15 +217,6 @@
             <input id="recurso_herramienta" type="url" />
             <label for="recurso_herramienta">URL del recurso (opcional)</label>
           </div>
-
-          <div class="input-field">
-            <select id="estado_herramienta">
-              <option value="" selected>Sin estado</option>
-              <option value="1">Activo</option>
-              <option value="0">Inactivo</option>
-            </select>
-            <label>Estado</label>
-          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -191,15 +231,18 @@
         const modalElems = document.querySelectorAll(".modal");
         M.Modal.init(modalElems);
         inicializarSelects();
-        cargarHerramientas();
 
         const tbody = document.querySelector("#tablaHerramientas tbody");
+        const switchActivos = document.getElementById("switchActivos");
+
+        cargarHerramientas();
+
         document
           .getElementById("btnBuscar")
           .addEventListener("click", cargarHerramientas);
         document
           .getElementById("filtro_tipo")
-          .addEventListener("change", cargarHerramientas);
+          .addEventListener("change", renderHerramientas);
         document
           .getElementById("txtFiltro")
           .addEventListener("keyup", function (event) {
@@ -207,6 +250,9 @@
               cargarHerramientas();
             }
           });
+        if (switchActivos) {
+          switchActivos.addEventListener("change", renderHerramientas);
+        }
         document
           .getElementById("btnAgregar")
           .addEventListener("click", function () {
@@ -245,88 +291,150 @@
       const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
-      let herramientasCache = [];
+      let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
       let herramientaEditandoId = null;
 
       async function cargarHerramientas() {
-        const filtroNombre = document
-          .getElementById("txtFiltro")
-          .value.trim()
-          .toLowerCase();
-        const filtroTipo = document.getElementById("filtro_tipo").value;
         try {
           const resp = await fetch("/herramientas_digitales/listar");
           if (!resp.ok) {
             throw new Error("No se pudo obtener la información");
           }
           const data = await resp.json();
-          herramientasCache = data;
-          const tbody = document.querySelector("#tablaHerramientas tbody");
-          tbody.innerHTML = "";
-
-          const filtrados = data.filter((item) => {
-            const coincideNombre =
-              !filtroNombre || item.nombre.toLowerCase().includes(filtroNombre);
-            const coincideTipo =
-              !filtroTipo ||
-              Number(item.id_tipo_servicio) === Number(filtroTipo);
-            return coincideNombre && coincideTipo;
-          });
-
-          if (filtrados.length === 0) {
-            const fila = document.createElement("tr");
-            fila.innerHTML =
-              '<td colspan="8">No hay herramientas registradas.</td>';
-            tbody.appendChild(fila);
-            return;
-          }
-
-          filtrados.forEach((herramienta, index) => {
-            const fila = document.createElement("tr");
-            const estado = herramienta.estado_display || "Sin estado";
-
-            fila.innerHTML = `
-              <td style="padding-left: 20px">${index + 1}</td>
-              <td>${herramienta.categoria || "-"}</td>
-              <td>${herramienta.tipo_servicio || "-"}</td>
-              <td>${herramienta.nombre}</td>
-              <td>${estado}</td>
-              <td>${herramienta.institucion || "-"}</td>
-              <td>
-                <img
-                  src="${iconoEnlace}"
-                  class="icono-tabla accion-enlace"
-                  alt="Ir al recurso"
-                  title="Ir al recurso"
-                />
-                <img
-                  src="${iconoEditar}"
-                  class="icono-tabla accion-editar"
-                  data-id="${herramienta.id}"
-                  alt="Editar"
-                  title="Editar"
-                />
-                <img
-                  src="${iconoEliminar}"
-                  class="icono-tabla accion-eliminar"
-                  data-id="${herramienta.id}"
-                  alt="Eliminar"
-                  title="Eliminar"
-                />
-              </td>
-            `;
-            const iconoRecurso = fila.querySelector(".accion-enlace");
-            if (iconoRecurso) {
-              iconoRecurso.dataset.recurso = herramienta.recurso || "";
-            }
-
-            tbody.appendChild(fila);
-          });
+          herramientasCache = {
+            activos: Array.isArray(data.activos) ? data.activos : [],
+            inactivos: Array.isArray(data.inactivos) ? data.inactivos : [],
+            sin_estado: Array.isArray(data.sin_estado) ? data.sin_estado : [],
+          };
+          renderHerramientas();
         } catch (err) {
           M.toast({
             html: err.message || "Ocurrió un error al listar las herramientas",
           });
         }
+      }
+
+      function renderHerramientas() {
+        const tbody = document.querySelector("#tablaHerramientas tbody");
+        if (!tbody) {
+          return;
+        }
+
+        const filtroNombre = document
+          .getElementById("txtFiltro")
+          .value.trim()
+          .toLowerCase();
+        const filtroTipo = document.getElementById("filtro_tipo").value;
+        const mostrarActivos =
+          document.getElementById("switchActivos")?.checked ?? true;
+
+        let registros = [];
+        if (mostrarActivos) {
+          registros = registros.concat(herramientasCache.activos || []);
+        }
+
+        const filtrados = registros.filter((item) => {
+          const nombre = (item.nombre || "").toLowerCase();
+          const coincideNombre = !filtroNombre || nombre.includes(filtroNombre);
+          const coincideTipo =
+            !filtroTipo || Number(item.id_tipo_servicio) === Number(filtroTipo);
+          return coincideNombre && coincideTipo;
+        });
+
+        tbody.innerHTML = "";
+
+        if (filtrados.length === 0) {
+          const fila = document.createElement("tr");
+          fila.innerHTML =
+            '<td colspan="7">No hay herramientas registradas.</td>';
+          tbody.appendChild(fila);
+          return;
+        }
+
+        filtrados.forEach((herramienta, index) => {
+          const fila = document.createElement("tr");
+          const categoria =
+            herramienta.categoria != null
+              ? escaparHtml(herramienta.categoria)
+              : "-";
+          const tipoServicio =
+            herramienta.tipo_servicio != null
+              ? escaparHtml(herramienta.tipo_servicio)
+              : "-";
+          const nombre = escaparHtml(herramienta.nombre || "");
+          const institucion =
+            herramienta.institucion != null
+              ? escaparHtml(herramienta.institucion)
+              : "-";
+          const estadoIcono = herramienta.estado_icono || "⚪";
+          const estadoTexto = herramienta.estado_display || "Sin estado";
+          const estadoTooltip = escaparHtml(estadoTexto);
+
+          fila.innerHTML = `
+            <td class="col-indice" style="padding-left: 20px">${index + 1}</td>
+            <td class="col-categoria">${categoria}</td>
+            <td class="col-tipo">${tipoServicio}</td>
+            <td class="col-nombre">${nombre}</td>
+            <td class="col-estado">
+              <span class="estado-icono" title="${estadoTooltip}">${estadoIcono}</span>
+            </td>
+            <td class="col-institucion">${institucion}</td>
+            <td class="col-opciones">
+                  <img
+                    src="${iconoEnlace}"
+                    class="icono-tabla accion-enlace"
+                    alt="Ir al recurso"
+                    title="Ir al recurso"
+                  />
+                  <img
+                    src="${iconoEditar}"
+                    class="icono-tabla accion-editar"
+                    data-id="${herramienta.id}"
+                    alt="Editar"
+                    title="Editar"
+                  />
+                  <img
+                    src="${iconoEliminar}"
+                    class="icono-tabla accion-eliminar"
+                    data-id="${herramienta.id}"
+                    alt="Eliminar"
+                    title="Eliminar"
+                  />
+              </div>
+            </td>
+          `;
+
+          const iconoRecurso = fila.querySelector(".accion-enlace");
+          if (iconoRecurso) {
+            iconoRecurso.dataset.recurso = herramienta.recurso || "";
+          }
+
+          tbody.appendChild(fila);
+        });
+      }
+
+      function buscarHerramientaPorId(id) {
+        const conjuntos = [
+          herramientasCache.activos,
+          herramientasCache.inactivos,
+          herramientasCache.sin_estado,
+        ];
+        for (const lista of conjuntos) {
+          if (!Array.isArray(lista)) {
+            continue;
+          }
+          const encontrada = lista.find((item) => Number(item.id) === id);
+          if (encontrada) {
+            return encontrada;
+          }
+        }
+        return null;
+      }
+
+      function escaparHtml(texto) {
+        const div = document.createElement("div");
+        div.textContent = texto;
+        return div.innerHTML;
       }
 
       async function guardarHerramienta() {
@@ -345,7 +453,6 @@
         const recurso = document
           .getElementById("recurso_herramienta")
           .value.trim();
-        const estado = document.getElementById("estado_herramienta").value;
 
         const institucionTag = document.getElementById("institucionTag");
         const institucionId = institucionTag
@@ -372,7 +479,6 @@
           id_categoria: Number(categoria),
           descripcion: descripcion,
           recurso: recurso,
-          estado: estado === "" ? "" : Number(estado),
         };
 
         if (!esEdicion) {
@@ -434,9 +540,7 @@
 
         if (target.classList.contains("accion-editar")) {
           const id = Number(target.dataset.id);
-          const herramienta = herramientasCache.find(
-            (item) => Number(item.id) === id
-          );
+          const herramienta = buscarHerramientaPorId(id);
           if (!herramienta) {
             M.toast({
               html: "No se encontró la información de la herramienta",
@@ -469,10 +573,6 @@
         );
         document.getElementById("recurso_herramienta").value =
           herramienta.recurso || "";
-        document.getElementById("estado_herramienta").value =
-          herramienta.estado === null || herramienta.estado === undefined
-            ? ""
-            : herramienta.estado;
 
         inicializarSelects();
         M.updateTextFields();

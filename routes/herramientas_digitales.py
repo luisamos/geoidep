@@ -13,6 +13,7 @@ from routes._helpers import obtener_usuario_actual
 
 bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_digitales')
 
+
 @bp.route('/')
 @jwt_required()
 def inicio():
@@ -34,6 +35,7 @@ def inicio():
     tipos_servicio=tipos_servicio,
     institucion_usuario=institucion_usuario,
   )
+
 
 @bp.route('/listar')
 @jwt_required()
@@ -60,19 +62,28 @@ def listar():
 
   herramientas = consulta.all()
 
-  data = []
+  data = {
+    'activos': [],
+    'inactivos': [],
+    'sin_estado': [],
+  }
+
   for herramienta in herramientas:
     estado = herramienta.estado
     if estado is None:
       estado_display = 'Sin estado'
+      destino = data['sin_estado']
     elif estado == 1:
       estado_display = 'Activo'
+      destino = data['activos']
     elif estado == 0:
       estado_display = 'Inactivo'
+      destino = data['inactivos']
     else:
       estado_display = str(estado)
+      destino = data['sin_estado']
 
-    data.append(
+    destino.append(
       {
         'id': herramienta.id,
         'nombre': herramienta.nombre,
@@ -84,12 +95,14 @@ def listar():
         'id_institucion': herramienta.id_institucion,
         'estado': estado,
         'estado_display': estado_display,
+        'estado_icono': herramienta.estado_icono,
         'recurso': herramienta.recurso,
         'descripcion': herramienta.descripcion,
       }
     )
 
   return jsonify(data)
+
 
 @bp.route('/guardar', methods=['POST'])
 @jwt_required()
@@ -149,10 +162,12 @@ def guardar():
         400,
       )
 
+    estado = datos['estado'] if datos['estado_incluido'] else None
+
     herramienta = HerramientaDigital(
       nombre=datos['nombre'],
       descripcion=datos['descripcion'],
-      estado=datos['estado'],
+      estado=estado,
       recurso=datos['recurso'],
       id_tipo_servicio=datos['tipo'].id,
       id_categoria=datos['categoria'].id,
@@ -175,6 +190,7 @@ def guardar():
       )
 
     return jsonify({'status': 'success', 'herramienta_id': herramienta.id}), 201
+
 
 def validar_payload_herramienta(payload, *, requiere_nombre=True):
   nombre = (payload.get('nombre') or '').strip()
@@ -227,10 +243,11 @@ def validar_payload_herramienta(payload, *, requiere_nombre=True):
     if not descripcion:
       descripcion = None
 
+  estado_incluido = 'estado' in payload
   estado = payload.get('estado')
   if estado in ('', None):
       estado = None
-  else:
+  elif estado_incluido:
     try:
       estado = int(estado)
     except (TypeError, ValueError):
@@ -254,9 +271,11 @@ def validar_payload_herramienta(payload, *, requiere_nombre=True):
     'categoria': categoria,
     'descripcion': descripcion,
     'estado': estado,
+    'estado_incluido': estado_incluido,
     'recurso': recurso,
   }
   return datos, None
+
 
 @bp.route('/<int:id>', methods=['PUT'])
 @jwt_required()
@@ -298,7 +317,8 @@ def actualizar(id):
 
     herramienta.nombre = datos['nombre']
     herramienta.descripcion = datos['descripcion']
-    herramienta.estado = datos['estado']
+    if datos['estado_incluido']:
+      herramienta.estado = datos['estado']
     herramienta.recurso = datos['recurso']
     herramienta.id_tipo_servicio = datos['tipo'].id
     herramienta.id_categoria = datos['categoria'].id
