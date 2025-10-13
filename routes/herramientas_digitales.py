@@ -230,12 +230,12 @@ def validar_payload_herramienta(payload, *, requiere_nombre=True):
   descripcion = payload.get('descripcion')
   if descripcion is not None:
     descripcion = descripcion.strip()
-    if len(descripcion) > 20:
+    if len(descripcion) > 1000:
       return None, (
         jsonify(
           {
             'status': 'error',
-            'message': 'La descripción no puede superar los 20 caracteres.',
+            'message': 'La descripción no puede superar los 1000 caracteres.',
           }
         ),
         400,
