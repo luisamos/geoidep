@@ -181,7 +181,11 @@
           </div>
 
           <div class="input-field">
-            <input id="descripcion_herramienta" type="text" maxlength="800" />
+            <textarea
+              id="descripcion_herramienta"
+              class="materialize-textarea"
+              maxlength="800"
+            ></textarea>
             <label for="descripcion_herramienta">Descripción (opcional)</label>
           </div>
 
@@ -225,54 +229,180 @@
       </div>
     </div>
 
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align">
+        <h6 id="mensajeModalConfirmacion">
+          ¿Está seguro que desea eliminar el registro?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button
+          id="btnEliminarCancelar"
+          class="modal-close btn-flat"
+          type="button"
+        >
+          Cancelar
+        </button>
+        <button id="btnEliminarProceder" class="btn red" type="button">
+          Aceptar
+        </button>
+      </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
+      const iconoEnlace =
+        "{{ url_for('static', filename='images/enlace.png') }}";
+      const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
+      const iconoEliminar =
+        "{{ url_for('static', filename='images/delete.png') }}";
+
+      const ui = {
+        tablaHerramientasBody: null,
+        btnBuscar: null,
+        filtroTipo: null,
+        txtFiltro: null,
+        switchActivos: null,
+        btnAgregar: null,
+        formHerramienta: null,
+        modalTituloHerramienta: null,
+        btnGuardar: null,
+        modalHerramienta: null,
+        nombreHerramienta: null,
+        descripcionHerramienta: null,
+        tipoServicioHerramienta: null,
+        categoriaHerramienta: null,
+        recursoHerramienta: null,
+        institucionTag: null,
+        modalConfirmacion: null,
+        btnEliminarProceder: null,
+        btnEliminarCancelar: null,
+        imgCloseModalLayer: null,
+      };
+
+      let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
+      let herramientaEditandoId = null;
+      let herramientaEliminandoId = null;
+
       document.addEventListener("DOMContentLoaded", function () {
+        ui.tablaHerramientasBody = document.querySelector(
+          "#tablaHerramientas tbody"
+        );
+        ui.btnBuscar = document.getElementById("btnBuscar");
+        ui.filtroTipo = document.getElementById("filtro_tipo");
+        ui.txtFiltro = document.getElementById("txtFiltro");
+        ui.switchActivos = document.getElementById("switchActivos");
+        ui.btnAgregar = document.getElementById("btnAgregar");
+        ui.formHerramienta = document.getElementById("formHerramienta");
+        ui.modalTituloHerramienta = document.getElementById(
+          "modalTituloHerramienta"
+        );
+        ui.btnGuardar = document.getElementById("btnGuardar");
+        ui.modalHerramienta = document.getElementById("modalHerramienta");
+        ui.nombreHerramienta = document.getElementById("nombre_herramienta");
+        ui.descripcionHerramienta = document.getElementById(
+          "descripcion_herramienta"
+        );
+        ui.tipoServicioHerramienta = document.getElementById(
+          "tipo_servicio_herramienta"
+        );
+        ui.categoriaHerramienta = document.getElementById(
+          "categoria_herramienta"
+        );
+        ui.recursoHerramienta = document.getElementById("recurso_herramienta");
+        ui.institucionTag = document.getElementById("institucionTag");
+        ui.modalConfirmacion = document.getElementById("modalConfirmacion");
+        ui.btnEliminarProceder = document.getElementById("btnEliminarProceder");
+        ui.btnEliminarCancelar = document.getElementById("btnEliminarCancelar");
+        ui.imgCloseModalLayer = document.getElementById("imgClose_modal_layer");
+
         const modalElems = document.querySelectorAll(".modal");
         M.Modal.init(modalElems);
         inicializarSelects();
 
-        const tbody = document.querySelector("#tablaHerramientas tbody");
-        const switchActivos = document.getElementById("switchActivos");
+        if (ui.btnBuscar) {
+          ui.btnBuscar.addEventListener("click", cargarHerramientas);
+        }
 
-        cargarHerramientas();
+        if (ui.filtroTipo) {
+          ui.filtroTipo.addEventListener("change", renderHerramientas);
+        }
 
-        document
-          .getElementById("btnBuscar")
-          .addEventListener("click", cargarHerramientas);
-        document
-          .getElementById("filtro_tipo")
-          .addEventListener("change", renderHerramientas);
-        document
-          .getElementById("txtFiltro")
-          .addEventListener("keyup", function (event) {
+        if (ui.txtFiltro) {
+          ui.txtFiltro.addEventListener("keyup", function (event) {
             if (event.key === "Enter") {
               cargarHerramientas();
             }
           });
-        if (switchActivos) {
-          switchActivos.addEventListener("change", renderHerramientas);
         }
-        document
-          .getElementById("btnAgregar")
-          .addEventListener("click", function () {
-            document.getElementById("formHerramienta").reset();
+
+        if (ui.switchActivos) {
+          ui.switchActivos.addEventListener("change", renderHerramientas);
+        }
+
+        if (ui.btnAgregar) {
+          ui.btnAgregar.addEventListener("click", function () {
+            if (ui.formHerramienta) {
+              ui.formHerramienta.reset();
+            }
             herramientaEditandoId = null;
-            document.getElementById("modalTituloHerramienta").textContent =
-              "NUEVA HERRAMIENTA DIGITAL";
+            if (ui.modalTituloHerramienta) {
+              ui.modalTituloHerramienta.textContent =
+                "NUEVA HERRAMIENTA DIGITAL";
+            }
+            const modal = obtenerInstanciaModal(ui.modalHerramienta);
+            modal?.open();
             setTimeout(() => {
               inicializarSelects();
               M.updateTextFields();
+              if (ui.descripcionHerramienta) {
+                ui.descripcionHerramienta.value = "";
+                M.textareaAutoResize(ui.descripcionHerramienta);
+              }
             }, 0);
           });
+        }
 
-        document
-          .getElementById("btnGuardar")
-          .addEventListener("click", function (event) {
+        if (ui.imgCloseModalLayer) {
+          ui.imgCloseModalLayer.style.cursor = "pointer";
+          ui.imgCloseModalLayer.addEventListener("click", () => {
+            const modal = obtenerInstanciaModal(ui.modalHerramienta);
+            modal?.close();
+          });
+        }
+
+        if (ui.btnGuardar) {
+          ui.btnGuardar.addEventListener("click", function (event) {
             event.preventDefault();
             guardarHerramienta();
           });
-        tbody.addEventListener("click", manejarAccionesTabla);
+        }
+
+        if (ui.tablaHerramientasBody) {
+          ui.tablaHerramientasBody.addEventListener(
+            "click",
+            manejarAccionesTabla
+          );
+        }
+
+        if (ui.btnEliminarProceder) {
+          ui.btnEliminarProceder.addEventListener(
+            "click",
+            confirmarEliminacion
+          );
+        }
+
+        if (ui.btnEliminarCancelar) {
+          ui.btnEliminarCancelar.addEventListener("click", () => {
+            herramientaEliminandoId = null;
+          });
+        }
+
+        if (ui.descripcionHerramienta) {
+          M.textareaAutoResize(ui.descripcionHerramienta);
+        }
+
+        cargarHerramientas();
       });
 
       function inicializarSelects() {
@@ -285,14 +415,6 @@
           M.FormSelect.init(elem);
         });
       }
-
-      const iconoEnlace =
-        "{{ url_for('static', filename='images/enlace.png') }}";
-      const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
-      const iconoEliminar =
-        "{{ url_for('static', filename='images/delete.png') }}";
-      let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
-      let herramientaEditandoId = null;
 
       async function cargarHerramientas() {
         try {
@@ -315,18 +437,16 @@
       }
 
       function renderHerramientas() {
-        const tbody = document.querySelector("#tablaHerramientas tbody");
+        const tbody = ui.tablaHerramientasBody;
         if (!tbody) {
           return;
         }
 
-        const filtroNombre = document
-          .getElementById("txtFiltro")
-          .value.trim()
-          .toLowerCase();
-        const filtroTipo = document.getElementById("filtro_tipo").value;
-        const mostrarActivos =
-          document.getElementById("switchActivos")?.checked ?? true;
+        const filtroNombre = (ui.txtFiltro?.value || "").trim().toLowerCase();
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        const mostrarActivos = ui.switchActivos
+          ? ui.switchActivos.checked
+          : true;
 
         let registros = [];
         if (mostrarActivos) {
@@ -438,25 +558,18 @@
       }
 
       async function guardarHerramienta() {
-        const nombre = document
-          .getElementById("nombre_herramienta")
-          .value.trim();
-        const descripcion = document
-          .getElementById("descripcion_herramienta")
-          .value.trim();
-        const tipoServicio = document.getElementById(
-          "tipo_servicio_herramienta"
-        ).value;
-        const categoria = document.getElementById(
-          "categoria_herramienta"
-        ).value;
-        const recurso = document
-          .getElementById("recurso_herramienta")
-          .value.trim();
+        const nombre = (ui.nombreHerramienta?.value || "").trim();
+        const descripcion = (ui.descripcionHerramienta?.value || "").trim();
+        const tipoServicio = ui.tipoServicioHerramienta
+          ? ui.tipoServicioHerramienta.value
+          : "";
+        const categoria = ui.categoriaHerramienta
+          ? ui.categoriaHerramienta.value
+          : "";
+        const recurso = (ui.recursoHerramienta?.value || "").trim();
 
-        const institucionTag = document.getElementById("institucionTag");
-        const institucionId = institucionTag
-          ? Number(institucionTag.dataset.institucionId || 0)
+        const institucionId = ui.institucionTag
+          ? Number(ui.institucionTag.dataset.institucionId || 0)
           : 0;
 
         const esEdicion = Boolean(herramientaEditandoId);
@@ -510,15 +623,20 @@
             ? "Herramienta actualizada correctamente"
             : "Herramienta registrada correctamente";
           M.toast({ html: mensajeExito });
-          const modal = M.Modal.getInstance(
-            document.getElementById("modalHerramienta")
-          );
-          modal.close();
-          document.getElementById("formHerramienta").reset();
+          const modal = obtenerInstanciaModal(ui.modalHerramienta);
+          modal?.close();
+          if (ui.formHerramienta) {
+            ui.formHerramienta.reset();
+          }
           inicializarSelects();
           M.updateTextFields();
-          document.getElementById("modalTituloHerramienta").textContent =
-            "NUEVA HERRAMIENTA DIGITAL";
+          if (ui.modalTituloHerramienta) {
+            ui.modalTituloHerramienta.textContent = "NUEVA HERRAMIENTA DIGITAL";
+          }
+          if (ui.descripcionHerramienta) {
+            ui.descripcionHerramienta.value = "";
+            M.textareaAutoResize(ui.descripcionHerramienta);
+          }
           herramientaEditandoId = null;
           cargarHerramientas();
         } catch (err) {
@@ -550,41 +668,43 @@
           abrirModalEdicion(herramienta);
         } else if (target.classList.contains("accion-eliminar")) {
           const id = Number(target.dataset.id);
-          eliminarHerramienta(id);
+          solicitarConfirmacionEliminacion(id);
         }
       }
 
       function abrirModalEdicion(herramienta) {
         herramientaEditandoId = herramienta.id;
-        document.getElementById("modalTituloHerramienta").textContent =
-          "EDITAR HERRAMIENTA DIGITAL";
+        if (ui.modalTituloHerramienta) {
+          ui.modalTituloHerramienta.textContent = "EDITAR HERRAMIENTA DIGITAL";
+        }
 
-        document.getElementById("nombre_herramienta").value =
-          herramienta.nombre || "";
-        document.getElementById("descripcion_herramienta").value =
-          herramienta.descripcion || "";
+        if (ui.nombreHerramienta) {
+          ui.nombreHerramienta.value = herramienta.nombre || "";
+        }
+        if (ui.descripcionHerramienta) {
+          ui.descripcionHerramienta.value = herramienta.descripcion || "";
+          M.textareaAutoResize(ui.descripcionHerramienta);
+        }
         establecerValorSelect(
-          "tipo_servicio_herramienta",
+          ui.tipoServicioHerramienta,
           herramienta.id_tipo_servicio
         );
         establecerValorSelect(
-          "categoria_herramienta",
+          ui.categoriaHerramienta,
           herramienta.id_categoria
         );
-        document.getElementById("recurso_herramienta").value =
-          herramienta.recurso || "";
+        if (ui.recursoHerramienta) {
+          ui.recursoHerramienta.value = herramienta.recurso || "";
+        }
 
         inicializarSelects();
         M.updateTextFields();
 
-        const modal = M.Modal.getInstance(
-          document.getElementById("modalHerramienta")
-        );
-        modal.open();
+        const modal = obtenerInstanciaModal(ui.modalHerramienta);
+        modal?.open();
       }
 
-      function establecerValorSelect(idSelect, valor) {
-        const select = document.getElementById(idSelect);
+      function establecerValorSelect(select, valor) {
         if (!select) {
           return;
         }
@@ -596,14 +716,31 @@
         M.FormSelect.init(select);
       }
 
-      async function eliminarHerramienta(id) {
-        const confirmar = confirm(
-          "¿Está seguro de eliminar la herramienta seleccionada?"
-        );
-        if (!confirmar) {
+      function solicitarConfirmacionEliminacion(id) {
+        herramientaEliminandoId = id;
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.open();
+      }
+
+      async function confirmarEliminacion() {
+        if (!herramientaEliminandoId) {
+          cerrarModalConfirmacion();
           return;
         }
+        await eliminarHerramienta(herramientaEliminandoId);
+      }
 
+      function cerrarModalConfirmacion() {
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.close();
+        herramientaEliminandoId = null;
+      }
+
+      function obtenerInstanciaModal(elemento) {
+        return elemento ? M.Modal.getInstance(elemento) : null;
+      }
+
+      async function eliminarHerramienta(id) {
         try {
           const resp = await fetch(`/herramientas_digitales/${id}`, {
             method: "DELETE",
@@ -617,6 +754,7 @@
           }
 
           M.toast({ html: "Herramienta eliminada correctamente" });
+          cerrarModalConfirmacion();
           cargarHerramientas();
         } catch (err) {
           M.toast({ html: err.message || "Error al eliminar la herramienta" });
