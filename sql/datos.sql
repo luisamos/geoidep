@@ -54,21 +54,23 @@ SELECT tipo_pub FROM tmp.datos
 GROUP BY 1
 ORDER BY 1;
 
-SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 3 ORDER BY orden;
+SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 2 ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 4 WHERE tipo_pub = 'Geoportal';
 UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geovisor';
 UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Dashboard';
 UPDATE tmp.datos SET id_tipo = 7 WHERE tipo_pub = 'Descarga GIS';
 
---UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WMS';
---UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'Servicio WFS';
---UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Servicio WMTS';
---UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Servicio WMS';
+UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'Servicio WFS';
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Servicio WMTS';
+UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+--GEOPERU
+UPDATE tmp.datos SET id_tipo = 18 WHERE tipo_pub = 'Geoprocesamiento';
 
---UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
---UPDATE tmp.datos SET id_tipo = 13 WHERE tipo_pub = 'KML';
---UPDATE tmp.datos SET id_tipo = 19 WHERE tipo_pub = 'Geoprocesamiento';
+UPDATE tmp.datos SET id_tipo = 14 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
+UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'KML';
+
 
 INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
@@ -76,11 +78,24 @@ SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM
 WHERE id_tipo IN (4,5,6,7)
 GROUP BY 1,2,3,4,5,6,7;
 
-SELECT * FROM ide.def_instituciones ORDER BY 1 DESC;
+SELECT * FROM tmp.datos WHERE id_tipo IN (8,9,11,12)
+GROUP BY estado_actu;
 
-SELECT * FROM ide.def_herramientas_digitales ORDER BY 1 DESC;
+SELECT
+    ROW_NUMBER() OVER () AS numero,
+    capa AS layer,
+	--origen,
+    MAX(CASE WHEN id_tipo = 8 THEN url_pub END) AS wms,
+    MAX(CASE WHEN id_tipo = 9 THEN url_pub END) AS wfs,
+	MAX(CASE WHEN id_tipo = 11 THEN url_pub END) AS wmts,
+	MAX(CASE WHEN id_tipo = 11 THEN url_pub END) AS wmts,
+FROM tmp.datos
+WHERE geo = 'SI' AND id_tipo IN (8,9,11,12)
+GROUP BY capa--, origen
+ORDER BY capa;
 
-SELECT * FROM ide.def_usuarios;
 
-UPDATE ide.def_usuarios SET id_perfil=1 WHERE id= 1;
-SELECT * FROM ide.def_rol;
+
+SELECT * FROM ide.def_instituciones;
+
+

@@ -31,25 +31,12 @@ CREATE TABLE ide.def_usuarios
         ON DELETE NO ACTION
 );
 
-CREATE INDEX IF NOT EXISTS idx_def_usuarios_email ON ide.def_usuarios (LOWER(email));
-CREATE INDEX IF NOT EXISTS idx_def_usuarios_reset_token ON ide.def_usuarios (reset_token);
-
-CREATE OR REPLACE FUNCTION ide.trg_def_usuarios_set_updated_at()
-RETURNS TRIGGER AS
-$$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$
-LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_def_usuarios_set_updated_at ON ide.def_usuarios;
-CREATE TRIGGER trg_def_usuarios_set_updated_at
-BEFORE UPDATE ON ide.def_usuarios
-FOR EACH ROW
-EXECUTE FUNCTION ide.trg_def_usuarios_set_updated_at();
-
 SELECT * FROM ide.def_usuarios;
 
+SELECT * FROM ide.def_rol;
+
 UPDATE ide.def_usuarios SET confirmed=True;
+
+UPDATE ide.def_usuarios SET id_perfil=1 WHERE id= 1;
+
+

@@ -9,7 +9,7 @@ class CapaGeografica(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.String(500))
-    tipo_capa = db.Column(db.Boolean, default=True)
+    tipo_capa = db.Column(db.Integer, nullable=False)
     publicar_geoperu = db.Column(db.Boolean, default=False)
     id_categoria = db.Column(
         'id_categoria',

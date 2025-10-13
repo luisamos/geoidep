@@ -34,6 +34,7 @@ class Institucion(db.Model):
   __table_args__ = {'schema': SCHEMA_IDE}
 
   id = db.Column(db.Integer, primary_key=True)
+  #nro_ruc = db.Column(db.String(11), nullable=True)
   pliego = db.Column(db.String(20))
   nombre = db.Column(db.String(800), nullable=False)
   logotipo = db.Column(db.Text)
