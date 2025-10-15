@@ -21,7 +21,7 @@ from forms.autenticacion import (
   RegisterForm,
   ResetPasswordForm
 )
-from models.niveles_gobierno import Institucion
+from models.instituciones import Institucion
 from models.usuarios import Usuario
 from routes._helpers import obtener_usuario_actual
 

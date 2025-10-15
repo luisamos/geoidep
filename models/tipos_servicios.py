@@ -12,6 +12,8 @@ class TipoServicio(db.Model):
   logotipo = db.Column(db.String(500), nullable=True)
   orden = db.Column(db.Integer, nullable=False)
   id_padre = db.Column(db.Integer, nullable=False)
+  id_usuario = db.Column(db.Integer, nullable=False)
+  fecha_crea = db.Column(db.Date)
 
   servicios_geograficos = db.relationship('ServicioGeografico', back_populates='tipo_servicio', cascade='all, delete-orphan')
   herramientas = db.relationship('HerramientaDigital', back_populates='tipo_servicio', cascade='all, delete-orphan')

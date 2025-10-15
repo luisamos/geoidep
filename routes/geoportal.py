@@ -9,7 +9,7 @@ from markupsafe import escape
 
 from models.herramientas_digitales import HerramientaDigital
 from models.categorias import Categoria
-from models.niveles_gobierno import Institucion
+from models.instituciones import Institucion
 from models.tipos_servicios import TipoServicio
 
 bp = Blueprint('geoportal', __name__)

@@ -29,6 +29,8 @@ class HerramientaDigital(db.Model):
       db.ForeignKey(f"{SCHEMA_IDE}.def_instituciones.id"),
       nullable=False,
   )
+  id_usuario = db.Column(db.Integer, nullable=False)
+  fecha_crea = db.Column(db.Date)
 
   tipo_servicio = db.relationship('TipoServicio', back_populates='herramientas')
   institucion = db.relationship('Institucion', back_populates='herramientas')
