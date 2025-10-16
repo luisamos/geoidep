@@ -1,7 +1,7 @@
 --
 -- ENTIDAD
 --
-INSERT INTO ide.def_instituciones (codigo,sigla, nombre, orden, id_padre, id_usuario, fecha_crea) VALUES
+INSERT INTO ide.def_instituciones (codigo,sigla, nombre, orden, id_padre, usuario_crea, fecha_crea) VALUES
 ('ENTIDAD', 'PE', 'PODER EJECUTIVO', 1, 0, 1, '01-08-2025'),
 ('ENTIDAD', 'PL', 'PODER LEGISLATIVO', 2, 0, 1, '01-08-2025'),
 ('ENTIDAD', 'PJ', 'PODER JUDICIAL', 3, 0, 1, '01-08-2025'),
@@ -15,7 +15,7 @@ INSERT INTO ide.def_instituciones (codigo,sigla, nombre, orden, id_padre, id_usu
 --
 -- SECTOR
 --
-INSERT INTO ide.def_instituciones (orden, codigo, nombre , id_padre, id_usuario, fecha_crea) VALUES
+INSERT INTO ide.def_instituciones (orden, codigo, nombre , id_padre, usuario_crea, fecha_crea) VALUES
 (1, '01', 'PRESIDENCIA CONSEJO MINISTROS', 1, 1, '08-01-2025'),
 (2, '03', 'CULTURA', 1, 1, '08-01-2025'),
 (3, '04', 'PODER JUDICIAL', 1, 1, '08-01-2025'),
@@ -54,9 +54,9 @@ INSERT INTO ide.def_instituciones (orden, codigo, nombre , id_padre, id_usuario,
 
 SELECT id, nombre FROM ide.def_instituciones WHERE id_padre IN (1,2,3,4,5,6,7,8,9) ORDER BY orden;
 
---\copy ide.def_instituciones (codigo, nombre, id_padre, sigla, id_usuario, fecha_crea) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+--\copy ide.def_instituciones (codigo, nombre, id_padre, sigla, usuario_crea, fecha_crea) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
---\copy ide.def_instituciones (ubigeo, codigo, nombre, id_padre, id_usuario, fecha_crea) FROM 'C:\Apps\python\Flask\geoidep\sql\municipalidades.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
+--\copy ide.def_instituciones (ubigeo, codigo, nombre, id_padre, usuario_crea, fecha_crea) FROM 'C:\Apps\python\Flask\geoidep\sql\municipalidades.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
 
 SELECT id, nombre, sigla FROM ide.def_instituciones

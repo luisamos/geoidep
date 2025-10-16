@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timedelta
-from sqlalchemy.sql import func
-
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -19,7 +17,6 @@ class Persona(db.Model):
   id_tipo_documento = db.Column(db.Integer)
   numero_documento = db.Column(db.String(11))
   nombres_apellidos = db.Column(db.String(256))
-  correo_electronico = db.Column(db.String(120), unique=True, nullable=False)
   celular = db.Column(db.String(20))
   fotografia = db.Column(db.String(256))
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
@@ -37,11 +34,10 @@ class Usuario(db.Model):
   __table_args__ = {"schema": SCHEMA_IDE}
 
   id = db.Column(db.Integer, primary_key=True)
-  password_hash = db.Column(db.String(256), nullable=False)
-  confirmed = db.Column(db.Boolean, default=False, nullable=False)
-  confirmation_token = db.Column(db.String(255), unique=True)
-  reset_token = db.Column(db.String(255), unique=True)
-  reset_token_expiration = db.Column(db.DateTime)
+  correo_electronico = db.Column(db.String(120), unique=True, nullable=False)
+  contrasena = db.Column(db.String(256), nullable=False)
+  estado = db.Column(db.Boolean, default=True, nullable=False)
+  fecha_baja = db.Column(db.Date, nullable=True)
   geoidep = db.Column(db.Boolean, default=False, nullable=False)
   geoperu = db.Column(db.Boolean, default=False, nullable=False)
   metadatos = db.Column(db.Boolean, default=False, nullable=False)

@@ -1,4 +1,4 @@
-INSERT INTO ide.def_categorias (codigo, nombre, sigla, definicion, id_padre, id_usuario, fecha_crea) VALUES
+INSERT INTO ide.def_categorias (codigo, nombre, sigla, definicion, id_padre, usuario_crea, fecha_crea) VALUES
 ('1', 'Categoría ISO 19115', 'ISO19115', 'Es una norma internacional que define un esquema estándar para la creación de metadatos, que son descripciones detalladas de los datos geográficos', 0, 1, '15-08-2025'),
 ('001', 'Agricultura', 'farming', 'Cría de animales y/o cultivo de plantas. Ejemplos: agricultura, irrigación, acuicultura, plantaciones, plagas, epidemias y enfermedades que afectan a las cosechas y al ganado', 1, 1, '15-08-2025'),
 ('002', 'Biología', 'biota', 'Flora y fauna en el medio natural. Ejemplos: fauna, vegetación, ciencias biológicas, ecología, vida salvaje, vida marina, pantanos, hábitat', 1, 1, '15-08-2025'),

@@ -1,7 +1,6 @@
-from datetime import datetime
-from sqlalchemy.sql import func
-
 from __future__ import annotations
+
+from datetime import datetime
 
 from app import db
 from models import SCHEMA_IDE

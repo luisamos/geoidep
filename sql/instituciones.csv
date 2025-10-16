@@ -1,4 +1,4 @@
-﻿codigo;nombre;id_padre;sigla;id_usuario;fecha_crea
+﻿codigo;nombre;id_padre;sigla;usuario_crea;fecha_crea
 1;PRESIDENCIA DEL CONSEJO DE MINISTROS;10;PCM;1;01-08-2025
 2;INSTITUTO NACIONAL DE ESTADISTICA E INFORMATICA;10;INEI;1;01-08-2025
 10;DIRECCION NACIONAL DE INTELIGENCIA;10;DINI;1;01-08-2025
