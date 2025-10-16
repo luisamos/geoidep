@@ -24,6 +24,8 @@ class Persona(db.Model):
   usuario_modifica = db.Column(db.Integer, nullable=True)
   fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+  usuarios = db.relationship('Usuario', back_populates='persona')
+  
   @property
   def nombre_completo(self) -> str:
     partes = [self.nombres or '', self.apellidos or '']

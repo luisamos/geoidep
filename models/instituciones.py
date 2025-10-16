@@ -21,3 +21,7 @@ class Institucion(db.Model):
   fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
   fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+  capas = db.relationship('CapaGeografica', back_populates='institucion')
+  herramientas = db.relationship('HerramientaDigital', back_populates='institucion')
+  usuarios = db.relationship('Usuario', back_populates='institucion')

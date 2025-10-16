@@ -20,4 +20,4 @@ INSERT INTO ide.def_categorias (codigo, nombre, sigla, definicion, id_padre, usu
 ('018', 'Transporte', 'transportation', 'Medios y ayudas para transportar personas y mercancías. Ejemplos: carreteras, aeropuertos, pistas de aterrizaje, rutas, vías marítimas, túneles, cartas náuticas, localización de barcos o vehículos, cartas aeronáuticas, ferrocarriles', 1, 1, '15-08-2025'),
 ('019', 'Redes de Suministro', 'utilitiesCommunication', 'Redes de agua, de energía, de retirada de residuos, de infraestructura de comunicaciones y servicios. Ejemplos: hidroeléctricas, fuentes de energía geotermal, solar y nuclear, distribución y depuración de agua, recogida y almacenamiento de aguas residuales, distribución de gas y energía, comunicación de datos, telecomunicaciones, radio, redes de comunicación', 1, 1, '15-08-2025'); 
 
-SELECT id, nombre, definicion FROM ide.def_categorias WHERE id_padre = 1;
+SELECT id AS id_categoria, nombre, definicion FROM ide.def_categorias WHERE id_padre = 1;
