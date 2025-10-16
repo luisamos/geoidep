@@ -77,19 +77,35 @@ usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
   <li>
     <div class="divider"></div>
   </li>
+  <li><a class="subheader white-text">SEGUIMIENTO</a></li>
+  <li id="menu04">
+    <a href="{{ url_for('usuarios.listar') }}" class="white-text"
+      ><i class="material-icons white-text">track_changes</i> Seguimiento</a
+    >
+  </li>
   <li><a class="subheader white-text">CONFIGURACIÓN</a></li>
-  <li id="menuUsuarios">
+  <li id="menu05">
     <a href="{{ url_for('usuarios.listar') }}" class="white-text"
       ><i class="material-icons white-text">people</i> Usuarios</a
     >
   </li>
-  <li id="menu04">
+  <li id="menu06">
+    <a href="{{ url_for('usuarios.listar') }}" class="white-text"
+      ><i class="material-icons white-text">people_outline</i> Personal</a
+    >
+  </li>
+  <li id="menu07">
+    <a href="{{ url_for('usuarios.listar') }}" class="white-text"
+      ><i class="material-icons white-text">account_balance</i> Instituciones</a
+    >
+  </li>
+  <li id="menu08">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">format_list_numbered</i>
       Categorías</a
     >
   </li>
-  <li id="menu05">
+  <li id="menu09">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">cloud</i> Tipo de servicios</a
     >
@@ -104,7 +120,7 @@ usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
   {% endif %}
 
   <li><a class="subheader white-text">MI CUENTA</a></li>
-  <li id="menu09">
+  <li id="menu10">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">person</i> Datos personales</a
     >
