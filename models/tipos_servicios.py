@@ -1,3 +1,6 @@
+from datetime import datetime
+from sqlalchemy.sql import func
+
 from app import db
 from models import SCHEMA_IDE
 
@@ -12,8 +15,10 @@ class TipoServicio(db.Model):
   logotipo = db.Column(db.String(500), nullable=True)
   orden = db.Column(db.Integer, nullable=False)
   id_padre = db.Column(db.Integer, nullable=False)
-  id_usuario = db.Column(db.Integer, nullable=False)
-  fecha_crea = db.Column(db.Date)
+  usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  usuario_modifica = db.Column(db.Integer, nullable=True)
+  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   servicios_geograficos = db.relationship('ServicioGeografico', back_populates='tipo_servicio', cascade='all, delete-orphan')
   herramientas = db.relationship('HerramientaDigital', back_populates='tipo_servicio', cascade='all, delete-orphan')

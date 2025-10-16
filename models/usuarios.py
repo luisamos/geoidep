@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timedelta
+from sqlalchemy.sql import func
 
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,16 +19,18 @@ class Persona(db.Model):
   id_tipo_documento = db.Column(db.Integer)
   numero_documento = db.Column(db.String(11))
   nombres_apellidos = db.Column(db.String(256))
-  email = db.Column(db.String(120), unique=True, nullable=False)
+  correo_electronico = db.Column(db.String(120), unique=True, nullable=False)
   celular = db.Column(db.String(20))
   fotografia = db.Column(db.String(256))
-  id_usuario = db.Column(db.Integer)
-  fecha_crea = db.Column(db.Date)
+  usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  usuario_modifica = db.Column(db.Integer, nullable=True)
+  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   @property
   def nombre_completo(self) -> str:
     partes = [self.nombres or '', self.apellidos or '']
-    return ' '.join(p for p in partes if p).strip() or self.email
+    return ' '.join(p for p in partes if p).strip() or self.correo_electronico
 
 class Usuario(db.Model):
   __tablename__ = 'def_usuarios'
@@ -60,8 +63,10 @@ class Usuario(db.Model):
       nullable=False,
       default=1,
   )
-  id_usuario = db.Column(db.Integer, nullable=False)
-  fecha_crea = db.Column(db.Date)
+  usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  usuario_modifica = db.Column(db.Integer, nullable=True)
+  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   persona = db.relationship(Persona, back_populates='usuarios')
   institucion = db.relationship(Institucion, back_populates='usuarios')

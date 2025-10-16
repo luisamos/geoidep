@@ -1,3 +1,6 @@
+from datetime import datetime
+from sqlalchemy.sql import func
+
 from app import db
 from models import SCHEMA_IDE
 
@@ -14,16 +17,7 @@ class Institucion(db.Model):
   logotipo = db.Column(db.Text)
   orden = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   id_padre = db.Column(db.Integer, nullable=False)
-  id_usuario = db.Column(
-    'id_usuario',
-    db.Integer,
-    db.ForeignKey(
-        f"{SCHEMA_IDE}.def_usuarios.id",
-        name='fk_def_instituciones_id_usuario',
-        use_alter=True,
-    ),
-    nullable=False,
-  )
-  fecha_crea = db.Column(db.Date)
-
-  usuarios = db.relationship('Usuario', back_populates='institucion', cascade='all, delete-orphan')
+  usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  usuario_modifica = db.Column(db.Integer, nullable=True)
+  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)

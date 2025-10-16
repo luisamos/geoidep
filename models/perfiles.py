@@ -1,3 +1,6 @@
+from datetime import datetime
+from sqlalchemy.sql import func
+
 from __future__ import annotations
 
 from app import db
@@ -10,8 +13,10 @@ class Perfil(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   nombre = db.Column(db.String(120), nullable=False, unique=True)
   estado = db.Column(db.Boolean, nullable=False, default=True)
-  id_usuario = db.Column(db.Integer, nullable=False)
-  fecha_crea = db.Column(db.Date)
+  usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  usuario_modifica = db.Column(db.Integer, nullable=True)
+  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   usuarios = db.relationship('Usuario', back_populates='perfil')
 
