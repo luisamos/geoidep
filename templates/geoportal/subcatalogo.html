@@ -534,7 +534,7 @@
                                 onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()"
                               >
                                 <option value="">Selecciona</option>
-                                {% for institucion in instituciones %}
+                                {% for institucion in instituciones | sort(attribute='id', reverse=True) %}
                                   <option value="{{ institucion.id }}" {% if id_institucion == institucion.id %}selected{% endif %}>
                                     {{ institucion.nombre }}
                                   </option>
@@ -595,7 +595,7 @@
                                 onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()"
                               >
                                 <option value="">Selecciona</option>
-                                {% for institucion in instituciones %}
+                                {% for institucion in instituciones | sort(attribute='id', reverse=True) %}
                                   <option value="{{ institucion.id }}" {% if id_institucion == institucion.id %}selected{% endif %}>
                                     {{ institucion.nombre }}
                                   </option>

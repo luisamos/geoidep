@@ -155,15 +155,15 @@ def catalogo_por_tipo(slug):
     )
     categoria_data['herramientas'].append(herramienta)
 
-  institucion = herramienta.institucion
-  if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
-    instituciones.setdefault(
-      institucion.id,
-      {
-        'id': institucion.id,
-        'nombre': sanitize_text(institucion.nombre),
-      },
-    )
+    institucion = herramienta.institucion
+    if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
+      instituciones.setdefault(
+        institucion.id,
+        {
+          'id': institucion.id,
+          'nombre': sanitize_text(institucion.nombre),
+        },
+      )
 
   instituciones_disponibles = (
     Institucion.query.join(Institucion.herramientas)
@@ -172,31 +172,23 @@ def catalogo_por_tipo(slug):
       ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
     )
     .with_entities(Institucion.id, Institucion.nombre)
-    .distinct()
     .order_by(Institucion.id.asc())
+    .distinct()
     .all()
   )
 
-  instituciones_catalogo = sorted(
-    (
-      {'id': inst_id, 'nombre': sanitize_text(nombre)}
-      for inst_id, nombre in instituciones_disponibles
-    ),
-    key=lambda institucion: institucion['id'],
-  )
-
-  instituciones_list = [
-    {'id': inst_id, 'nombre': data['nombre']}
-    for inst_id, data in sorted(instituciones.items())
+  instituciones_catalogo = [
+    {'id': inst_id, 'nombre': sanitize_text(nombre)}
+    for inst_id, nombre in instituciones_disponibles
   ]
+  instituciones_catalogo.sort(key=lambda i: i['id'])
 
-  if not instituciones_catalogo and instituciones_list:
-    instituciones_catalogo = instituciones_list
+  print (instituciones_catalogo)
 
   categorias_list = list(categorias.values())
   total_herramientas = sum(
-    len(categoria_data['herramientas']) for categoria_data in categorias_list
-)
+      len(categoria_data['herramientas']) for categoria_data in categorias_list
+  )
 
   return render_template(
     'geoportal/subcatalogo.html',
