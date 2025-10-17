@@ -16,6 +16,8 @@ bp = Blueprint('geoportal', __name__)
 
 CATALOGO_TIPO_IDS = (5,6,7,8,9,10)
 
+EXCLUDED_PARENT_IDS = tuple(range(10))
+
 CATALOGO_SLUGS = {
   5: 'geoportales',
   6: 'visores',
@@ -126,8 +128,8 @@ def catalogo_por_tipo(slug):
     pattern = f"%{filter_terms}%"
     query = query.filter(
       or_(
-          HerramientaDigital.nombre.ilike(pattern),
-          HerramientaDigital.descripcion.ilike(pattern),
+        HerramientaDigital.nombre.ilike(pattern),
+        HerramientaDigital.descripcion.ilike(pattern),
       )
     )
 
@@ -153,37 +155,48 @@ def catalogo_por_tipo(slug):
     )
     categoria_data['herramientas'].append(herramienta)
 
-    institucion = herramienta.institucion
-    if institucion:
-      instituciones.setdefault(
-        institucion.id,
-        {
-          'id': institucion.id,
-          'nombre': sanitize_text(institucion.nombre),
-        },
-      )
+  institucion = herramienta.institucion
+  if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
+    instituciones.setdefault(
+      institucion.id,
+      {
+        'id': institucion.id,
+        'nombre': sanitize_text(institucion.nombre),
+      },
+    )
 
   instituciones_disponibles = (
     Institucion.query.join(Institucion.herramientas)
-    .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
+    .filter(
+      HerramientaDigital.id_tipo_servicio == id_tipo,
+      ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
+    )
     .with_entities(Institucion.id, Institucion.nombre)
     .distinct()
-    .order_by(Institucion.nombre.asc())
+    .order_by(Institucion.id.asc())
     .all()
   )
 
-  instituciones_catalogo = [
-    {'id': inst_id, 'nombre': sanitize_text(nombre)}
-    for inst_id, nombre in instituciones_disponibles
+  instituciones_catalogo = sorted(
+    (
+      {'id': inst_id, 'nombre': sanitize_text(nombre)}
+      for inst_id, nombre in instituciones_disponibles
+    ),
+    key=lambda institucion: institucion['id'],
+  )
+
+  instituciones_list = [
+    {'id': inst_id, 'nombre': data['nombre']}
+    for inst_id, data in sorted(instituciones.items())
   ]
 
-  if not instituciones_catalogo and instituciones:
-    instituciones_catalogo = list(instituciones.values())
+  if not instituciones_catalogo and instituciones_list:
+    instituciones_catalogo = instituciones_list
 
   categorias_list = list(categorias.values())
   total_herramientas = sum(
     len(categoria_data['herramientas']) for categoria_data in categorias_list
-  )
+)
 
   return render_template(
     'geoportal/subcatalogo.html',

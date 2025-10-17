@@ -14,13 +14,17 @@ from routes._helpers import obtener_usuario_actual
 
 bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_digitales')
 
+EXCLUDED_PARENT_IDS = tuple(range(10))
+
 def _obtener_instituciones_para(usuario):
   if not usuario:
     return []
-  consulta = Institucion.query.order_by(Institucion.nombre.asc())
+  consulta = Institucion.query
   if usuario.es_gestor:
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
-  return consulta.all()
+  else:
+    consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
+  return consulta.order_by(Institucion.id.asc()).all()
 
 
 @bp.route('/')
@@ -37,7 +41,7 @@ def inicio():
     .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
     .all()
   )
-  instituciones = _obtener_instituciones_para(usuario)
+  instituciones = obtener_instituciones_para(usuario)
   institucion_usuario = usuario.institucion if usuario else None
   puede_editar_institucion = usuario.puede_gestionar_multiples_instituciones if usuario else False
   return render_template(

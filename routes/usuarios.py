@@ -12,6 +12,7 @@ from routes._helpers import obtener_usuario_actual
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
+EXCLUDED_PARENT_IDS = tuple(range(10))
 
 def redirect_to_login():
   respuesta = redirect(url_for('gestion.ingreso'))
@@ -21,17 +22,19 @@ def redirect_to_login():
 def obtener_admin_actual():
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
-    return None, _redirect_to_login()
+    return None, redirect_to_login()
   if not usuario.es_administrador:
     flash('No cuentas con permisos para acceder a esta sección.', 'error')
     return None, redirect(url_for('gestion.principal'))
   return usuario, None
 
 def obtener_instituciones_para(usuario: Usuario):
-  consulta = Institucion.query.order_by(Institucion.nombre.asc())
+  consulta = Institucion.query
   if usuario.es_gestor:
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
-  return consulta.all()
+  else:
+    consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
+  return consulta.order_by(Institucion.id.asc()).all()
 
 @bp.route('/', endpoint='listar')
 @jwt_required()
