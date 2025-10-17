@@ -14,13 +14,15 @@ from models.tipos_servicios import TipoServicio
 
 bp = Blueprint('geoportal', __name__)
 
-CATALOGO_TIPO_IDS = (4, 5, 6, 7)
+CATALOGO_TIPO_IDS = (5,6,7,8,9,10)
 
 CATALOGO_SLUGS = {
-  4: 'geoportales',
-  5: 'visores',
-  6: 'apps',
-  7: 'descargas',
+  5: 'geoportales',
+  6: 'visores',
+  7: 'observatorios',
+  8: 'apps',
+  9: 'metadatos',
+  10:'descargas'
 }
 
 CATALOGO_SLUG_TO_ID = {slug: id_tipo for id_tipo, slug in CATALOGO_SLUGS.items()}
