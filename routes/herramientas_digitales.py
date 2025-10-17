@@ -8,10 +8,19 @@ from sqlalchemy.orm import joinedload
 from extensions import db
 from models.categorias import Categoria
 from models.herramientas_digitales import HerramientaDigital
+from models.instituciones import Institucion
 from models.tipos_servicios import TipoServicio
 from routes._helpers import obtener_usuario_actual
 
 bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_digitales')
+
+def _obtener_instituciones_para(usuario):
+  if not usuario:
+    return []
+  consulta = Institucion.query.order_by(Institucion.nombre.asc())
+  if usuario.es_gestor:
+    consulta = consulta.filter(Institucion.id == usuario.id_institucion)
+  return consulta.all()
 
 
 @bp.route('/')
@@ -28,14 +37,17 @@ def inicio():
     .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
     .all()
   )
+  instituciones = _obtener_instituciones_para(usuario)
   institucion_usuario = usuario.institucion if usuario else None
+  puede_editar_institucion = usuario.puede_gestionar_multiples_instituciones if usuario else False
   return render_template(
     'gestion/herramientas_digitales.html',
     categorias=categorias,
     tipos_servicio=tipos_servicio,
     institucion_usuario=institucion_usuario,
+    instituciones_disponibles=instituciones,
+    puede_editar_institucion=puede_editar_institucion,
   )
-
 
 @bp.route('/listar')
 @jwt_required()
@@ -55,6 +67,7 @@ def listar():
     )
     .order_by(HerramientaDigital.nombre)
   )
+
   if usuario.es_gestor:
     consulta = consulta.filter(
       HerramientaDigital.id_institucion == usuario.id_institucion
@@ -103,94 +116,97 @@ def listar():
 
   return jsonify(data)
 
-
 @bp.route('/guardar', methods=['POST'])
 @jwt_required()
 def guardar():
-    payload = request.get_json(silent=True) or {}
-    datos, error = validar_payload_herramienta(payload)
-    if error:
-      return error
+  payload = request.get_json(silent=True) or {}
+  datos, error = validar_payload_herramienta(payload)
+  if error:
+    return error
 
-    usuario = obtener_usuario_actual(requerido=True)
-    if not usuario:
-      return (
-        jsonify(
-          {
-            'status': 'error',
-            'message': 'No se pudo determinar la institución del usuario.',
-          }
-        ),
-        401,
-      )
-
-    id_institucion = usuario.id_institucion or None
-    institucion_payload = payload.get('id_institucion')
-    if institucion_payload not in (None, ''):
-      try:
-        institucion_id_payload = int(institucion_payload)
-      except (TypeError, ValueError):
-        return (
-          jsonify(
-            {
-              'status': 'error',
-              'message': 'La institución enviada no es válida.',
-            }
-          ),
-          400,
-        )
-      if usuario.es_gestor and institucion_id_payload != id_institucion:
-        return (
-          jsonify(
-            {
-              'status': 'error',
-              'message': 'No puedes registrar herramientas para otra institución.',
-            }
-          ),
-          403,
-        )
-      id_institucion = institucion_id_payload
-
-    if not id_institucion:
-      return (
-        jsonify(
-          {
-            'status': 'error',
-            'message': 'No se pudo establecer la institución para la herramienta.',
-          }
-        ),
-        400,
-      )
-
-    estado = datos['estado'] if datos['estado_incluido'] else None
-
-    herramienta = HerramientaDigital(
-      nombre=datos['nombre'],
-      descripcion=datos['descripcion'],
-      estado=estado,
-      recurso=datos['recurso'],
-      id_tipo_servicio=datos['tipo'].id,
-      id_categoria=datos['categoria'].id,
-      id_institucion=id_institucion,
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo determinar la institución del usuario.',
+        }
+      ),
+      401,
     )
 
-    db.session.add(herramienta)
+  institucion_payload = payload.get('id_institucion')
+  institucion_id_payload = None
+  if institucion_payload not in (None, ''):
     try:
-      db.session.commit()
-    except IntegrityError:
-      db.session.rollback()
+      institucion_id_payload = int(institucion_payload)
+    except (TypeError, ValueError):
       return (
         jsonify(
           {
             'status': 'error',
-            'message': 'No se pudo registrar la herramienta digital.',
+            'message': 'La institución enviada no es válida.',
           }
         ),
         400,
       )
 
-    return jsonify({'status': 'success', 'herramienta_id': herramienta.id}), 201
+  if usuario.es_gestor:
+    id_institucion = usuario.id_institucion
+    if institucion_id_payload and institucion_id_payload != id_institucion:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'No puedes registrar herramientas para otra institución.',
+          }
+        ),
+        403,
+      )
+  else:
+    id_institucion = institucion_id_payload or usuario.id_institucion
 
+  if not id_institucion:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo establecer la institución para la herramienta.',
+        }
+      ),
+      400,
+    )
+
+  estado = datos['estado'] if datos['estado_incluido'] else None
+
+  herramienta = HerramientaDigital(
+    nombre=datos['nombre'],
+    descripcion=datos['descripcion'],
+    estado=estado,
+    recurso=datos['recurso'],
+    id_tipo_servicio=datos['tipo'].id,
+    id_categoria=datos['categoria'].id,
+    id_institucion=id_institucion,
+    usuario_crea=usuario.id,
+  )
+
+  db.session.add(herramienta)
+  try:
+    db.session.commit()
+  except IntegrityError:
+    db.session.rollback()
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo registrar la herramienta digital.',
+        }
+      ),
+      400,
+    )
+
+  return jsonify({'status': 'success', 'herramienta_id': herramienta.id}), 201
 
 def validar_payload_herramienta(payload, *, requiere_nombre=True):
   nombre = (payload.get('nombre') or '').strip()
@@ -276,7 +292,6 @@ def validar_payload_herramienta(payload, *, requiere_nombre=True):
   }
   return datos, None
 
-
 @bp.route('/<int:id>', methods=['PUT'])
 @jwt_required()
 def actualizar(id):
@@ -312,7 +327,21 @@ def actualizar(id):
     if error:
         return error
 
-    if herramienta.id_institucion is None:
+    institucion_payload = payload.get('id_institucion')
+    if institucion_payload not in (None, '') and not usuario.es_gestor:
+      try:
+        herramienta.id_institucion = int(institucion_payload)
+      except (TypeError, ValueError):
+        return (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'La institución enviada no es válida.',
+            }
+          ),
+          400,
+        )
+    elif herramienta.id_institucion is None:
         herramienta.id_institucion = usuario.id_institucion
 
     herramienta.nombre = datos['nombre']
@@ -322,6 +351,7 @@ def actualizar(id):
     herramienta.recurso = datos['recurso']
     herramienta.id_tipo_servicio = datos['tipo'].id
     herramienta.id_categoria = datos['categoria'].id
+    herramienta.usuario_modifica = usuario.id
 
     try:
       db.session.commit()

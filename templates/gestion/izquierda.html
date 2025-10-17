@@ -1,7 +1,7 @@
 {% set usuario_menu = usuario_actual %} {% set rol = usuario_menu.nombre_perfil
-if usuario_menu else 'Administrador' %} {% set rol_lower = rol | lower %} {% set
-es_admin = rol_lower == 'administrador' %} {% set nombre_usuario =
-usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
+if usuario_menu else 'Administrador' %} {% set nombre_usuario =
+usuario_menu.nombre_completo if usuario_menu else 'Usuario' %} {% set
+menus_permitidos = usuario_menu.menus_permitidos if usuario_menu else [] %}
 
 <!-- Barra superior -->
 <div
@@ -54,6 +54,7 @@ usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
       </a>
     </div>
   </li>
+  {% if 'menu01' in menus_permitidos %}
   <li><a class="subheader white-text">GESTION DE INFORMACIÓN</a></li>
   <li id="menu01">
     <a href="#" class="white-text"
@@ -61,19 +62,22 @@ usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
       institucional
     </a>
   </li>
-
+  {% endif %} {% if 'menu02' in menus_permitidos or 'menu03' in menus_permitidos
+  %}
   <li><a class="subheader white-text">PLATAFORMA TECNOLOGICA</a></li>
+  {% if 'menu02' in menus_permitidos %}
   <li id="menu02">
     <a href="{{ url_for('herramientas_digitales.inicio') }}" class="white-text"
       ><i class="material-icons white-text">apps</i> Herramientas digitales</a
     >
   </li>
+  {% endif %} {% if 'menu03' in menus_permitidos %}
   <li id="menu03">
     <a href="{{ url_for('capas_geograficas.inicio') }}" class="white-text">
       <i class="material-icons white-text">layers</i> Capas geográficos
     </a>
   </li>
-  {% if es_admin %}
+  {% endif %} {% endif %} {% if 'menu04' in menus_permitidos %}
   <li>
     <div class="divider"></div>
   </li>
@@ -83,46 +87,53 @@ usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
       ><i class="material-icons white-text">track_changes</i> Seguimiento</a
     >
   </li>
+  {% endif %} {% if 'menu05' in menus_permitidos or 'menu06' in menus_permitidos
+  or 'menu07' in menus_permitidos or 'menu08' in menus_permitidos or 'menu09' in
+  menus_permitidos %}
+  <li>
+    <div class="divider"></div>
+  </li>
   <li><a class="subheader white-text">CONFIGURACIÓN</a></li>
+  {% if 'menu05' in menus_permitidos %}
   <li id="menu05">
     <a href="{{ url_for('usuarios.listar') }}" class="white-text"
       ><i class="material-icons white-text">people</i> Usuarios</a
     >
   </li>
+  {% endif %} {% if 'menu06' in menus_permitidos %}
   <li id="menu06">
     <a href="{{ url_for('usuarios.listar') }}" class="white-text"
       ><i class="material-icons white-text">people_outline</i> Personal</a
     >
   </li>
+  {% endif %} {% if 'menu07' in menus_permitidos %}
   <li id="menu07">
     <a href="{{ url_for('usuarios.listar') }}" class="white-text"
       ><i class="material-icons white-text">account_balance</i> Instituciones</a
     >
   </li>
+  {% endif %} {% if 'menu08' in menus_permitidos %}
   <li id="menu08">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">format_list_numbered</i>
       Categorías</a
     >
   </li>
+  {% endif %} {% if 'menu09' in menus_permitidos %}
   <li id="menu09">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">cloud</i> Tipo de servicios</a
     >
   </li>
+  {% endif %} {% endif %} {% if 'menu10' in menus_permitidos %}
   <li>
     <div class="divider"></div>
   </li>
-  {% else %}
-  <li>
-    <div class="divider"></div>
-  </li>
-  {% endif %}
-
   <li><a class="subheader white-text">MI CUENTA</a></li>
   <li id="menu10">
     <a href="#" class="white-text"
       ><i class="material-icons white-text">person</i> Datos personales</a
     >
   </li>
+  {% endif %}
 </ul>

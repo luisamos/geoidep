@@ -15,17 +15,15 @@ from flask_jwt_extended import (
 from sqlalchemy import func
 
 from extensions import db
-from forms.autenticacion import LoginForm, RegisterForm
 
 from models.perfiles import Perfil
+from forms.autenticacion import LoginForm
 from models.usuarios import Usuario
 from routes._helpers import obtener_usuario_actual
-from routes.usuarios import enviar_correo_confirmacion
 
 bp = Blueprint('gestion', __name__)
 
-
-def _redirect_to_login():
+def redirect_to_login():
   respuesta = redirect(url_for('gestion.ingreso'))
   unset_jwt_cookies(respuesta)
   return respuesta
@@ -39,13 +37,15 @@ def ingreso():
   form = LoginForm()
   if form.validate_on_submit():
     email = form.email.data.strip().lower()
-    usuario = Usuario.query.filter(func.lower(Usuario.email) == email).first()
+    usuario = Usuario.query.filter(
+        func.lower(Usuario.correo_electronico) == email
+    ).first()
     if not usuario or not usuario.check_password(form.password.data):
       flash('Correo o contraseña inválidos', 'error')
     elif not usuario.estado:
       flash('La cuenta se encuentra deshabilitada. Contacta al administrador.', 'error')
-    elif not usuario.confirmed:
-      flash('Debes confirmar tu correo antes de ingresar.', 'error')
+    elif not usuario.geoidep:
+      flash('Tu usuario no cuenta con acceso a GEOIDEP.', 'error')
     else:
       access_token = create_access_token(
         identity=str(usuario.id),
@@ -64,55 +64,8 @@ def ingreso():
 def principal():
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
-    return _redirect_to_login()
+    return redirect_to_login()
   return render_template('gestion/principal.html')
-
-@bp.route('/registro', methods=['GET', 'POST'])
-def registro():
-  form = RegisterForm()
-  if form.validate_on_submit():
-    email = form.email.data.strip().lower()
-    if Usuario.query.filter(func.lower(Usuario.email) == email).first():
-      flash('El correo electrónico ya está siendo utilizado.', 'error')
-    else:
-      nuevo_usuario = Usuario(
-        nombres=form.nombres.data,
-        apellidos=form.apellidos.data,
-        email=email,
-        confirmed=False,
-        estado=True,
-        geoidep=False,
-        geoperu=False,
-        id_institucion=1,
-      )
-      perfil_gestor = (
-        Perfil.query.filter(func.lower(Perfil.nombre) == 'gestor de información')
-        .filter_by(estado=True)
-        .first()
-      )
-      if not perfil_gestor:
-        perfil_gestor = (
-            Perfil.query.filter_by(estado=True).order_by(Perfil.id).first()
-        )
-      if perfil_gestor:
-        nuevo_usuario.id_perfil = perfil_gestor.id
-      nuevo_usuario.set_password(form.password.data)
-      nuevo_usuario.generar_token_confirmacion()
-      db.session.add(nuevo_usuario)
-      db.session.commit()
-
-      correo_enviado = enviar_correo_confirmacion(nuevo_usuario)
-      if correo_enviado:
-        flash('Tu cuenta ha sido creada. Revisa tu correo para confirmar el registro.', 'success')
-      else:
-        flash(
-          'Tu cuenta ha sido creada, pero no pudimos enviar el correo de confirmación. '
-          'Contacta al administrador para completar la activación.',
-          'warning',
-        )
-      return redirect(url_for('gestion.ingreso'))
-
-  return render_template('gestion/registro.html', form=form)
 
 @bp.route('/salir', endpoint='logout')
 @jwt_required(optional=True)

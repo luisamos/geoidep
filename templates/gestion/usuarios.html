@@ -42,7 +42,7 @@
             <button class="btn blue waves-effect" type="submit">Buscar</button>
             {% if termino %}
             <a
-              href="{{ url_for('gestion.usuarios') }}"
+              href="{{ url_for('usuarios.listar') }}"
               class="btn grey lighten-1 black-text"
               >Limpiar</a
             >
@@ -50,7 +50,7 @@
           </form>
           <div class="col s12 m4 right-align" style="margin-top: 24px">
             <a
-              href="{{ url_for('gestion.usuarios') }}"
+              href="{{ url_for('usuarios.listar') }}"
               class="btn green waves-effect"
             >
               <i class="material-icons left">person_add</i>
@@ -83,12 +83,12 @@
                   form.numero_documento(class="validate") }}
                 </div>
                 <div class="input-field col s12 m6">
-                  {{ form.fecha.label }} {{ form.fecha(class="validate",
-                  type="date") }}
-                </div>
-                <div class="input-field col s12 m6">
                   {{ form.id_institucion.label }} {{
                   form.id_institucion(class="browser-default") }}
+                </div>
+                <div class="input-field col s12 m6">
+                  {{ form.id_perfil.label }} {{
+                  form.id_perfil(class="browser-default") }}
                 </div>
               </div>
               <div class="row">
@@ -146,6 +146,7 @@
                     <th>Apellidos</th>
                     <th>Correo</th>
                     <th>Documento</th>
+                    <th>Perfil</th>
                     <th>Institución</th>
                     <th>GeoIDEP</th>
                     <th>GeoPerú</th>
@@ -162,6 +163,9 @@
                     <td>{{ usuario.email }}</td>
                     <td>{{ usuario.numero_documento or '-' }}</td>
                     <td>
+                      {{ usuario.perfil.nombre if usuario.perfil else '-' }}
+                    </td>
+                    <td>
                       {{ usuario.institucion.nombre if usuario.institucion else
                       '-' }}
                     </td>
@@ -170,14 +174,14 @@
                     <td>{{ 'Activo' if usuario.estado else 'Inactivo' }}</td>
                     <td>
                       <a
-                        href="{{ url_for('gestion.usuarios', editar=usuario.id, q=termino) }}"
+                        href="{{ url_for('usuarios.listar', editar=usuario.id, q=termino) }}"
                         class="btn-small waves-effect blue"
                       >
                         <i class="material-icons">edit</i>
                       </a>
                       <form
                         method="POST"
-                        action="{{ url_for('gestion.eliminar_usuario', usuario_id=usuario.id) }}"
+                        action="{{ url_for('usuarios.eliminar', id_usuario=usuario.id) }}"
                         style="display: inline"
                         onsubmit="return confirm('¿Desea eliminar al usuario {{ usuario.nombre_completo }}?');"
                       >
@@ -193,7 +197,7 @@
                   </tr>
                   {% else %}
                   <tr>
-                    <td colspan="10" class="center-align">
+                    <td colspan="11" class="center-align">
                       No se encontraron usuarios con los criterios ingresados.
                     </td>
                   </tr>

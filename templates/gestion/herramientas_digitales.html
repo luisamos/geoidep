@@ -162,6 +162,7 @@
       id="institucionTag"
       data-institucion-id="{{ institucion_usuario.id if institucion_usuario else '' }}"
       data-institucion-nombre="{{ institucion_usuario.nombre if institucion_usuario else '' }}"
+      data-permite-editar="{{ 'true' if puede_editar_institucion else 'false' }}"
       hidden
     ></div>
 
@@ -214,6 +215,24 @@
             <label>Categoría</label>
           </div>
 
+          {% if puede_editar_institucion %}
+          <div class="input-field">
+            <select id="institucion_herramienta">
+              <option value="" disabled {% if not institucion_usuario %}selected{% endif %}>
+                Seleccione institución
+              </option>
+              {% for institucion in instituciones_disponibles %}
+              <option
+                value="{{ institucion.id }}"
+                {% if institucion_usuario and institucion_usuario.id == institucion.id %}selected{% endif %}
+              >
+                {{ institucion.nombre }}
+              </option>
+              {% endfor %}
+            </select>
+            <label>Institución</label>
+          </div>
+          {% else %}
           <p>
             <strong>Institución:</strong>
             <span id="institucionNombre">
@@ -221,6 +240,7 @@
               asociada' }}
             </span>
           </p>
+          {% endif %}
 
           <div class="input-field">
             <input id="recurso_herramienta" type="url" />
@@ -262,6 +282,8 @@
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
 
+      const puedeEditarInstitucion = {{ 'true' if puede_editar_institucion else 'false' }};
+
       const ui = {
         tablaHerramientasBody: null,
         btnBuscar: null,
@@ -279,6 +301,7 @@
         categoriaHerramienta: null,
         recursoHerramienta: null,
         institucionTag: null,
+        institucionSelect: null,
         modalConfirmacion: null,
         btnEliminarProceder: null,
         btnEliminarCancelar: null,
@@ -316,6 +339,7 @@
         );
         ui.recursoHerramienta = document.getElementById("recurso_herramienta");
         ui.institucionTag = document.getElementById("institucionTag");
+        ui.institucionSelect = document.getElementById("institucion_herramienta");
         ui.modalConfirmacion = document.getElementById("modalConfirmacion");
         ui.btnEliminarProceder = document.getElementById("btnEliminarProceder");
         ui.btnEliminarCancelar = document.getElementById("btnEliminarCancelar");
@@ -349,6 +373,14 @@
           ui.btnAgregar.addEventListener("click", function () {
             if (ui.formHerramienta) {
               ui.formHerramienta.reset();
+            }
+            if (puedeEditarInstitucion && ui.institucionSelect) {
+              const opcionSeleccionada = ui.institucionSelect.querySelector(
+                "option[selected]"
+              );
+              ui.institucionSelect.value = opcionSeleccionada
+                ? opcionSeleccionada.value
+                : "";
             }
             herramientaEditandoId = null;
             if (ui.modalTituloHerramienta) {
@@ -410,35 +442,42 @@
         cargarHerramientas();
       });
 
-      function inicializarSelects() {
-        const selectElems = document.querySelectorAll("select");
-        selectElems.forEach((elem) => {
-          const instancia = M.FormSelect.getInstance(elem);
-          if (instancia) {
-            instancia.destroy();
-          }
-          M.FormSelect.init(elem);
-        });
-      }
-
       async function cargarHerramientas() {
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
+        const query = new URLSearchParams();
+        if (filtroTipo) {
+          query.append("id_tipo_servicio", filtroTipo);
+        }
+        if (textoFiltro) {
+          query.append("q", textoFiltro);
+        }
+
         try {
-          const resp = await fetch("/herramientas_digitales/listar");
-          if (!resp.ok) {
-            throw new Error("No se pudo obtener la información");
-          }
+          const resp = await fetch(
+            `/herramientas_digitales/listar?${query.toString()}`
+          );
           const data = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(data.message || "Error al cargar la información");
+          }
+
           herramientasCache = {
-            activos: Array.isArray(data.activos) ? data.activos : [],
-            inactivos: Array.isArray(data.inactivos) ? data.inactivos : [],
-            sin_estado: Array.isArray(data.sin_estado) ? data.sin_estado : [],
+            activos: data.activos || [],
+            inactivos: data.inactivos || [],
+            sin_estado: data.sin_estado || [],
           };
           renderHerramientas();
-        } catch (err) {
-          M.toast({
-            html: err.message || "Ocurrió un error al listar las herramientas",
-          });
+        } catch (error) {
+          console.error("Error al cargar las herramientas digitales", error);
+          M.toast({ html: "Error al cargar las herramientas digitales" });
         }
+      }
+
+      function inicializarSelects() {
+        const selects = document.querySelectorAll("select");
+        M.FormSelect.init(selects);
       }
 
       function renderHerramientas() {
@@ -446,38 +485,62 @@
         if (!tbody) {
           return;
         }
-
-        const filtroNombre = (ui.txtFiltro?.value || "").trim().toLowerCase();
-        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
-        const mostrarActivos = ui.switchActivos
-          ? ui.switchActivos.checked
-          : true;
-
-        let registros = [];
-        if (mostrarActivos) {
-          registros = registros.concat(herramientasCache.activos || []);
-        }
-
-        const filtrados = registros.filter((item) => {
-          const nombre = (item.nombre || "").toLowerCase();
-          const coincideNombre = !filtroNombre || nombre.includes(filtroNombre);
-          const coincideTipo =
-            !filtroTipo || Number(item.id_tipo_servicio) === Number(filtroTipo);
-          return coincideNombre && coincideTipo;
-        });
-
         tbody.innerHTML = "";
 
-        if (filtrados.length === 0) {
+        const mostrarSoloActivos =
+          ui.switchActivos && !ui.switchActivos.checked ? false : true;
+
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
+
+        let herramientas = [];
+
+        if (mostrarSoloActivos) {
+          herramientas = herramientas.concat(herramientasCache.activos || []);
+        } else {
+          herramientas = herramientas.concat(herramientasCache.inactivos || []);
+        }
+
+        herramientas = herramientas.concat(herramientasCache.sin_estado || []);
+
+        if (filtroTipo) {
+          herramientas = herramientas.filter(
+            (item) => String(item.id_tipo_servicio) === String(filtroTipo)
+          );
+        }
+
+        if (textoFiltro) {
+          const filtro = textoFiltro.toLowerCase();
+          herramientas = herramientas.filter((item) => {
+            const nombre = item.nombre ? item.nombre.toLowerCase() : "";
+            const categoria = item.categoria
+              ? item.categoria.toLowerCase()
+              : "";
+            const institucion = item.institucion
+              ? item.institucion.toLowerCase()
+              : "";
+            return (
+              nombre.includes(filtro) ||
+              categoria.includes(filtro) ||
+              institucion.includes(filtro)
+            );
+          });
+        }
+
+        if (herramientas.length === 0) {
           const fila = document.createElement("tr");
-          fila.innerHTML =
-            '<td colspan="7">No hay herramientas registradas.</td>';
+          fila.innerHTML = `
+            <td colspan="7" class="center-align">
+              No se encontraron herramientas digitales con los criterios seleccionados.
+            </td>
+          `;
           tbody.appendChild(fila);
           return;
         }
 
-        filtrados.forEach((herramienta, index) => {
+        herramientas.forEach((herramienta, index) => {
           const fila = document.createElement("tr");
+
           const categoria =
             herramienta.categoria != null
               ? escaparHtml(herramienta.categoria)
@@ -573,9 +636,15 @@
           : "";
         const recurso = (ui.recursoHerramienta?.value || "").trim();
 
-        const institucionId = ui.institucionTag
+        const institucionBase = ui.institucionTag
           ? Number(ui.institucionTag.dataset.institucionId || 0)
           : 0;
+
+        let institucionSeleccionada = institucionBase;
+        if (puedeEditarInstitucion && ui.institucionSelect) {
+          const valorSeleccion = ui.institucionSelect.value;
+          institucionSeleccionada = valorSeleccion ? Number(valorSeleccion) : 0;
+        }
 
         const esEdicion = Boolean(herramientaEditandoId);
 
@@ -584,7 +653,7 @@
           return;
         }
 
-        if (!institucionId) {
+        if (!institucionSeleccionada) {
           M.toast({
             html: "No se encontró la institución asociada al usuario.",
           });
@@ -597,11 +666,8 @@
           id_categoria: Number(categoria),
           descripcion: descripcion,
           recurso: recurso,
+          id_institucion: institucionSeleccionada,
         };
-
-        if (!esEdicion) {
-          payload.id_institucion = institucionId;
-        }
 
         try {
           const url = esEdicion
@@ -635,6 +701,16 @@
           }
           inicializarSelects();
           M.updateTextFields();
+          if (!puedeEditarInstitucion && ui.institucionTag) {
+            ui.institucionTag.dataset.institucionId = String(
+              institucionSeleccionada
+            );
+            const spanInstitucion = document.getElementById("institucionNombre");
+            if (spanInstitucion) {
+              spanInstitucion.textContent =
+                ui.institucionTag.dataset.institucionNombre || spanInstitucion.textContent;
+            }
+          }
           if (ui.modalTituloHerramienta) {
             ui.modalTituloHerramienta.textContent = "NUEVA HERRAMIENTA DIGITAL";
           }
@@ -700,6 +776,21 @@
         );
         if (ui.recursoHerramienta) {
           ui.recursoHerramienta.value = herramienta.recurso || "";
+        }
+        if (puedeEditarInstitucion && ui.institucionSelect) {
+          establecerValorSelect(
+            ui.institucionSelect,
+            herramienta.id_institucion
+          );
+        } else if (!puedeEditarInstitucion && ui.institucionTag) {
+          ui.institucionTag.dataset.institucionId = herramienta.id_institucion || "";
+          ui.institucionTag.dataset.institucionNombre =
+            herramienta.institucion || "";
+          const spanInstitucion = document.getElementById("institucionNombre");
+          if (spanInstitucion) {
+            spanInstitucion.textContent =
+              herramienta.institucion || spanInstitucion.textContent;
+          }
         }
 
         inicializarSelects();

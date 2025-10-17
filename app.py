@@ -42,7 +42,7 @@ def create_app():
     if not inspector.has_table(Perfil.__table__.name, schema=schema):
         return
 
-    nombres_basicos = ["Administrador", "Gestor de información"]
+    nombres_basicos = ["Administrador", "Especialista","Gestor de información"]
     creados = False
     for nombre in nombres_basicos:
         existe = (

@@ -60,4 +60,4 @@ SELECT id, nombre FROM ide.def_instituciones WHERE id_padre IN (1,2,3,4,5,6,7,8,
 
 
 SELECT id, nombre, sigla FROM ide.def_instituciones
-WHERE sigla = 'SERNANP';
+WHERE id >=45;
