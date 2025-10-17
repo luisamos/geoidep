@@ -26,9 +26,9 @@ class CapaGeografica(db.Model):
       nullable=False,
   )
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   categoria = db.relationship('Categoria', back_populates='capas')
   institucion = db.relationship('Institucion', back_populates='capas')
@@ -54,9 +54,9 @@ class ServicioGeografico(db.Model):
   nombre_capa = db.Column(db.String(200))
   visible = db.Column(db.Boolean, default=True)
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   capa = db.relationship('CapaGeografica', back_populates='servicios')
   tipo_servicio = db.relationship('TipoServicio', back_populates='servicios_geograficos')

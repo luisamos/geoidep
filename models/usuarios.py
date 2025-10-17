@@ -22,22 +22,15 @@ class Persona(db.Model):
   celular = db.Column(db.String(20))
   fotografia = db.Column(db.String(256))
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(
-      db.Date,
-      nullable=True,
-      default=datetime.utcnow,
-      onupdate=datetime.utcnow,
-  )
+  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   usuarios = db.relationship('Usuario', back_populates='persona')
 
   @property
   def nombre_completo(self) -> str:
-      partes = [self.nombres or '', self.apellidos or '']
-      nombre = ' '.join(parte for parte in partes if parte).strip()
-      return nombre or (self.numero_documento or '').strip()
+      return self.nombres_apellidos
 
 
 class Usuario(db.Model):
@@ -71,14 +64,9 @@ class Usuario(db.Model):
       default=1,
   )
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(
-      db.Date,
-      nullable=True,
-      default=datetime.utcnow,
-      onupdate=datetime.utcnow,
-  )
+  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   persona = db.relationship(Persona, back_populates='usuarios')
   institucion = db.relationship(Institucion, back_populates='usuarios')

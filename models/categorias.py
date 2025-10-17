@@ -15,9 +15,9 @@ class Categoria(db.Model):
   definicion = db.Column(db.Text)
   id_padre = db.Column(db.Integer)
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.Date, server_default=db.func.current_date(), nullable=False)
+  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(db.Date, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
 
   capas = db.relationship('CapaGeografica', back_populates='categoria')
   herramientas = db.relationship('HerramientaDigital', back_populates='categoria')
