@@ -118,7 +118,8 @@
           <div class="col s12">
             <h3>Capas geográficas</h3>
             <p class="flow-text">
-              Administra la información de las capas y servicios geoespaciales.
+              Administra la información de las capas y servicios de la
+              Infraestructura de Datos Espaciales del Perú.
             </p>
           </div>
           <div class="input-field col s12 m6 l4">
@@ -534,7 +535,7 @@
 
       async function conectarServicioOgc(fila) {
         const selectTipo = fila.querySelector(".tipo-servicio");
-               const inputDireccion = fila.querySelector(".direccion-servicio");
+        const inputDireccion = fila.querySelector(".direccion-servicio");
         if (!selectTipo || !inputDireccion) return;
 
         const tipoId = selectTipo.value;
@@ -582,18 +583,22 @@
             throw new Error("El servicio no devolvió capas disponibles.");
           }
 
+          const valorAnterior = obtenerValorNombreCapa(fila) || "";
           fila.dataset.opcionesCapas = JSON.stringify(capasDisponibles);
           const celdaCapa = fila.querySelector(".celda-capa");
           if (celdaCapa) {
             celdaCapa.innerHTML = "";
-            celdaCapa.appendChild(
-              crearCampoCapaComoSelect(
-                capasDisponibles,
-                obtenerValorNombreCapa(fila) || ""
-              )
+            const selectCapas = crearCampoCapaComoSelect(
+              capasDisponibles,
+              valorAnterior
             );
+            if (!valorAnterior && capasDisponibles.length) {
+              selectCapas.value = String(capasDisponibles[0].value || "");
+            }
+            celdaCapa.appendChild(selectCapas);
           }
-          setEstadoFilaServicio(fila, true);
+          const capaSeleccionada = obtenerValorNombreCapa(fila);
+          setEstadoFilaServicio(fila, Boolean(capaSeleccionada));
           M.toast({ html: "Capas obtenidas correctamente." });
         } catch (error) {
           console.error(error);
