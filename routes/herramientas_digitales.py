@@ -16,7 +16,7 @@ bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_dig
 
 EXCLUDED_PARENT_IDS = tuple(range(10))
 
-def _obtener_instituciones_para(usuario):
+def obtener_instituciones_para(usuario):
   if not usuario:
     return []
   consulta = Institucion.query
