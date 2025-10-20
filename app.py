@@ -116,7 +116,7 @@ if __name__ == "__main__":
   else:
       print("\n🟢\t[PRODUCCIÓN] - GEOIDEP | GEOPORTAL | GESTION\n")
       create_app().run(
-          port=80,
+          port=81,
           debug=True,
           host="0.0.0.0",
           use_reloader=True,

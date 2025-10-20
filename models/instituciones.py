@@ -13,6 +13,7 @@ class Institucion(db.Model):
   ubigeo = db.Column(db.String(20), nullable=True)
   nombre = db.Column(db.String(800), nullable=False)
   nro_ruc = db.Column(db.String(11), nullable=True)
+  direccion_web = db.Column(db.String(255), nullable=True)
   sigla = db.Column(db.String(50))
   logotipo = db.Column(db.Text)
   orden = db.Column(db.Integer, nullable=False, default=1, server_default='1')

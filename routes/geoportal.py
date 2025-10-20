@@ -82,6 +82,26 @@ def principal():
 def idep():
   return render_template('geoportal/idep.html')
 
+@bp.route('/que_es_ide')
+def que_es_ide():
+  return None
+
+@bp.route('/componente_ide')
+def componente_ide():
+  return None
+
+@bp.route('/ccidep')
+def ccidep():
+  return None
+
+@bp.route('/asistencia_tecnica')
+def asistencia_tecnica():
+  return None
+
+@bp.route('/secretaria_tecnica_ccidep')
+def secretaria_tecnica_ccidep():
+  return None
+
 @bp.route('/catalogo')
 def catalogo():
   tipos_servicios = obtener_tipos_servicios_catalogo()
@@ -182,8 +202,6 @@ def catalogo_por_tipo(slug):
     for inst_id, nombre in instituciones_disponibles
   ]
   instituciones_catalogo.sort(key=lambda i: i['id'])
-
-  print (instituciones_catalogo)
 
   categorias_list = list(categorias.values())
   total_herramientas = sum(

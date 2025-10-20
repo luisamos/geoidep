@@ -27,11 +27,11 @@ try:
         if queryable == '1':
             name_elem = layer.find('wms:Name', namespaces)
             title_elem = layer.find('wms:Title', namespaces)
-            
+
             if name_elem is not None and title_elem is not None:
                 nombre = name_elem.text
                 titulo = title_elem.text
-                
+
                 if nombre and titulo:  # Asegurar que no estén vacíos
                     capas.append({
                         'value': nombre,
