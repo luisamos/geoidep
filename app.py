@@ -105,7 +105,7 @@ def create_app():
 
 if __name__ == "__main__":
   if config.IS_DEV:
-      print("\n🔴\t[DESAROLLO] - GEOIDEP | Registro\n")
+      print("\n🔴\t[DESAROLLO] - GEOIDEP | GEOPORTAL | GESTION\n")
       create_app().run(
           port=5000,
           debug=True,
@@ -114,7 +114,7 @@ if __name__ == "__main__":
           threaded=True,
       )
   else:
-      print("\n🟢\t[PRODUCCIÓN] - GEOIDEP | Registro\n")
+      print("\n🟢\t[PRODUCCIÓN] - GEOIDEP | GEOPORTAL | GESTION\n")
       create_app().run(
           port=80,
           debug=True,
