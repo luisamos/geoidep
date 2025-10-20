@@ -1,6 +1,17 @@
 import os
 from datetime import timedelta
+
 from dotenv import load_dotenv
+
+
+def _env_flag(name: str, default: bool) -> bool:
+  value = os.getenv(name)
+  if value is None:
+    return default
+
+  return value.strip().lower() in {"1", "true", "t", "yes", "on"}
+
+
 load_dotenv()
 
 SECRET_KEY = "2ec242bf63d3e623de366a182809a09318a458091d336f4cf6e3d26408a2f247"
@@ -23,13 +34,18 @@ JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15 if IS_DEV else 5)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 JWT_TOKEN_LOCATION = ["cookies"]
 JWT_COOKIE_SAMESITE = "Lax"
-WT_COOKIE_SECURE = False if IS_DEV else True
-JWT_COOKIE_CSRF_PROTECT = False if IS_DEV else True
+default_url_scheme = os.getenv("PREFERRED_URL_SCHEME", "http").strip().lower()
+default_secure_cookies = not IS_DEV and default_url_scheme == "https"
+
+USE_SECURE_COOKIES = _env_flag("USE_SECURE_COOKIES", default_secure_cookies)
+JWT_COOKIE_SECURE = _env_flag("JWT_COOKIE_SECURE", USE_SECURE_COOKIES)
+JWT_COOKIE_CSRF_PROTECT = _env_flag("JWT_COOKIE_CSRF_PROTECT", not IS_DEV)
 JWT_ACCESS_COOKIE_NAME = "access_geotoken"
 
 SESSION_COOKIE_NAME = "geoidep_state"
 SESSION_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = False if IS_DEV else True
+SESSION_COOKIE_SECURE = _env_flag("SESSION_COOKIE_SECURE", USE_SECURE_COOKIES)
+WTF_CSRF_SSL_STRICT = USE_SECURE_COOKIES
 
 SQLALCHEMY_DATABASE_URI = DB_URI
 SQLALCHEMY_TRACK_MODIFICATIONS = False

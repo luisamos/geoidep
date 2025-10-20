@@ -57,6 +57,10 @@ def ingreso():
       respuesta = redirect(url_for('gestion.principal'))
       set_access_cookies(respuesta, access_token)
       return respuesta
+  elif form.is_submitted():
+    for errores in form.errors.values():
+      for mensaje in errores:
+        flash(mensaje, 'error')
   return render_template('gestion/ingreso.html', form=form)
 
 @bp.route('/principal')
