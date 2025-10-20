@@ -30,7 +30,7 @@ DB_URI = os.environ.get(
     f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}",
 )
 
-JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15 if IS_DEV else 5)
+JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=25 if IS_DEV else 15)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 JWT_TOKEN_LOCATION = ["cookies"]
 JWT_COOKIE_SAMESITE = "Lax"

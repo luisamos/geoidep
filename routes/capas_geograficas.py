@@ -38,17 +38,21 @@ def _limpiar_texto(elemento):
 def _extraer_capas_wms(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
+
   for layer in raiz.findall('.//{*}Layer'):
     atributo_queryable = layer.get('queryable')
+
     if not atributo_queryable or atributo_queryable.strip().lower() not in {
       '1',
       'true',
     }:
       continue
     nombre = _limpiar_texto(layer.find('{*}Name'))
+    titulo = _limpiar_texto(layer.find('{*}Title'))
+    print(titulo)
     if not nombre:
       continue
-    capas.append({'value': nombre, 'label': nombre})
+    capas.append({'value': nombre, 'label': titulo})
   return capas
 
 def _extraer_capas_wfs(contenido):
@@ -115,6 +119,7 @@ def _preparar_url_capabilities(tipo_servicio, url):
 
 def _obtener_capas_desde_servicio(tipo_servicio, url):
   url_capabilities = _preparar_url_capabilities(tipo_servicio, url)
+  print(url_capabilities)
   try:
     respuesta = requests.get(url_capabilities, timeout=15)
     respuesta.raise_for_status()
@@ -123,12 +128,13 @@ def _obtener_capas_desde_servicio(tipo_servicio, url):
 
   contenido = respuesta.text
   nombre_tipo = (tipo_servicio.nombre or '').lower()
+  print(contenido)
   try:
-    if 'wms' in nombre_tipo:
+    if 'ogc:wms' in nombre_tipo:
       return _extraer_capas_wms(contenido)
-    if 'wfs' in nombre_tipo:
+    if 'ogc:wfs' in nombre_tipo:
       return _extraer_capas_wfs(contenido)
-    if 'wmts' in nombre_tipo:
+    if 'ogc:wmts' in nombre_tipo:
       return _extraer_capas_wmts(contenido)
   except ET.ParseError as error:
     raise ValueError('La respuesta del servicio no es un XML válido.') from error
@@ -584,6 +590,9 @@ def obtener_capas_servicio():
   data = request.get_json(force=True) or {}
   tipo_id = data.get('tipo_servicio_id')
   url = (data.get('url') or '').strip()
+
+  print(tipo_id)
+  print(url)
 
   if not tipo_id or not url:
     return (

@@ -169,7 +169,7 @@
                   <th class="col-indice" style="padding-left: 20px">N°</th>
                   <th class="col-nombre">Nombre</th>
                   <th class="col-categoria">Categoría</th>
-                  <th class="col-institucion">Sigla institución</th>
+                  <th class="col-institucion">Institución</th>
                   <th class="col-servicios">Servicios</th>
                   <th class="col-opciones">Acciones</th>
                 </tr>
@@ -297,6 +297,35 @@
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
       const tiposServicio = {{ tipos_serv | tojson | safe }};
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        const partes = document.cookie ? document.cookie.split("; ") : [];
+        for (const parte of partes) {
+          if (parte.startsWith(prefijo)) {
+            return decodeURIComponent(parte.slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      function obtenerTokenCSRF() {
+        return obtenerCookie("csrf_access_token");
+      }
+
+      function crearOpcionesJson(method, payload) {
+        const headers = {};
+        const token = obtenerTokenCSRF();
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
 
       const tablaCapas = document.querySelector("#tablaCapas tbody");
       let capas = [];
@@ -646,14 +675,10 @@
         try {
           const respuesta = await fetch(
             "/capas_geograficas/servicios/capabilities",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                tipo_servicio_id: tipoId,
-                url: direccion,
-              }),
-            }
+            crearOpcionesJson("POST", {
+              tipo_servicio_id: tipoId,
+              url: direccion,
+            })
           );
 
           const json = await respuesta.json();
@@ -952,11 +977,10 @@
         };
 
         try {
-          const respuesta = await fetch("/capas_geograficas/guardar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+          const respuesta = await fetch(
+            "/capas_geograficas/guardar",
+            crearOpcionesJson("POST", payload)
+          );
           const json = await respuesta.json();
           if (!respuesta.ok) {
             throw new Error(json.message || "No se pudo guardar la capa.");

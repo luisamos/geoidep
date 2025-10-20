@@ -281,6 +281,35 @@
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
 
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        const partes = document.cookie ? document.cookie.split("; ") : [];
+        for (const parte of partes) {
+          if (parte.startsWith(prefijo)) {
+            return decodeURIComponent(parte.slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      function obtenerTokenCSRF() {
+        return obtenerCookie("csrf_access_token");
+      }
+
+      function crearOpcionesJson(method, payload) {
+        const headers = {};
+        const token = obtenerTokenCSRF();
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
       const puedeEditarInstitucion = {{ 'true' if puede_editar_institucion else 'false' }};
 
       const ui = {
@@ -673,11 +702,7 @@
             ? `/herramientas_digitales/${herramientaEditandoId}`
             : "/herramientas_digitales/guardar";
           const method = esEdicion ? "PUT" : "POST";
-          const resp = await fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+          const resp = await fetch(url, crearOpcionesJson(method, payload));
           const resultado = await resp.json();
 
           if (!resp.ok) {
@@ -837,9 +862,10 @@
 
       async function eliminarHerramienta(id) {
         try {
-          const resp = await fetch(`/herramientas_digitales/${id}`, {
-            method: "DELETE",
-          });
+          const resp = await fetch(
+            `/herramientas_digitales/${id}`,
+            crearOpcionesJson("DELETE")
+          );
           const resultado = await resp.json();
 
           if (!resp.ok) {
