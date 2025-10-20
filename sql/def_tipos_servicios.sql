@@ -22,7 +22,7 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 ('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5,  1, '01-08-2025'),
 ('REST:API', 'Servicios Rest:Api', True, 4, 6,  1, '01-08-2025');
 
-SELECT * FROM ide.def_tipos_servicios;
+SELECT id, nombre FROM ide.def_tipos_servicios WHERE id_padre IN (2,3);
 
 SELECT id AS id_tipo_servicio, nombre
 FROM ide.def_tipos_servicios WHERE id_padre=1 ORDER BY orden ASC;
