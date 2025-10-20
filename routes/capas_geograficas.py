@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import requests
 from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
 from requests.exceptions import RequestException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
@@ -37,6 +39,12 @@ def _extraer_capas_wms(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
   for layer in raiz.findall('.//{*}Layer'):
+    atributo_queryable = layer.get('queryable')
+    if not atributo_queryable or atributo_queryable.strip().lower() not in {
+      '1',
+      'true',
+    }:
+      continue
     nombre = _limpiar_texto(layer.find('{*}Name'))
     if not nombre:
       continue
@@ -78,9 +86,42 @@ def _extraer_capas_wmts(contenido):
   return capas
 
 
+def _preparar_url_capabilities(tipo_servicio, url):
+  if not url:
+    return url
+
+  nombre_tipo = (tipo_servicio.nombre or '').lower()
+  parametros = None
+  if 'wms' in nombre_tipo:
+    parametros = {'request': 'GetCapabilities', 'service': 'WMS'}
+  elif 'wfs' in nombre_tipo:
+    parametros = {'request': 'GetCapabilities', 'service': 'WFS'}
+  elif 'wmts' in nombre_tipo:
+    parametros = {'request': 'GetCapabilities', 'service': 'WMTS'}
+
+  if not parametros:
+    return url
+
+  parsed = urlparse(url)
+  query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
+  claves_parametros = {clave.lower() for clave in parametros}
+  filtrados = [
+    (clave, valor)
+    for clave, valor in query_pairs
+    if clave.lower() not in claves_parametros
+  ]
+  for clave, valor in parametros.items():
+    filtrados.append((clave, valor))
+
+  nueva_query = urlencode(filtrados, doseq=True)
+  parsed = parsed._replace(query=nueva_query)
+  return urlunparse(parsed)
+
+
 def _obtener_capas_desde_servicio(tipo_servicio, url):
+  url_capabilities = _preparar_url_capabilities(tipo_servicio, url)
   try:
-    respuesta = requests.get(url, timeout=15)
+    respuesta = requests.get(url_capabilities, timeout=15)
     respuesta.raise_for_status()
   except RequestException as error:
     raise ValueError('No se pudo conectar con el servicio especificado.') from error

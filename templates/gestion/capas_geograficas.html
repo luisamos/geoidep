@@ -106,6 +106,10 @@
       .estado-indicador {
         font-size: 1.4rem;
       }
+
+      .estado-indicador--oculto {
+        visibility: hidden;
+      }
     </style>
   </head>
 
@@ -339,12 +343,68 @@
         }
       }
 
-      function esServicioOgc(tipoId) {
-        const tipo = tiposServicio.find(
+      function obtenerTipoServicioPorId(tipoId) {
+        return tiposServicio.find(
           (item) => String(item.id) === String(tipoId)
         );
+      }
+
+      function esServicioOgc(tipoId) {
+        const tipo = obtenerTipoServicioPorId(tipoId);
         if (!tipo) return false;
         return Number(tipo.id_padre) === 2;
+      }
+
+      function asegurarParametrosUrl(url, parametros) {
+        if (!url) return url;
+        try {
+          const urlObjeto = new URL(url);
+          Object.entries(parametros).forEach(([clave, valor]) => {
+            urlObjeto.searchParams.delete(clave);
+            urlObjeto.searchParams.append(clave, valor);
+          });
+          return urlObjeto.toString();
+        } catch (error) {
+          let urlNormalizada = url;
+          Object.entries(parametros).forEach(([clave, valor]) => {
+            const expresion = new RegExp(`(${clave})=([^&]*)`, "i");
+            if (expresion.test(urlNormalizada)) {
+              urlNormalizada = urlNormalizada.replace(
+                expresion,
+                `${clave}=${valor}`
+              );
+            } else {
+              const separador = urlNormalizada.includes("?") ? "&" : "?";
+              urlNormalizada = `${urlNormalizada}${separador}${clave}=${valor}`;
+            }
+          });
+          return urlNormalizada;
+        }
+      }
+
+      function construirUrlCapabilities(tipoId, url) {
+        const tipo = obtenerTipoServicioPorId(tipoId);
+        if (!tipo) return url;
+        const nombreTipo = (tipo.nombre || "").toLowerCase();
+        if (nombreTipo.includes("wms")) {
+          return asegurarParametrosUrl(url, {
+            request: "GetCapabilities",
+            service: "WMS",
+          });
+        }
+        if (nombreTipo.includes("wfs")) {
+          return asegurarParametrosUrl(url, {
+            request: "GetCapabilities",
+            service: "WFS",
+          });
+        }
+        if (nombreTipo.includes("wmts")) {
+          return asegurarParametrosUrl(url, {
+            request: "GetCapabilities",
+            service: "WMTS",
+          });
+        }
+        return url;
       }
 
       function crearSelectTiposServicio(valorActual = "") {
@@ -413,6 +473,16 @@
         if (indicador) {
           indicador.textContent = estado ? "🟢" : "🔴";
           indicador.dataset.valor = estado ? "true" : "false";
+          indicador.classList.remove("estado-indicador--oculto");
+        }
+      }
+
+      function ocultarEstadoFilaServicio(fila) {
+        const indicador = fila.querySelector(".estado-indicador");
+        if (indicador) {
+          indicador.textContent = "";
+          indicador.dataset.valor = "";
+          indicador.classList.add("estado-indicador--oculto");
         }
       }
 
@@ -456,11 +526,16 @@
         const spanEstado = document.createElement("span");
         spanEstado.className = "estado-indicador";
         const esOgc = esServicioOgc(servicio.id_tipo_servicio || "");
-        const estadoInicial = esOgc
-          ? Boolean(servicio.nombre_capa && servicio.nombre_capa.trim())
-          : true;
-        spanEstado.textContent = estadoInicial ? "🟢" : "🔴";
-        spanEstado.dataset.valor = estadoInicial ? "true" : "false";
+        if (servicio && servicio.id) {
+          const estadoInicial = esOgc
+            ? Boolean(servicio.nombre_capa && servicio.nombre_capa.trim())
+            : true;
+          spanEstado.textContent = estadoInicial ? "🟢" : "🔴";
+          spanEstado.dataset.valor = estadoInicial ? "true" : "false";
+        } else {
+          spanEstado.dataset.valor = "";
+          spanEstado.classList.add("estado-indicador--oculto");
+        }
         celdaEstado.appendChild(spanEstado);
 
         const celdaAcciones = document.createElement("td");
@@ -489,6 +564,10 @@
         fila.appendChild(celdaCapa);
         fila.appendChild(celdaEstado);
         fila.appendChild(celdaAcciones);
+
+        if (!servicio || !servicio.id) {
+          ocultarEstadoFilaServicio(fila);
+        }
 
         tablaServiciosBody.appendChild(fila);
       }
@@ -539,7 +618,7 @@
         if (!selectTipo || !inputDireccion) return;
 
         const tipoId = selectTipo.value;
-        const direccion = inputDireccion.value.trim();
+        let direccion = inputDireccion.value.trim();
 
         if (!tipoId) {
           M.toast({ html: "Seleccione el tipo de servicio." });
@@ -557,7 +636,13 @@
           return;
         }
 
-        setEstadoFilaServicio(fila, false);
+        const direccionNormalizada = construirUrlCapabilities(tipoId, direccion);
+        if (direccionNormalizada && direccionNormalizada !== direccion) {
+          direccion = direccionNormalizada;
+          inputDireccion.value = direccionNormalizada;
+        }
+
+        ocultarEstadoFilaServicio(fila);
         try {
           const respuesta = await fetch(
             "/capas_geograficas/servicios/capabilities",
@@ -946,10 +1031,12 @@
               const tipoId = event.target.value;
               const esOgc = esServicioOgc(tipoId);
               actualizarCampoCapaParaFila(fila, esOgc);
-              if (!esOgc) {
+              if (!tipoId) {
+                ocultarEstadoFilaServicio(fila);
+              } else if (!esOgc) {
                 setEstadoFilaServicio(fila, true);
               } else {
-                setEstadoFilaServicio(fila, false);
+                ocultarEstadoFilaServicio(fila);
               }
             }
           });
