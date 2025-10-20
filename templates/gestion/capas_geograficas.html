@@ -66,6 +66,46 @@
         align-items: center;
         gap: 16px;
       }
+
+      .tabla-servicios {
+        margin-top: 24px;
+      }
+
+      .tabla-servicios table {
+        width: 100%;
+      }
+
+      .tabla-servicios th,
+      .tabla-servicios td {
+        vertical-align: middle;
+      }
+
+      .tabla-servicios select.browser-default,
+      .tabla-servicios input[type="text"] {
+        margin: 0;
+      }
+
+      .acciones-servicio {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .btn-icono {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        padding: 4px;
+      }
+
+      .btn-icono:focus {
+        outline: none;
+      }
+
+      .estado-indicador {
+        font-size: 1.4rem;
+      }
     </style>
   </head>
 
@@ -214,6 +254,29 @@
             </select>
             <label>Institución</label>
           </div>
+
+          <div class="tabla-servicios">
+            <h6>Servicios Asociados</h6>
+            <div class="responsive-table">
+              <table class="highlight" id="tablaServicios">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Dirección</th>
+                    <th>Capa</th>
+                    <th class="center-align">Estado</th>
+                    <th class="center-align">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="right-align" style="margin-top: 12px">
+              <button class="btn orange" id="btnAddServicio" type="button">
+                Agregar Servicio
+              </button>
+            </div>
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -228,13 +291,19 @@
       const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='images/delete.png') }}";
+      const tiposServicio = {{ tipos_serv | tojson | safe }};
 
       const tablaCapas = document.querySelector("#tablaCapas tbody");
       let capas = [];
       let modalInstance = null;
+      const tablaServiciosBody = document.querySelector(
+        "#tablaServicios tbody"
+      );
 
       function inicializarComponentesBase() {
-        const selects = document.querySelectorAll("select");
+        const selects = document.querySelectorAll(
+          "select:not(.browser-default)"
+        );
         M.FormSelect.init(selects);
         if (!modalInstance) {
           const modalElement = document.getElementById("modalCapa");
@@ -245,7 +314,9 @@
       }
 
       function refrescarCamposFormulario() {
-        const formSelects = document.querySelectorAll("#formCapa select");
+        const formSelects = document.querySelectorAll(
+          "#formCapa select:not(.browser-default)"
+        );
         M.FormSelect.init(formSelects);
         M.updateTextFields();
       }
@@ -254,9 +325,369 @@
         const form = document.getElementById("formCapa");
         form.reset();
         document.getElementById("capaId").value = "";
+        limpiarTablaServicios();
+        agregarFilaServicio();
         setTimeout(() => {
           refrescarCamposFormulario();
         }, 0);
+      }
+
+      function limpiarTablaServicios() {
+        if (tablaServiciosBody) {
+          tablaServiciosBody.innerHTML = "";
+        }
+      }
+
+      function esServicioOgc(tipoId) {
+        const tipo = tiposServicio.find(
+          (item) => String(item.id) === String(tipoId)
+        );
+        if (!tipo) return false;
+        return Number(tipo.id_padre) === 2;
+      }
+
+      function crearSelectTiposServicio(valorActual = "") {
+        const select = document.createElement("select");
+        select.className = "browser-default tipo-servicio";
+        const opcionDefault = document.createElement("option");
+        opcionDefault.value = "";
+        opcionDefault.textContent = "Seleccione";
+        select.appendChild(opcionDefault);
+
+        tiposServicio
+          .slice()
+          .sort((a, b) => Number(a.id) - Number(b.id))
+          .forEach((tipo) => {
+            const opcion = document.createElement("option");
+            opcion.value = tipo.id;
+            opcion.textContent = tipo.nombre;
+            if (String(tipo.id) === String(valorActual)) {
+              opcion.selected = true;
+            }
+            select.appendChild(opcion);
+          });
+        return select;
+      }
+
+      function crearInputDireccion(valor = "") {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "direccion-servicio";
+        input.placeholder = "URL del servicio";
+        input.value = valor || "";
+        input.required = true;
+        return input;
+      }
+
+      function crearCampoCapaComoInput(valor = "") {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "nombre-capa-input";
+        input.placeholder = "Nombre de capa";
+        input.value = valor || "";
+        return input;
+      }
+
+      function crearCampoCapaComoSelect(opciones = [], valorActual = "") {
+        const select = document.createElement("select");
+        select.className = "browser-default nombre-capa-select";
+        const opcionDefault = document.createElement("option");
+        opcionDefault.value = "";
+        opcionDefault.textContent = "Seleccione capa";
+        select.appendChild(opcionDefault);
+        opciones.forEach((opcion) => {
+          const optionElement = document.createElement("option");
+          optionElement.value = opcion.value;
+          optionElement.textContent = opcion.label || opcion.value;
+          if (String(opcion.value) === String(valorActual)) {
+            optionElement.selected = true;
+          }
+          select.appendChild(optionElement);
+        });
+        return select;
+      }
+
+      function setEstadoFilaServicio(fila, estado) {
+        const indicador = fila.querySelector(".estado-indicador");
+        if (indicador) {
+          indicador.textContent = estado ? "🟢" : "🔴";
+          indicador.dataset.valor = estado ? "true" : "false";
+        }
+      }
+
+      function agregarFilaServicio(servicio = {}) {
+        if (!tablaServiciosBody) return;
+
+        const fila = document.createElement("tr");
+        if (servicio.id) {
+          fila.dataset.servicioId = servicio.id;
+        }
+        fila.dataset.visible = servicio.visible === false ? "false" : "true";
+        fila.dataset.tipo = servicio.id_tipo_servicio || "";
+
+        const celdaTipo = document.createElement("td");
+        const selectTipo = crearSelectTiposServicio(
+          servicio.id_tipo_servicio || ""
+        );
+        celdaTipo.appendChild(selectTipo);
+
+        const celdaDireccion = document.createElement("td");
+        const inputDireccion = crearInputDireccion(servicio.direccion_web || "");
+        celdaDireccion.appendChild(inputDireccion);
+
+        const celdaCapa = document.createElement("td");
+        celdaCapa.className = "celda-capa";
+        if (servicio.opciones_capas && servicio.opciones_capas.length) {
+          const selectCapas = crearCampoCapaComoSelect(
+            servicio.opciones_capas,
+            servicio.nombre_capa || ""
+          );
+          celdaCapa.appendChild(selectCapas);
+          fila.dataset.opcionesCapas = JSON.stringify(servicio.opciones_capas);
+        } else {
+          celdaCapa.appendChild(
+            crearCampoCapaComoInput(servicio.nombre_capa || "")
+          );
+        }
+
+        const celdaEstado = document.createElement("td");
+        celdaEstado.className = "center-align";
+        const spanEstado = document.createElement("span");
+        spanEstado.className = "estado-indicador";
+        const esOgc = esServicioOgc(servicio.id_tipo_servicio || "");
+        const estadoInicial = esOgc
+          ? Boolean(servicio.nombre_capa && servicio.nombre_capa.trim())
+          : true;
+        spanEstado.textContent = estadoInicial ? "🟢" : "🔴";
+        spanEstado.dataset.valor = estadoInicial ? "true" : "false";
+        celdaEstado.appendChild(spanEstado);
+
+        const celdaAcciones = document.createElement("td");
+        celdaAcciones.className = "center-align";
+        const contenedorAcciones = document.createElement("div");
+        contenedorAcciones.className = "acciones-servicio";
+
+        const botonConectar = document.createElement("button");
+        botonConectar.type = "button";
+        botonConectar.className = "btn-icono btn-conectar";
+        botonConectar.title = "Conectarse";
+        botonConectar.innerHTML = '<i class="material-icons">sync</i>';
+
+        const botonEliminar = document.createElement("button");
+        botonEliminar.type = "button";
+        botonEliminar.className = "btn-icono btn-eliminar-servicio";
+        botonEliminar.title = "Eliminar";
+        botonEliminar.innerHTML = '<i class="material-icons red-text">delete</i>';
+
+        contenedorAcciones.appendChild(botonConectar);
+        contenedorAcciones.appendChild(botonEliminar);
+        celdaAcciones.appendChild(contenedorAcciones);
+
+        fila.appendChild(celdaTipo);
+        fila.appendChild(celdaDireccion);
+        fila.appendChild(celdaCapa);
+        fila.appendChild(celdaEstado);
+        fila.appendChild(celdaAcciones);
+
+        tablaServiciosBody.appendChild(fila);
+      }
+
+      function obtenerOpcionesDesdeFila(fila) {
+        try {
+          return fila.dataset.opcionesCapas
+            ? JSON.parse(fila.dataset.opcionesCapas)
+            : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function actualizarCampoCapaParaFila(fila, esOgc) {
+        const celdaCapa = fila.querySelector(".celda-capa");
+        if (!celdaCapa) return;
+        const valorActual = obtenerValorNombreCapa(fila);
+        celdaCapa.innerHTML = "";
+        if (esOgc) {
+          const opciones = obtenerOpcionesDesdeFila(fila);
+          if (opciones.length) {
+            celdaCapa.appendChild(
+              crearCampoCapaComoSelect(opciones, valorActual || "")
+            );
+          } else {
+            celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
+          }
+        } else {
+          celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
+          fila.dataset.opcionesCapas = "";
+          setEstadoFilaServicio(fila, true);
+        }
+      }
+
+      function obtenerValorNombreCapa(fila) {
+        const select = fila.querySelector(".nombre-capa-select");
+        if (select) {
+          return select.value;
+        }
+        const input = fila.querySelector(".nombre-capa-input");
+        return input ? input.value : "";
+      }
+
+      async function conectarServicioOgc(fila) {
+        const selectTipo = fila.querySelector(".tipo-servicio");
+               const inputDireccion = fila.querySelector(".direccion-servicio");
+        if (!selectTipo || !inputDireccion) return;
+
+        const tipoId = selectTipo.value;
+        const direccion = inputDireccion.value.trim();
+
+        if (!tipoId) {
+          M.toast({ html: "Seleccione el tipo de servicio." });
+          return;
+        }
+
+        if (!direccion) {
+          M.toast({ html: "Ingrese la dirección del servicio." });
+          return;
+        }
+
+        if (!esServicioOgc(tipoId)) {
+          M.toast({ html: "El servicio seleccionado no requiere conexión." });
+          actualizarCampoCapaParaFila(fila, false);
+          return;
+        }
+
+        setEstadoFilaServicio(fila, false);
+        try {
+          const respuesta = await fetch(
+            "/capas_geograficas/servicios/capabilities",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                tipo_servicio_id: tipoId,
+                url: direccion,
+              }),
+            }
+          );
+
+          const json = await respuesta.json();
+          if (!respuesta.ok || json.status !== "success") {
+            throw new Error(json.message || "No se pudo obtener las capas.");
+          }
+
+          const capasDisponibles = Array.isArray(json.capas)
+            ? json.capas
+            : [];
+          if (!capasDisponibles.length) {
+            throw new Error("El servicio no devolvió capas disponibles.");
+          }
+
+          fila.dataset.opcionesCapas = JSON.stringify(capasDisponibles);
+          const celdaCapa = fila.querySelector(".celda-capa");
+          if (celdaCapa) {
+            celdaCapa.innerHTML = "";
+            celdaCapa.appendChild(
+              crearCampoCapaComoSelect(
+                capasDisponibles,
+                obtenerValorNombreCapa(fila) || ""
+              )
+            );
+          }
+          setEstadoFilaServicio(fila, true);
+          M.toast({ html: "Capas obtenidas correctamente." });
+        } catch (error) {
+          console.error(error);
+          fila.dataset.opcionesCapas = "";
+          actualizarCampoCapaParaFila(fila, true);
+          setEstadoFilaServicio(fila, false);
+          M.toast({ html: error.message || "No se pudo conectar al servicio." });
+        }
+      }
+
+      function obtenerServiciosDeTabla() {
+        if (!tablaServiciosBody) return [];
+        const filas = Array.from(tablaServiciosBody.querySelectorAll("tr"));
+        return filas
+          .map((fila) => {
+            const selectTipo = fila.querySelector(".tipo-servicio");
+            const inputDireccion = fila.querySelector(".direccion-servicio");
+            const nombreCapa = obtenerValorNombreCapa(fila);
+            if (!selectTipo || !inputDireccion) {
+              return null;
+            }
+            const tipoId = selectTipo.value;
+            const direccion = inputDireccion.value.trim();
+            const visible = fila.dataset.visible !== "false";
+            const idServicio = fila.dataset.servicioId
+              ? Number(fila.dataset.servicioId)
+              : null;
+            const camposVacios =
+              !tipoId && !direccion && !(nombreCapa && nombreCapa.trim());
+            if (camposVacios && !idServicio) {
+              return null;
+            }
+
+            return {
+              id: idServicio,
+              tipo_servicio_id: tipoId ? Number(tipoId) : null,
+              direccion: direccion,
+              nombre_capa: nombreCapa ? nombreCapa.trim() : "",
+              visible,
+            };
+          })
+          .filter((item) => item !== null);
+      }
+
+      function validarServicios(servicios) {
+        for (const servicio of servicios) {
+          if (!servicio.tipo_servicio_id) {
+            M.toast({ html: "Cada servicio debe tener un tipo seleccionado." });
+            return false;
+          }
+          if (!servicio.direccion) {
+            M.toast({ html: "Cada servicio debe tener una dirección." });
+            return false;
+          }
+          if (
+            esServicioOgc(servicio.tipo_servicio_id) &&
+            !servicio.nombre_capa
+          ) {
+            M.toast({
+              html: "Los servicios OGC deben tener una capa seleccionada.",
+            });
+            return false;
+          }
+        }
+        return true;
+      }
+
+      async function cargarServiciosDeCapa(capaId) {
+        limpiarTablaServicios();
+        try {
+          const respuesta = await fetch(`/capas_geograficas/detalle/${capaId}`);
+          if (!respuesta.ok) {
+            throw new Error("No se pudo obtener el detalle de la capa.");
+          }
+          const json = await respuesta.json();
+          const servicios = Array.isArray(json.servicios) ? json.servicios : [];
+          if (!servicios.length) {
+            agregarFilaServicio();
+          } else {
+            servicios.forEach((servicio) => {
+              agregarFilaServicio({
+                id: servicio.id,
+                id_tipo_servicio: servicio.id_tipo_servicio,
+                direccion_web: servicio.direccion_web,
+                nombre_capa: servicio.nombre_capa,
+                visible: servicio.visible,
+              });
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          M.toast({ html: error.message || "Error al cargar servicios." });
+          agregarFilaServicio();
+        }
       }
 
       function cerrarModal() {
@@ -277,7 +708,7 @@
         }
       }
 
-      function abrirModalParaEditar(capa) {
+      async function abrirModalParaEditar(capa) {
         limpiarFormulario();
         document.getElementById("modalTituloCapa").textContent =
           "EDITAR CAPA GEOGRÁFICA";
@@ -293,6 +724,7 @@
           capa.id_categoria || "";
         document.getElementById("institucion_capa").value =
           capa.id_institucion || "";
+        await cargarServiciosDeCapa(capa.id);
         setTimeout(() => {
           refrescarCamposFormulario();
         }, 0);
@@ -413,6 +845,11 @@
           return;
         }
 
+        const servicios = obtenerServiciosDeTabla();
+        if (!validarServicios(servicios)) {
+          return;
+        }
+
         const payload = {
           id,
           nombre,
@@ -421,6 +858,7 @@
           publicar_geoperu: publicar,
           categoria_id: categoriaId,
           institucion_id: institucionId,
+          servicios,
         };
 
         try {
@@ -460,6 +898,13 @@
           .getElementById("btnGuardar")
           .addEventListener("click", guardarCapa);
 
+        const botonAgregarServicio = document.getElementById("btnAddServicio");
+        if (botonAgregarServicio) {
+          botonAgregarServicio.addEventListener("click", () => {
+            agregarFilaServicio();
+          });
+        }
+
         document
           .getElementById("btnBuscar")
           .addEventListener("click", aplicarFiltros);
@@ -474,7 +919,7 @@
           .getElementById("filtroTipoServicio")
           .addEventListener("change", aplicarFiltros);
 
-        tablaCapas.addEventListener("click", (event) => {
+        tablaCapas.addEventListener("click", async (event) => {
           const accion = event.target.closest("img[data-action]");
           if (!accion) return;
           const id = accion.getAttribute("data-id");
@@ -482,11 +927,45 @@
           const capa = capas.find((item) => String(item.id) === String(id));
           if (!capa) return;
           if (tipo === "actualizar") {
-            abrirModalParaEditar(capa);
+            await abrirModalParaEditar(capa);
           } else if (tipo === "eliminar") {
             M.toast({ html: "La eliminación se habilitará próximamente." });
           }
         });
+
+        if (tablaServiciosBody) {
+          tablaServiciosBody.addEventListener("change", (event) => {
+            const fila = event.target.closest("tr");
+            if (!fila) return;
+            if (event.target.classList.contains("tipo-servicio")) {
+              const tipoId = event.target.value;
+              const esOgc = esServicioOgc(tipoId);
+              actualizarCampoCapaParaFila(fila, esOgc);
+              if (!esOgc) {
+                setEstadoFilaServicio(fila, true);
+              } else {
+                setEstadoFilaServicio(fila, false);
+              }
+            }
+          });
+
+          tablaServiciosBody.addEventListener("click", (event) => {
+            const fila = event.target.closest("tr");
+            if (!fila) return;
+
+            if (event.target.closest(".btn-conectar")) {
+              conectarServicioOgc(fila);
+              return;
+            }
+
+            if (event.target.closest(".btn-eliminar-servicio")) {
+              fila.remove();
+              if (!tablaServiciosBody.querySelector("tr")) {
+                agregarFilaServicio();
+              }
+            }
+          });
+        }
       });
     </script>
   </body>
