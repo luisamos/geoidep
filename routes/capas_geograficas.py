@@ -70,23 +70,28 @@ def _extraer_capas_wms(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
 
-  for layer in raiz.findall('.//{*}Layer'):
-    atributo_queryable = layer.get('queryable')
+  namespaces = {'wms': 'http://www.opengis.net/wms'}
+  candidatos = raiz.findall('.//wms:Layer', namespaces)
 
-    if not atributo_queryable or atributo_queryable.strip().lower() not in {
-      '1',
-      'true',
-    }:
-      continue
-    nombre = _buscar_texto_directo_por_tag(layer, 'Name')
-    titulo = _buscar_texto_directo_por_tag(layer, 'Title')
+  if not candidatos:
+    candidatos = raiz.findall('.//{*}Layer')
 
-    print(layer.get("Name"))
-    if not titulo:
-      titulo = nombre
-    if not nombre:
-      continue
-    capas.append({'value': nombre, 'label': titulo})
+  for layer in candidatos:
+    queryable = layer.get('queryable')
+    if queryable == '1':
+      nombre_layer = layer.find('wms:Name', namespaces)
+      titulo_layer = layer.find('wms:Title', namespaces)
+
+      if nombre_layer is not None and titulo_layer is not None:
+        nombre = nombre_layer.text
+        titulo = titulo_layer.text
+
+      if nombre and titulo:
+        capas.append({
+        'value': nombre,
+        'label': titulo
+        })
+
   return capas
 
 def _extraer_capas_wfs(contenido):

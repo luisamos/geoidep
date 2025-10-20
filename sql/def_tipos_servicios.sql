@@ -11,18 +11,18 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 ('Descarga GIS (HTTPS, FTP)', 'Servicio de descarga.', True, 1, 5,  1, '01-08-2025'),
 ('OGC:WMS', 'Servicio de visualización de mapas.', True, 2, 1,  1, '01-08-2025'),
 ('OGC:WFS', 'Servicio de consulta y descarga de mapas.', True, 2, 2,  1, '01-08-2025'),
-('OGC:WCS', 'Servicio de imagenes de mapas.', True, 2, 3,  1, '01-08-2025'),
+('OGC:WCS', 'Servicio de imagenes de mapas.', False, 2, 3,  1, '01-08-2025'),
 ('OGC:WMTS', 'Servicio de mosaicos de mapas.', True, 2, 4,  1, '01-08-2025'),
-('OGC:CSW', 'Servicio de catalogación de metadatos.', True, 2, 5,  1, '01-08-2025'),
-('OGC:WPS', 'Servicio de geoprocesamiento', True, 2, 6,  1, '01-08-2025'),
+('OGC:CSW', 'Servicio de catalogación de metadatos.', False, 2, 5,  1, '01-08-2025'),
+('OGC:WPS', 'Servicio de geoprocesamiento', False, 2, 6,  1, '01-08-2025'),
 ('REST:ArcGIS MapServer', 'Servicio Rest de visualización de mapas', True, 3, 1,  1,'01-08-2025'),
-('REST:ArcGIS FeatureServer', 'Servicio Rest de acceso a mapas', True, 3, 2,  1,'01-08-2025'),
-('REST:ArcGIS ImageServer', 'Servicio Rest de imagenes', True, 3, 3,  1, '01-08-2025'),
+('REST:ArcGIS FeatureServer', 'Servicio Rest de acceso a mapas', False, 3, 2,  1,'01-08-2025'),
+('REST:ArcGIS ImageServer', 'Servicio Rest de imagenes', False, 3, 3,  1, '01-08-2025'),
 ('REST:ArcGIS KML', 'Servicio Rest de exportación a formato KML', True, 3, 4,  1, '01-08-2025'),
-('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', True, 3, 5,  1, '01-08-2025'),
+('REST:ArcGIS Geoprocessing', 'Servicio Rest de geoprocesamiento', False, 3, 5,  1, '01-08-2025'),
 ('REST:API', 'Servicios Rest:Api', True, 4, 6,  1, '01-08-2025');
 
 SELECT id, nombre FROM ide.def_tipos_servicios WHERE id_padre IN (2,3);
 
 SELECT id AS id_tipo_servicio, nombre
-FROM ide.def_tipos_servicios WHERE id_padre=1 ORDER BY orden ASC;
+FROM ide.def_tipos_servicios WHERE id_padre IN (2,3) AND estado = True ORDER BY id ASC;
