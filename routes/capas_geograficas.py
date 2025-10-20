@@ -48,13 +48,8 @@ def _extraer_capas_wms(contenido):
     nombre = _limpiar_texto(layer.find('{*}Name'))
     if not nombre:
       continue
-    titulo = _limpiar_texto(layer.find('{*}Title'))
-    etiqueta = titulo if titulo else nombre
-    if titulo and titulo != nombre:
-      etiqueta = f"{titulo} ({nombre})"
-    capas.append({'value': nombre, 'label': etiqueta})
+    capas.append({'value': nombre, 'label': nombre})
   return capas
-
 
 def _extraer_capas_wfs(contenido):
   capas = []
