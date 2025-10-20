@@ -27,13 +27,44 @@ def _obtener_instituciones_para(usuario):
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   return consulta.order_by(Institucion.id.asc()).all()
 
-
 def _limpiar_texto(elemento):
   if not elemento or not elemento.text:
     return None
   texto = elemento.text.strip()
   return texto or None
 
+
+def _obtener_nombre_local(tag):
+  if not tag:
+    return ''
+  if '}' in tag:
+    return tag.split('}', 1)[1]
+  return tag
+
+
+def _buscar_texto_directo_por_tag(elemento, nombre_tag):
+  if elemento is None or not nombre_tag:
+    return None
+
+  nombre_normalizado = nombre_tag.strip().lower()
+  if not nombre_normalizado:
+    return None
+
+  for candidato in elemento:
+    if _obtener_nombre_local(candidato.tag).lower() != nombre_normalizado:
+      continue
+    texto = _limpiar_texto(candidato)
+    if texto is not None:
+      return texto
+
+  for candidato in elemento.iter():
+    if _obtener_nombre_local(candidato.tag).lower() != nombre_normalizado:
+      continue
+    texto = _limpiar_texto(candidato)
+    if texto is not None:
+      return texto
+
+  return None
 
 def _extraer_capas_wms(contenido):
   capas = []
@@ -47,9 +78,12 @@ def _extraer_capas_wms(contenido):
       'true',
     }:
       continue
-    nombre = _limpiar_texto(layer.find('{*}Name'))
-    titulo = _limpiar_texto(layer.find('{*}Title'))
-    print(titulo)
+    nombre = _buscar_texto_directo_por_tag(layer, 'Name')
+    titulo = _buscar_texto_directo_por_tag(layer, 'Title')
+
+    print(layer.get("Name"))
+    if not titulo:
+      titulo = nombre
     if not nombre:
       continue
     capas.append({'value': nombre, 'label': titulo})
@@ -119,7 +153,6 @@ def _preparar_url_capabilities(tipo_servicio, url):
 
 def _obtener_capas_desde_servicio(tipo_servicio, url):
   url_capabilities = _preparar_url_capabilities(tipo_servicio, url)
-  print(url_capabilities)
   try:
     respuesta = requests.get(url_capabilities, timeout=15)
     respuesta.raise_for_status()
@@ -128,7 +161,6 @@ def _obtener_capas_desde_servicio(tipo_servicio, url):
 
   contenido = respuesta.text
   nombre_tipo = (tipo_servicio.nombre or '').lower()
-  print(contenido)
   try:
     if 'ogc:wms' in nombre_tipo:
       return _extraer_capas_wms(contenido)
@@ -590,9 +622,6 @@ def obtener_capas_servicio():
   data = request.get_json(force=True) or {}
   tipo_id = data.get('tipo_servicio_id')
   url = (data.get('url') or '').strip()
-
-  print(tipo_id)
-  print(url)
 
   if not tipo_id or not url:
     return (
