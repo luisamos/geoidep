@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Categorías</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .icono-accion {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <h4>Categorías</h4>
+            <p class="grey-text text-darken-1">
+              Gestiona las categorías de herramientas y capas geográficas.
+            </p>
+          </div>
+          <div class="col s12 right-align" style="margin-bottom: 20px">
+            <button
+              class="btn waves-effect green"
+              id="btnNuevaCategoria"
+              type="button"
+            >
+              <i class="material-icons left">add</i>Nuevo
+            </button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaCategorias">
+              <thead>
+                <tr>
+                  <th style="width: 70px">N°</th>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Sigla</th>
+                  <th style="width: 160px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalCategoria" class="modal">
+      <div class="modal-content">
+        <h5 id="tituloModal">Nueva categoría</h5>
+        <form id="formCategoria">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="cat_codigo" type="text" maxlength="50" required />
+              <label for="cat_codigo">Código</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="cat_sigla" type="text" maxlength="100" required />
+              <label for="cat_sigla">Sigla</label>
+            </div>
+            <div class="input-field col s12">
+              <input id="cat_nombre" type="text" maxlength="500" required />
+              <label for="cat_nombre">Nombre</label>
+            </div>
+            <div class="input-field col s12">
+              <textarea
+                id="cat_definicion"
+                class="materialize-textarea"
+                maxlength="1000"
+              ></textarea>
+              <label for="cat_definicion">Definición</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-flat modal-close" type="button">Cancelar</button>
+        <button class="btn blue" id="btnGuardarCategoria" type="button">
+          Guardar
+        </button>
+      </div>
+    </div>
+
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content">
+        <h6>¿Desea eliminar la categoría seleccionada?</h6>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-flat modal-close" type="button">Cancelar</button>
+        <button class="btn red" id="btnEliminarCategoria" type="button">
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const iconoEditar =
+        "{{ url_for('static', filename='images/editar.png') }}";
+      const iconoEliminar =
+        "{{ url_for('static', filename='images/eliminar.png') }}";
+
+      const ui = {
+        tabla: null,
+        modal: null,
+        modalConfirmacion: null,
+        btnNuevo: null,
+        btnGuardar: null,
+        btnEliminar: null,
+        tituloModal: null,
+        campos: {},
+      };
+
+      let categoriaEditandoId = null;
+      let categoriaEliminandoId = null;
+      let categoriasCache = [];
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        const partes = document.cookie ? document.cookie.split("; ") : [];
+        for (const parte of partes) {
+          if (parte.startsWith(prefijo)) {
+            return decodeURIComponent(parte.slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      function crearOpcionesJson(method, payload) {
+        const headers = {};
+        const token = obtenerCookie("csrf_access_token");
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla = document.querySelector("#tablaCategorias tbody");
+        ui.modal = M.Modal.init(document.querySelector("#modalCategoria"));
+        ui.modalConfirmacion = M.Modal.init(
+          document.querySelector("#modalConfirmacion")
+        );
+        ui.btnNuevo = document.getElementById("btnNuevaCategoria");
+        ui.btnGuardar = document.getElementById("btnGuardarCategoria");
+        ui.btnEliminar = document.getElementById("btnEliminarCategoria");
+        ui.tituloModal = document.getElementById("tituloModal");
+        ui.campos = {
+          codigo: document.getElementById("cat_codigo"),
+          nombre: document.getElementById("cat_nombre"),
+          sigla: document.getElementById("cat_sigla"),
+          definicion: document.getElementById("cat_definicion"),
+        };
+
+        if (ui.btnNuevo) {
+          ui.btnNuevo.addEventListener("click", () => abrirModal());
+        }
+
+        if (ui.btnGuardar) {
+          ui.btnGuardar.addEventListener("click", guardarCategoria);
+        }
+
+        if (ui.btnEliminar) {
+          ui.btnEliminar.addEventListener("click", confirmarEliminacion);
+        }
+
+        if (ui.tabla) {
+          ui.tabla.addEventListener("click", manejarTabla);
+        }
+
+        cargarCategorias();
+      });
+
+      async function cargarCategorias() {
+        if (!ui.tabla) {
+          return;
+        }
+        ui.tabla.innerHTML =
+          '<tr><td colspan="5" class="center-align">Cargando...</td></tr>';
+        try {
+          const respuesta = await fetch("/categorias/datos");
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              data.message || "No se pudo cargar la información."
+            );
+          }
+          categoriasCache = data.categorias || [];
+          renderCategorias(categoriasCache);
+        } catch (error) {
+          console.error(error);
+          ui.tabla.innerHTML =
+            '<tr><td colspan="5" class="center-align">Ocurrió un error al cargar los datos.</td></tr>';
+          M.toast({ html: "Error al cargar las categorías." });
+        }
+      }
+
+      function renderCategorias(lista) {
+        if (!ui.tabla) {
+          return;
+        }
+        if (!lista.length) {
+          ui.tabla.innerHTML =
+            '<tr><td colspan="5" class="center-align">No hay registros.</td></tr>';
+          return;
+        }
+
+        ui.tabla.innerHTML = lista
+          .map((item, indice) => {
+            const acciones = `
+              <img src="${iconoEditar}" alt="Editar" class="icono-accion accion-editar" data-id="${item.id}" />
+              <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${item.id}" />
+            `;
+            return `
+              <tr>
+                <td>${indice + 1}</td>
+                <td>${item.codigo || ""}</td>
+                <td>${item.nombre || ""}</td>
+                <td>${item.sigla || ""}</td>
+                <td>${acciones}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function abrirModal(categoria = null) {
+        categoriaEditandoId = categoria ? categoria.id : null;
+        if (ui.tituloModal) {
+          ui.tituloModal.textContent = categoria
+            ? "Editar categoría"
+            : "Nueva categoría";
+        }
+        ui.campos.codigo.value = categoria ? categoria.codigo || "" : "";
+        ui.campos.nombre.value = categoria ? categoria.nombre || "" : "";
+        ui.campos.sigla.value = categoria ? categoria.sigla || "" : "";
+        ui.campos.definicion.value = categoria
+          ? categoria.definicion || ""
+          : "";
+        M.updateTextFields();
+        ui.modal.open();
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        if (objetivo.classList.contains("accion-editar")) {
+          const id = Number(objetivo.dataset.id);
+          editarCategoria(id);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          const id = Number(objetivo.dataset.id);
+          solicitarEliminacion(id);
+        }
+      }
+
+      function editarCategoria(id) {
+        const categoria = categoriasCache.find((item) => item.id === id);
+        if (!categoria) {
+          M.toast({ html: "No se encontró la categoría seleccionada." });
+          return;
+        }
+        abrirModal(categoria);
+      }
+
+      function solicitarEliminacion(id) {
+        categoriaEliminandoId = id;
+        ui.modalConfirmacion.open();
+      }
+
+      async function confirmarEliminacion() {
+        if (!categoriaEliminandoId) {
+          ui.modalConfirmacion.close();
+          return;
+        }
+        try {
+          const respuesta = await fetch(
+            `/categorias/${categoriaEliminandoId}`,
+            crearOpcionesJson("DELETE")
+          );
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              data.message || "No se pudo eliminar la categoría."
+            );
+          }
+          M.toast({
+            html: data.message || "Categoría eliminada correctamente.",
+          });
+          cargarCategorias();
+        } catch (error) {
+          M.toast({ html: error.message || "Error al eliminar." });
+        } finally {
+          categoriaEliminandoId = null;
+          ui.modalConfirmacion.close();
+        }
+      }
+
+      async function guardarCategoria() {
+        const codigo = ui.campos.codigo.value.trim();
+        const nombre = ui.campos.nombre.value.trim();
+        const sigla = ui.campos.sigla.value.trim();
+        const definicion = ui.campos.definicion.value.trim();
+
+        if (!codigo || !nombre || !sigla) {
+          M.toast({ html: "Complete código, nombre y sigla." });
+          return;
+        }
+
+        const payload = { codigo, nombre, sigla, definicion };
+        const url = categoriaEditandoId
+          ? `/categorias/${categoriaEditandoId}`
+          : "/categorias/guardar";
+        const metodo = categoriaEditandoId ? "PUT" : "POST";
+
+        try {
+          const respuesta = await fetch(
+            url,
+            crearOpcionesJson(metodo, payload)
+          );
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(data.message || "No se pudo guardar la categoría.");
+          }
+          M.toast({ html: data.message || "Operación exitosa." });
+          categoriaEditandoId = null;
+          ui.modal.close();
+          cargarCategorias();
+        } catch (error) {
+          M.toast({
+            html: error.message || "Error al guardar la información.",
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

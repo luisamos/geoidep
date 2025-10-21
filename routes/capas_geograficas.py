@@ -20,6 +20,11 @@ from routes._helpers import obtener_usuario_actual
 
 bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 
+OGC_WMS_IDS = {11}
+OGC_WFS_IDS = {12}
+OGC_WMTS_IDS = {14}
+ARCGIS_MAPSERVER_IDS = {17}
+
 
 def _obtener_instituciones_para(usuario):
   consulta = Institucion.query.filter(Institucion.id >= 45)
@@ -41,30 +46,6 @@ def _obtener_nombre_local(tag):
     return tag.split('}', 1)[1]
   return tag
 
-
-def _buscar_texto_directo_por_tag(elemento, nombre_tag):
-  if elemento is None or not nombre_tag:
-    return None
-
-  nombre_normalizado = nombre_tag.strip().lower()
-  if not nombre_normalizado:
-    return None
-
-  for candidato in elemento:
-    if _obtener_nombre_local(candidato.tag).lower() != nombre_normalizado:
-      continue
-    texto = _limpiar_texto(candidato)
-    if texto is not None:
-      return texto
-
-  for candidato in elemento.iter():
-    if _obtener_nombre_local(candidato.tag).lower() != nombre_normalizado:
-      continue
-    texto = _limpiar_texto(candidato)
-    if texto is not None:
-      return texto
-
-  return None
 
 def _extraer_capas_wms(contenido):
   capas = []
@@ -105,7 +86,22 @@ def _extraer_capas_wfs(contenido):
     etiqueta = titulo if titulo else nombre
     if titulo and titulo != nombre:
       etiqueta = f"{titulo} ({nombre})"
-    capas.append({'value': nombre, 'label': etiqueta})
+      capas.append({'value': nombre, 'label': etiqueta})
+  return capas
+
+
+def _extraer_capas_wmts(contenido):
+  capas = []
+  raiz = ET.fromstring(contenido)
+  for layer in raiz.findall('.//{*}Contents/{*}Layer'):
+    identificador = _limpiar_texto(layer.find('{*}Identifier'))
+    if not identificador:
+      continue
+    titulo = _limpiar_texto(layer.find('{*}Title'))
+    etiqueta = titulo if titulo else identificador
+    if titulo and titulo != identificador:
+      etiqueta = f"{titulo} ({identificador})"
+      capas.append({'value': identificador, 'label': etiqueta})
   return capas
 
 
@@ -123,23 +119,48 @@ def _extraer_capas_wmts(contenido):
     capas.append({'value': identificador, 'label': etiqueta})
   return capas
 
+def _es_servicio_wms(tipo_servicio):
+  if not tipo_servicio:
+    return False
+  if tipo_servicio.id in OGC_WMS_IDS:
+    return True
+  nombre = (tipo_servicio.nombre or '').lower()
+  return 'wms' in nombre
+
+
+def _es_servicio_wfs(tipo_servicio):
+  if not tipo_servicio:
+    return False
+  if tipo_servicio.id in OGC_WFS_IDS:
+    return True
+  nombre = (tipo_servicio.nombre or '').lower()
+  return 'wfs' in nombre
+
+
+def _es_servicio_wmts(tipo_servicio):
+  if not tipo_servicio:
+    return False
+  if tipo_servicio.id in OGC_WMTS_IDS:
+    return True
+  nombre = (tipo_servicio.nombre or '').lower()
+  return 'wmts' in nombre
+
 
 def _preparar_url_capabilities(tipo_servicio, url):
   if not url:
     return url
 
-  nombre_tipo = (tipo_servicio.nombre or '').lower()
   parametros = None
-  if 'wms' in nombre_tipo:
+  if _es_servicio_wms(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WMS'}
-  elif 'wfs' in nombre_tipo:
+  elif _es_servicio_wfs(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WFS'}
-  elif 'wmts' in nombre_tipo:
+  elif _es_servicio_wmts(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WMTS'}
 
   if not parametros:
     return url
-
+  
   parsed = urlparse(url)
   query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
   claves_parametros = {clave.lower() for clave in parametros}
@@ -155,6 +176,53 @@ def _preparar_url_capabilities(tipo_servicio, url):
   parsed = parsed._replace(query=nueva_query)
   return urlunparse(parsed)
 
+def _es_servicio_arcgis_mapserver(tipo_servicio):
+  if not tipo_servicio:
+    return False
+  if tipo_servicio.id in ARCGIS_MAPSERVER_IDS:
+    return True
+  if tipo_servicio.id_padre != 3:
+    return False
+  nombre = (tipo_servicio.nombre or '').lower()
+  return 'arcgis' in nombre and 'mapserver' in nombre
+
+def _asegurar_parametro(url, clave, valor):
+  if not url:
+    return url
+
+  parsed = urlparse(url)
+  query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
+  clave_lower = clave.lower()
+  filtrados = [(k, v) for k, v in query_pairs if k.lower() != clave_lower]
+  filtrados.append((clave, valor))
+  nueva_query = urlencode(filtrados, doseq=True)
+  return urlunparse(parsed._replace(query=nueva_query))
+
+def _obtener_capas_desde_mapserver(url):
+  url_json = _asegurar_parametro(url, 'f', 'pjson')
+  try:
+    respuesta = requests.get(url_json, timeout=15)
+    respuesta.raise_for_status()
+  except RequestException as error:
+    raise ValueError('No se pudo conectar con el servicio especificado.') from error
+
+  try:
+    data = respuesta.json()
+  except ValueError as error:
+    raise ValueError('La respuesta del servicio no es un JSON válido.') from error
+
+  capas = []
+  for layer in data.get('layers', []):
+    layer_id = layer.get('id')
+    nombre = layer.get('name')
+    if layer_id is None or not nombre:
+      continue
+    capas.append({'value': str(layer_id), 'label': nombre})
+
+  if not capas:
+    raise ValueError('No se encontraron capas disponibles en el servicio.')
+
+  return capas
 
 def _obtener_capas_desde_servicio(tipo_servicio, url):
   url_capabilities = _preparar_url_capabilities(tipo_servicio, url)
@@ -165,13 +233,12 @@ def _obtener_capas_desde_servicio(tipo_servicio, url):
     raise ValueError('No se pudo conectar con el servicio especificado.') from error
 
   contenido = respuesta.text
-  nombre_tipo = (tipo_servicio.nombre or '').lower()
   try:
-    if 'ogc:wms' in nombre_tipo:
+    if _es_servicio_wms(tipo_servicio):
       return _extraer_capas_wms(contenido)
-    if 'ogc:wfs' in nombre_tipo:
+    if _es_servicio_wfs(tipo_servicio):
       return _extraer_capas_wfs(contenido)
-    if 'ogc:wmts' in nombre_tipo:
+    if _es_servicio_wmts(tipo_servicio):
       return _extraer_capas_wmts(contenido)
   except ET.ParseError as error:
     raise ValueError('La respuesta del servicio no es un XML válido.') from error
@@ -189,7 +256,8 @@ def inicio():
     .all()
   )
   tipos_serv_query = (
-    TipoServicio.query.filter(TipoServicio.id_padre.in_((2, 3)))
+    TipoServicio.query.filter(TipoServicio.estado.is_(True))
+    .filter(TipoServicio.id_padre.in_((2, 3)))
     .order_by(TipoServicio.id.asc(), TipoServicio.nombre.asc())
     .all()
   )
@@ -198,6 +266,7 @@ def inicio():
       'id': tipo.id,
       'nombre': tipo.nombre,
       'id_padre': tipo.id_padre,
+      'estado': tipo.estado,
     }
     for tipo in tipos_serv_query
   ]
@@ -306,6 +375,8 @@ def detalle(capa_id):
       'id_tipo_servicio': servicio.id_tipo_servicio,
       'direccion_web': servicio.direccion_web,
       'nombre_capa': servicio.nombre_capa,
+      'titulo_capa': servicio.titulo_capa,
+      'estado': servicio.estado,
       'visible': servicio.visible,
       'tipo_servicio_nombre': servicio.tipo_servicio.nombre
       if servicio.tipo_servicio
@@ -483,7 +554,22 @@ def guardar():
     tipo_servicio_id = servicio.get('tipo_servicio_id')
     direccion = (servicio.get('direccion') or '').strip()
     nombre_capa_servicio = (servicio.get('nombre_capa') or '').strip()
+    titulo_capa_servicio = (servicio.get('titulo_capa') or '').strip()
     visible = bool(servicio.get('visible', True))
+    estado_valor = servicio.get('estado', False)
+    if isinstance(estado_valor, str):
+      estado_normalizado = estado_valor.strip().lower()
+      estado_servicio = estado_normalizado in (
+        '1',
+        'true',
+        't',
+        'si',
+        'sí',
+        'on',
+        'yes',
+      )
+    else:
+      estado_servicio = bool(estado_valor)
 
     if not tipo_servicio_id or not direccion:
       return (
@@ -516,6 +602,8 @@ def guardar():
         'tipo_id': tipo_servicio_id,
         'direccion': direccion,
         'nombre_capa': nombre_capa_servicio,
+        'titulo_capa': titulo_capa_servicio,
+        'estado': estado_servicio,
         'visible': visible,
       }
     )
@@ -526,6 +614,8 @@ def guardar():
     else []
   )
   tipos_por_id = {tipo.id: tipo for tipo in tipos_consulta}
+
+  tipos_controlados = set()
 
   for servicio in servicios_validos:
     tipo_servicio = tipos_por_id.get(servicio['tipo_id'])
@@ -539,16 +629,84 @@ def guardar():
         ),
         400,
       )
-    if tipo_servicio.id_padre == 2 and not servicio['nombre_capa']:
+    requiere_unicidad = (
+      tipo_servicio.estado
+      and tipo_servicio.id_padre in (2, 3)
+    )
+    if requiere_unicidad:
+      if tipo_servicio.id in tipos_controlados:
+        return (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'No se puede registrar más de un servicio por tipo seleccionado.',
+            }
+          ),
+          400,
+        )
+      tipos_controlados.add(tipo_servicio.id)
+
+    if tipo_servicio.id_padre == 2:
+      if servicio['estado']:
+        if not servicio['nombre_capa'] or not servicio['titulo_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Los servicios OGC conectados deben incluir nombre y título de capa.',
+              }
+            ),
+            400,
+          )
+      else:
+        if not servicio['nombre_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Indique el nombre de la capa cuando el servicio OGC no está activo.',
+              }
+            ),
+            400,
+          )
+        servicio['titulo_capa'] = None
+    elif _es_servicio_arcgis_mapserver(tipo_servicio):
+      if servicio['estado']:
+        if not servicio['nombre_capa'] or not servicio['titulo_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Los servicios ArcGIS MapServer conectados requieren id y nombre de capa.',
+              }
+            ),
+            400,
+          )
+      else:
+        if not servicio['nombre_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Indique el identificador de capa cuando el servicio ArcGIS MapServer no está activo.',
+              }
+            ),
+            400,
+          )
+        servicio['titulo_capa'] = None
+
+    if tipo_servicio.id_padre in (2, 3) and not servicio['nombre_capa']:
       return (
         jsonify(
           {
             'status': 'error',
-            'message': 'Los servicios OGC deben incluir una capa.',
+            'message': 'Los servicios deben contar con un nombre de capa válido.',
           }
         ),
         400,
       )
+    servicio['nombre_capa'] = servicio['nombre_capa'] or None
+    servicio['titulo_capa'] = servicio['titulo_capa'] or None
 
   servicios_existentes = {serv.id: serv for serv in capa.servicios}
   ids_a_conservar = set()
@@ -590,6 +748,8 @@ def guardar():
     servicio_instancia.id_tipo_servicio = servicio['tipo_id']
     servicio_instancia.direccion_web = servicio['direccion']
     servicio_instancia.nombre_capa = servicio['nombre_capa'] or None
+    servicio_instancia.titulo_capa = servicio['titulo_capa'] or None
+    servicio_instancia.estado = servicio['estado']
     servicio_instancia.visible = servicio['visible']
     servicio_instancia.usuario_modifica = usuario.id
 
@@ -653,19 +813,32 @@ def obtener_capas_servicio():
     )
 
   tipo_servicio = TipoServicio.query.get(tipo_id_int)
-  if not tipo_servicio or tipo_servicio.id_padre != 2:
+  if not tipo_servicio:
     return (
       jsonify(
         {
           'status': 'error',
-          'message': 'Solo es posible conectarse a servicios OGC.',
+          'message': 'El tipo de servicio indicado no existe.',
         }
       ),
       400,
     )
 
   try:
-    capas = _obtener_capas_desde_servicio(tipo_servicio, url)
+    if tipo_servicio.id_padre == 2:
+      capas = _obtener_capas_desde_servicio(tipo_servicio, url)
+    elif _es_servicio_arcgis_mapserver(tipo_servicio):
+      capas = _obtener_capas_desde_mapserver(url)
+    else:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El tipo de servicio seleccionado no admite conexión automática.',
+          }
+        ),
+        400,
+      )
   except ValueError as error:
     return jsonify({'status': 'error', 'message': str(error)}), 400
 

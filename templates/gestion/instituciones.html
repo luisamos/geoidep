@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Instituciones</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .icono-accion {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <h4>Instituciones</h4>
+            <p class="grey-text text-darken-1">
+              Administra las instituciones y su sector correspondiente.
+            </p>
+          </div>
+          <div class="col s12 right-align" style="margin-bottom: 20px">
+            <button
+              class="btn waves-effect green"
+              id="btnNuevaInstitucion"
+              type="button"
+            >
+              <i class="material-icons left">add</i>Nuevo
+            </button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaInstituciones">
+              <thead>
+                <tr>
+                  <th style="width: 70px">N°</th>
+                  <th>Código</th>
+                  <th>Sigla</th>
+                  <th>Nombre</th>
+                  <th>RUC</th>
+                  <th>Sector</th>
+                  <th style="width: 140px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalInstitucion" class="modal">
+      <div class="modal-content">
+        <h5 id="tituloModal">Nueva institución</h5>
+        <form id="formInstitucion">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="codigo" type="text" maxlength="20" />
+              <label for="codigo">Código</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="ubigeo" type="text" maxlength="20" />
+              <label for="ubigeo">Ubigeo</label>
+            </div>
+            <div class="input-field col s12">
+              <input id="nombre" type="text" maxlength="800" required />
+              <label for="nombre">Nombre</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="nro_ruc" type="text" maxlength="11" />
+              <label for="nro_ruc">RUC</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="direccion_web" type="text" maxlength="255" />
+              <label for="direccion_web">Dirección web</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="sigla" type="text" maxlength="50" />
+              <label for="sigla">Sigla</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <select id="sector_id" required>
+                <option value="" disabled selected>Seleccione sector</option>
+                {% for sector in sectores %}
+                <option value="{{ sector.id }}">{{ sector.nombre }}</option>
+                {% endfor %}
+              </select>
+              <label>Sector</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-flat modal-close" type="button">Cancelar</button>
+        <button class="btn blue" id="btnGuardarInstitucion" type="button">
+          Guardar
+        </button>
+      </div>
+    </div>
+
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content">
+        <h6 id="mensajeConfirmacion">
+          ¿Desea eliminar la institución seleccionada?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-flat modal-close" type="button">Cancelar</button>
+        <button class="btn red" id="btnEliminarInstitucion" type="button">
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const iconoEditar =
+        "{{ url_for('static', filename='images/editar.png') }}";
+      const iconoEliminar =
+        "{{ url_for('static', filename='images/eliminar.png') }}";
+
+      const ui = {
+        tabla: null,
+        modal: null,
+        modalConfirmacion: null,
+        btnNuevo: null,
+        btnGuardar: null,
+        btnEliminar: null,
+        tituloModal: null,
+        formulario: null,
+        campos: {},
+      };
+
+      let institucionEditandoId = null;
+      let institucionEliminandoId = null;
+      let institucionesCache = [];
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        const partes = document.cookie ? document.cookie.split("; ") : [];
+        for (const parte of partes) {
+          if (parte.startsWith(prefijo)) {
+            return decodeURIComponent(parte.slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      function crearOpcionesJson(method, payload) {
+        const headers = {};
+        const token = obtenerCookie("csrf_access_token");
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla = document.querySelector("#tablaInstituciones tbody");
+        ui.modal = M.Modal.init(document.querySelector("#modalInstitucion"));
+        ui.modalConfirmacion = M.Modal.init(
+          document.querySelector("#modalConfirmacion")
+        );
+        ui.btnNuevo = document.getElementById("btnNuevaInstitucion");
+        ui.btnGuardar = document.getElementById("btnGuardarInstitucion");
+        ui.btnEliminar = document.getElementById("btnEliminarInstitucion");
+        ui.tituloModal = document.getElementById("tituloModal");
+        ui.formulario = document.getElementById("formInstitucion");
+        ui.campos = {
+          codigo: document.getElementById("codigo"),
+          ubigeo: document.getElementById("ubigeo"),
+          nombre: document.getElementById("nombre"),
+          nro_ruc: document.getElementById("nro_ruc"),
+          direccion_web: document.getElementById("direccion_web"),
+          sigla: document.getElementById("sigla"),
+          sector_id: document.getElementById("sector_id"),
+        };
+
+        M.FormSelect.init(document.querySelectorAll("select"));
+
+        if (ui.btnNuevo) {
+          ui.btnNuevo.addEventListener("click", () => {
+            abrirModal();
+          });
+        }
+
+        if (ui.btnGuardar) {
+          ui.btnGuardar.addEventListener("click", guardarInstitucion);
+        }
+
+        if (ui.btnEliminar) {
+          ui.btnEliminar.addEventListener("click", confirmarEliminacion);
+        }
+
+        if (ui.tabla) {
+          ui.tabla.addEventListener("click", manejarTabla);
+        }
+
+        cargarInstituciones();
+      });
+
+      async function cargarInstituciones() {
+        if (!ui.tabla) {
+          return;
+        }
+        ui.tabla.innerHTML =
+          '<tr><td colspan="7" class="center-align">Cargando...</td></tr>';
+        try {
+          const respuesta = await fetch("/instituciones/datos");
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(data.message || "No se pudo cargar la información");
+          }
+          institucionesCache = data.instituciones || [];
+          renderInstituciones(institucionesCache);
+        } catch (error) {
+          console.error(error);
+          ui.tabla.innerHTML =
+            '<tr><td colspan="7" class="center-align">Ocurrió un error al cargar los datos.</td></tr>';
+          M.toast({ html: "Error al cargar las instituciones." });
+        }
+      }
+
+      function renderInstituciones(lista) {
+        if (!ui.tabla) {
+          return;
+        }
+        if (!lista.length) {
+          ui.tabla.innerHTML =
+            '<tr><td colspan="7" class="center-align">No hay registros.</td></tr>';
+          return;
+        }
+
+        ui.tabla.innerHTML = lista
+          .map((item, indice) => {
+            const acciones = `
+              <img src="${iconoEditar}" alt="Editar" class="icono-accion accion-editar" data-id="${item.id}" />
+              <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${item.id}" />
+            `;
+            return `
+              <tr>
+                <td>${indice + 1}</td>
+                <td>${item.codigo || ""}</td>
+                <td>${item.sigla || ""}</td>
+                <td>${item.nombre || ""}</td>
+                <td>${item.nro_ruc || ""}</td>
+                <td>${item.sector || ""}</td>
+                <td>${acciones}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function abrirModal(institucion = null) {
+        institucionEditandoId = institucion ? institucion.id : null;
+        if (ui.tituloModal) {
+          ui.tituloModal.textContent = institucion
+            ? "Editar institución"
+            : "Nueva institución";
+        }
+        if (ui.formulario) {
+          ui.formulario.reset();
+        }
+        if (institucion) {
+          ui.campos.codigo.value = institucion.codigo || "";
+          ui.campos.ubigeo.value = institucion.ubigeo || "";
+          ui.campos.nombre.value = institucion.nombre || "";
+          ui.campos.nro_ruc.value = institucion.nro_ruc || "";
+          ui.campos.direccion_web.value = institucion.direccion_web || "";
+          ui.campos.sigla.value = institucion.sigla || "";
+          ui.campos.sector_id.value = institucion.sector_id || "";
+        } else {
+          ui.campos.sector_id.value = "";
+        }
+        M.updateTextFields();
+        M.FormSelect.init(document.querySelectorAll("select"));
+        ui.modal.open();
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        if (objetivo.classList.contains("accion-editar")) {
+          const id = Number(objetivo.dataset.id);
+          editarInstitucion(id);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          const id = Number(objetivo.dataset.id);
+          solicitarEliminacion(id);
+        }
+      }
+
+      function editarInstitucion(id) {
+        const institucion = institucionesCache.find((item) => item.id === id);
+        if (!institucion) {
+          M.toast({ html: "No se encontró la institución seleccionada." });
+          return;
+        }
+        abrirModal(institucion);
+      }
+
+      function solicitarEliminacion(id) {
+        institucionEliminandoId = id;
+        ui.modalConfirmacion.open();
+      }
+
+      async function confirmarEliminacion() {
+        if (!institucionEliminandoId) {
+          ui.modalConfirmacion.close();
+          return;
+        }
+        try {
+          const respuesta = await fetch(
+            `/instituciones/${institucionEliminandoId}`,
+            crearOpcionesJson("DELETE")
+          );
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              data.message || "No se pudo eliminar la institución."
+            );
+          }
+          M.toast({
+            html: data.message || "Institución eliminada correctamente.",
+          });
+          cargarInstituciones();
+        } catch (error) {
+          M.toast({ html: error.message || "Error al eliminar." });
+        } finally {
+          institucionEliminandoId = null;
+          ui.modalConfirmacion.close();
+        }
+      }
+
+      async function guardarInstitucion() {
+        if (!ui.campos.nombre.value.trim()) {
+          M.toast({ html: "El nombre es obligatorio." });
+          return;
+        }
+        if (!ui.campos.sector_id.value) {
+          M.toast({ html: "Seleccione un sector válido." });
+          return;
+        }
+
+        const payload = {
+          codigo: ui.campos.codigo.value.trim(),
+          ubigeo: ui.campos.ubigeo.value.trim(),
+          nombre: ui.campos.nombre.value.trim(),
+          nro_ruc: ui.campos.nro_ruc.value.trim(),
+          direccion_web: ui.campos.direccion_web.value.trim(),
+          sigla: ui.campos.sigla.value.trim(),
+          sector_id: ui.campos.sector_id.value,
+        };
+
+        const url = institucionEditandoId
+          ? `/instituciones/${institucionEditandoId}`
+          : "/instituciones/guardar";
+        const metodo = institucionEditandoId ? "PUT" : "POST";
+
+        try {
+          const respuesta = await fetch(
+            url,
+            crearOpcionesJson(metodo, payload)
+          );
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              data.message || "No se pudo guardar la institución."
+            );
+          }
+          M.toast({ html: data.message || "Operación exitosa." });
+          institucionEditandoId = null;
+          ui.modal.close();
+          cargarInstituciones();
+        } catch (error) {
+          M.toast({
+            html: error.message || "Error al guardar la información.",
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

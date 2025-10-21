@@ -293,9 +293,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
-      const iconoEditar = "{{ url_for('static', filename='images/edit.png') }}";
+      const iconoEditar = "{{ url_for('static', filename='images/editar.png') }}";
       const iconoEliminar =
-        "{{ url_for('static', filename='images/delete.png') }}";
+        "{{ url_for('static', filename='images/eliminar.png') }}";
       const tiposServicio = {{ tipos_serv | tojson | safe }};
 
       function obtenerCookie(nombre) {
@@ -382,6 +382,27 @@
         const tipo = obtenerTipoServicioPorId(tipoId);
         if (!tipo) return false;
         return Number(tipo.id_padre) === 2;
+      }
+
+      function esServicioArcgisRest(tipoId) {
+        const tipo = obtenerTipoServicioPorId(tipoId);
+        if (!tipo) return false;
+        const nombre = (tipo.nombre || "").toLowerCase();
+        return Number(tipo.id_padre) === 3 &&
+          nombre.includes("arcgis") &&
+          nombre.includes("mapserver");
+      }
+
+      function requiereConexionServicio(tipoId) {
+        return esServicioOgc(tipoId) || esServicioArcgisRest(tipoId);
+      }
+
+      function requiereUnicidadPorTipo(tipoId) {
+        const tipo = obtenerTipoServicioPorId(tipoId);
+        if (!tipo) return false;
+        const padre = Number(tipo.id_padre);
+        if (![2, 3].includes(padre)) return false;
+        return Boolean(tipo.estado);
       }
 
       function asegurarParametrosUrl(url, parametros) {
@@ -485,19 +506,41 @@
         opcionDefault.value = "";
         opcionDefault.textContent = "Seleccione capa";
         select.appendChild(opcionDefault);
+        let seleccionAplicada = false;
         opciones.forEach((opcion) => {
           const optionElement = document.createElement("option");
-          optionElement.value = opcion.value;
-          optionElement.textContent = opcion.label || opcion.value;
-          if (String(opcion.value) === String(valorActual)) {
+          const nombreValor =
+            opcion && opcion.value !== undefined ? opcion.value : "";
+          const tituloValor =
+            opcion && opcion.label !== undefined ? opcion.label : nombreValor;
+          optionElement.value = tituloValor;
+          optionElement.textContent = tituloValor;
+          optionElement.dataset.titulo = tituloValor || "";
+          optionElement.dataset.nombre = nombreValor;
+          if (opcion && opcion.id !== undefined) {
+            optionElement.dataset.id = opcion.id;
+          }
+          if (nombreValor) {
+            optionElement.id = `${nombreValor}`;
+          }
+          if (
+            !seleccionAplicada &&
+            String(nombreValor) === String(valorActual)
+          ) {
             optionElement.selected = true;
+            seleccionAplicada = true;
           }
           select.appendChild(optionElement);
         });
+        if (!seleccionAplicada && select.options.length > 1) {
+          select.options[1].selected = true;
+        }
         return select;
       }
 
       function setEstadoFilaServicio(fila, estado) {
+        if (!fila) return;
+        fila.dataset.estadoServicio = estado ? "true" : "false";
         const indicador = fila.querySelector(".estado-indicador");
         if (indicador) {
           indicador.textContent = estado ? "🟢" : "🔴";
@@ -507,12 +550,19 @@
       }
 
       function ocultarEstadoFilaServicio(fila) {
+        if (!fila) return;
+        fila.dataset.estadoServicio = "";
         const indicador = fila.querySelector(".estado-indicador");
         if (indicador) {
           indicador.textContent = "";
           indicador.dataset.valor = "";
           indicador.classList.add("estado-indicador--oculto");
         }
+      }
+
+      function establecerTituloCapaEnFila(fila, titulo) {
+        if (!fila) return;
+        fila.dataset.tituloCapa = titulo ? String(titulo) : "";
       }
 
       function agregarFilaServicio(servicio = {}) {
@@ -524,6 +574,10 @@
         }
         fila.dataset.visible = servicio.visible === false ? "false" : "true";
         fila.dataset.tipo = servicio.id_tipo_servicio || "";
+        establecerTituloCapaEnFila(fila, servicio.titulo_capa || "");
+        const requiereConexion = requiereConexionServicio(
+          servicio.id_tipo_servicio || ""
+        );
 
         const celdaTipo = document.createElement("td");
         const selectTipo = crearSelectTiposServicio(
@@ -537,34 +591,40 @@
 
         const celdaCapa = document.createElement("td");
         celdaCapa.className = "celda-capa";
-        if (servicio.opciones_capas && servicio.opciones_capas.length) {
+        const opcionesIniciales = Array.isArray(servicio.opciones_capas)
+          ? servicio.opciones_capas.slice()
+          : [];
+        if (
+          !opcionesIniciales.length &&
+          servicio.estado === true &&
+          servicio.nombre_capa
+        ) {
+          opcionesIniciales.push({
+            value: servicio.nombre_capa,
+            label: servicio.titulo_capa || servicio.nombre_capa,
+          });
+        }
+
+        if (opcionesIniciales.length) {
+          fila.dataset.opcionesCapas = JSON.stringify(opcionesIniciales);
           const selectCapas = crearCampoCapaComoSelect(
-            servicio.opciones_capas,
+            opcionesIniciales,
             servicio.nombre_capa || ""
           );
           celdaCapa.appendChild(selectCapas);
-          fila.dataset.opcionesCapas = JSON.stringify(servicio.opciones_capas);
+          actualizarTituloDesdeSelect(fila);
         } else {
+          fila.dataset.opcionesCapas = "";
           celdaCapa.appendChild(
             crearCampoCapaComoInput(servicio.nombre_capa || "")
           );
+          setEstadoFilaServicio(fila, false);
         }
 
         const celdaEstado = document.createElement("td");
         celdaEstado.className = "center-align";
         const spanEstado = document.createElement("span");
         spanEstado.className = "estado-indicador";
-        const esOgc = esServicioOgc(servicio.id_tipo_servicio || "");
-        if (servicio && servicio.id) {
-          const estadoInicial = esOgc
-            ? Boolean(servicio.nombre_capa && servicio.nombre_capa.trim())
-            : true;
-          spanEstado.textContent = estadoInicial ? "🟢" : "🔴";
-          spanEstado.dataset.valor = estadoInicial ? "true" : "false";
-        } else {
-          spanEstado.dataset.valor = "";
-          spanEstado.classList.add("estado-indicador--oculto");
-        }
         celdaEstado.appendChild(spanEstado);
 
         const celdaAcciones = document.createElement("td");
@@ -594,11 +654,21 @@
         fila.appendChild(celdaEstado);
         fila.appendChild(celdaAcciones);
 
-        if (!servicio || !servicio.id) {
-          ocultarEstadoFilaServicio(fila);
-        }
-
         tablaServiciosBody.appendChild(fila);
+
+        if (typeof servicio.estado === "boolean") {
+          if (servicio.estado) {
+            setEstadoFilaServicio(fila, true);
+          } else if (requiereConexion) {
+            setEstadoFilaServicio(fila, false);
+          } else {
+            setEstadoFilaServicio(fila, true);
+          }
+        } else if (requiereConexion || !servicio.id_tipo_servicio) {
+          ocultarEstadoFilaServicio(fila);
+        } else {
+          setEstadoFilaServicio(fila, true);
+        }
       }
 
       function obtenerOpcionesDesdeFila(fila) {
@@ -611,19 +681,23 @@
         }
       }
 
-      function actualizarCampoCapaParaFila(fila, esOgc) {
+      function actualizarCampoCapaParaFila(fila, requiereConexion) {
         const celdaCapa = fila.querySelector(".celda-capa");
         if (!celdaCapa) return;
         const valorActual = obtenerValorNombreCapa(fila);
         celdaCapa.innerHTML = "";
-        if (esOgc) {
+        if (requiereConexion) {
           const opciones = obtenerOpcionesDesdeFila(fila);
           if (opciones.length) {
-            celdaCapa.appendChild(
-              crearCampoCapaComoSelect(opciones, valorActual || "")
+            const selectCapas = crearCampoCapaComoSelect(
+              opciones,
+              valorActual || ""
             );
+            celdaCapa.appendChild(selectCapas);
+            actualizarTituloDesdeSelect(fila);
           } else {
             celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
+            setEstadoFilaServicio(fila, false);
           }
         } else {
           celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
@@ -635,10 +709,38 @@
       function obtenerValorNombreCapa(fila) {
         const select = fila.querySelector(".nombre-capa-select");
         if (select) {
-          return select.value;
+          const opcion = select.options[select.selectedIndex];
+          if (opcion) {
+            return opcion.dataset.nombre || opcion.id || "";
+          }
+          return "";
         }
         const input = fila.querySelector(".nombre-capa-input");
         return input ? input.value : "";
+      }
+
+      function actualizarTituloDesdeSelect(fila) {
+        if (!fila) return;
+        const select = fila.querySelector(".nombre-capa-select");
+        if (!select) return;
+        const opcion = select.options[select.selectedIndex];
+        if (!opcion || !(opcion.dataset.nombre || opcion.value)) {
+          establecerTituloCapaEnFila(fila, "");
+          return;
+        }
+        const titulo = opcion.dataset.titulo || opcion.value || opcion.textContent || "";
+        establecerTituloCapaEnFila(fila, titulo);
+      }
+
+      function obtenerTituloCapa(fila) {
+        if (!fila) return "";
+        const select = fila.querySelector(".nombre-capa-select");
+        if (select) {
+          const opcion = select.options[select.selectedIndex];
+          if (!opcion) return "";
+          return opcion.dataset.titulo || opcion.value || opcion.textContent || "";
+        }
+        return fila.dataset.tituloCapa || "";
       }
 
       async function conectarServicioOgc(fila) {
@@ -659,16 +761,21 @@
           return;
         }
 
-        if (!esServicioOgc(tipoId)) {
+        const requiereConexion = requiereConexionServicio(tipoId);
+        if (!requiereConexion) {
           M.toast({ html: "El servicio seleccionado no requiere conexión." });
           actualizarCampoCapaParaFila(fila, false);
+          establecerTituloCapaEnFila(fila, "");
+          setEstadoFilaServicio(fila, true);
           return;
         }
 
-        const direccionNormalizada = construirUrlCapabilities(tipoId, direccion);
-        if (direccionNormalizada && direccionNormalizada !== direccion) {
-          direccion = direccionNormalizada;
-          inputDireccion.value = direccionNormalizada;
+        if (esServicioOgc(tipoId)) {
+          const direccionNormalizada = construirUrlCapabilities(tipoId, direccion);
+          if (direccionNormalizada && direccionNormalizada !== direccion) {
+            direccion = direccionNormalizada;
+            inputDireccion.value = direccionNormalizada;
+          }
         }
 
         ocultarEstadoFilaServicio(fila);
@@ -702,18 +809,24 @@
               capasDisponibles,
               valorAnterior
             );
-            if (!valorAnterior && capasDisponibles.length) {
-              selectCapas.value = String(capasDisponibles[0].value || "");
-            }
             celdaCapa.appendChild(selectCapas);
+            actualizarTituloDesdeSelect(fila);
           }
           const capaSeleccionada = obtenerValorNombreCapa(fila);
-          setEstadoFilaServicio(fila, Boolean(capaSeleccionada));
+          if (capaSeleccionada) {
+            const tituloSeleccionado = obtenerTituloCapa(fila);
+            establecerTituloCapaEnFila(fila, tituloSeleccionado);
+            setEstadoFilaServicio(fila, true);
+          } else {
+            establecerTituloCapaEnFila(fila, "");
+            setEstadoFilaServicio(fila, false);
+          }
           M.toast({ html: "Capas obtenidas correctamente." });
         } catch (error) {
           console.error(error);
           fila.dataset.opcionesCapas = "";
           actualizarCampoCapaParaFila(fila, true);
+          establecerTituloCapaEnFila(fila, "");
           setEstadoFilaServicio(fila, false);
           M.toast({ html: error.message || "No se pudo conectar al servicio." });
         }
@@ -730,6 +843,7 @@
             if (!selectTipo || !inputDireccion) {
               return null;
             }
+
             const tipoId = selectTipo.value;
             const direccion = inputDireccion.value.trim();
             const visible = fila.dataset.visible !== "false";
@@ -742,11 +856,26 @@
               return null;
             }
 
+            actualizarTituloDesdeSelect(fila);
+            const tituloCapa = obtenerTituloCapa(fila).trim();
+            const requiereConexion = requiereConexionServicio(tipoId);
+            const estadoRegistro = fila.dataset.estadoServicio || "";
+            let estado = true;
+            if (requiereConexion) {
+              if (estadoRegistro === "true") {
+                estado = true;
+              } else {
+                estado = false;
+              }
+            }
+
             return {
               id: idServicio,
               tipo_servicio_id: tipoId ? Number(tipoId) : null,
               direccion: direccion,
               nombre_capa: nombreCapa ? nombreCapa.trim() : "",
+              titulo_capa: tituloCapa,
+              estado,
               visible,
             };
           })
@@ -754,8 +883,10 @@
       }
 
       function validarServicios(servicios) {
+        const tiposUnicos = new Set();
         for (const servicio of servicios) {
-          if (!servicio.tipo_servicio_id) {
+          const tipoId = servicio.tipo_servicio_id;
+          if (!tipoId) {
             M.toast({ html: "Cada servicio debe tener un tipo seleccionado." });
             return false;
           }
@@ -763,13 +894,44 @@
             M.toast({ html: "Cada servicio debe tener una dirección." });
             return false;
           }
-          if (
-            esServicioOgc(servicio.tipo_servicio_id) &&
-            !servicio.nombre_capa
-          ) {
-            M.toast({
-              html: "Los servicios OGC deben tener una capa seleccionada.",
-            });
+
+          if (requiereUnicidadPorTipo(tipoId)) {
+            if (tiposUnicos.has(tipoId)) {
+              M.toast({
+                html: "Solo puede registrar una capa por cada tipo de servicio.",
+              });
+              return false;
+            }
+            tiposUnicos.add(tipoId);
+          }
+
+          const requiereConexion = requiereConexionServicio(tipoId);
+          if (!requiereConexion) {
+            continue;
+          }
+
+          const esArcgis = esServicioArcgisRest(tipoId);
+          const estado = Boolean(servicio.estado);
+          if (estado) {
+            if (!servicio.nombre_capa) {
+              const mensaje = esArcgis
+                ? "Seleccione el identificador de la capa del servicio ArcGIS MapServer."
+                : "Seleccione el nombre de la capa del servicio OGC.";
+              M.toast({ html: mensaje });
+              return false;
+            }
+            if (!servicio.titulo_capa) {
+              const mensaje = esArcgis
+                ? "Seleccione el nombre de la capa del servicio ArcGIS MapServer."
+                : "Seleccione el título de la capa del servicio OGC.";
+              M.toast({ html: mensaje });
+              return false;
+            }
+          } else if (!servicio.nombre_capa) {
+            const mensaje = esArcgis
+              ? "Indique el identificador de la capa cuando el servicio ArcGIS MapServer no está activo."
+              : "Indique el nombre de la capa cuando el servicio OGC no está activo.";
+            M.toast({ html: mensaje });
             return false;
           }
         }
@@ -794,6 +956,11 @@
                 id_tipo_servicio: servicio.id_tipo_servicio,
                 direccion_web: servicio.direccion_web,
                 nombre_capa: servicio.nombre_capa,
+                titulo_capa: servicio.titulo_capa,
+                estado:
+                  servicio.estado === false
+                    ? false
+                    : Boolean(servicio.estado),
                 visible: servicio.visible,
               });
             });
@@ -1053,14 +1220,36 @@
             if (!fila) return;
             if (event.target.classList.contains("tipo-servicio")) {
               const tipoId = event.target.value;
-              const esOgc = esServicioOgc(tipoId);
-              actualizarCampoCapaParaFila(fila, esOgc);
+              fila.dataset.tipo = tipoId || "";
+              establecerTituloCapaEnFila(fila, "");
+              const requiereConexion = requiereConexionServicio(tipoId);
+              if (requiereConexion) {
+                fila.dataset.opcionesCapas = "";
+              }
+              actualizarCampoCapaParaFila(fila, requiereConexion);
               if (!tipoId) {
                 ocultarEstadoFilaServicio(fila);
-              } else if (!esOgc) {
+              } else if (!requiereConexion) {
                 setEstadoFilaServicio(fila, true);
               } else {
                 ocultarEstadoFilaServicio(fila);
+              }
+            } else if (event.target.classList.contains("nombre-capa-select")) {
+              actualizarTituloDesdeSelect(fila);
+              const tipoId = fila.querySelector(".tipo-servicio")?.value;
+              if (requiereConexionServicio(tipoId)) {
+                const seleccion = obtenerValorNombreCapa(fila);
+                if (seleccion) {
+                  setEstadoFilaServicio(fila, true);
+                } else {
+                  setEstadoFilaServicio(fila, false);
+                }
+              }
+            } else if (event.target.classList.contains("nombre-capa-input")) {
+              const tipoId = fila.querySelector(".tipo-servicio")?.value;
+              establecerTituloCapaEnFila(fila, "");
+              if (requiereConexionServicio(tipoId)) {
+                setEstadoFilaServicio(fila, false);
               }
             }
           });
