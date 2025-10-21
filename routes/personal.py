@@ -160,7 +160,11 @@ def catalogo_eliminar(registro_id: int):
 @bp.route('/personas')
 @jwt_required()
 def personas_listar():
-  personas = Persona.query.order_by(Persona.nombres_apellidos.asc()).all()
+  personas = (
+    Persona.query.filter(Persona.id > 1)
+    .order_by(Persona.id.asc())
+    .all()
+  )
   data = []
   for persona in personas:
     tiene_usuario = any(usuario.estado for usuario in persona.usuarios)

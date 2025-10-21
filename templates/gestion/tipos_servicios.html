@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Tipos de servicios</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <h4>Tipos de servicios</h4>
+            <p class="grey-text text-darken-1">
+              Consulta los tipos de servicios disponibles para clasificar las
+              herramientas digitales.
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaTiposServicios">
+              <thead>
+                <tr>
+                  <th style="width: 70px">N°</th>
+                  <th>Nombre</th>
+                  <th style="width: 140px">Estado</th>
+                  <th style="width: 120px">Orden</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const ui = {
+        tabla: null,
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla = document.querySelector("#tablaTiposServicios tbody");
+        cargarTiposServicios();
+      });
+
+      async function cargarTiposServicios() {
+        if (!ui.tabla) {
+          return;
+        }
+        ui.tabla.innerHTML =
+          '<tr><td colspan="4" class="center-align">Cargando...</td></tr>';
+        try {
+          const respuesta = await fetch("/tipos_servicios/datos");
+          const data = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              data.message || "No se pudo cargar la información."
+            );
+          }
+          const tipos = data.tipos || [];
+          renderTiposServicios(tipos);
+        } catch (error) {
+          console.error(error);
+          ui.tabla.innerHTML =
+            '<tr><td colspan="4" class="center-align">Ocurrió un error al cargar los datos.</td></tr>';
+          if (typeof M !== "undefined") {
+            M.toast({ html: "Error al cargar los tipos de servicios." });
+          }
+        }
+      }
+
+      function renderTiposServicios(lista) {
+        if (!ui.tabla) {
+          return;
+        }
+        if (!lista.length) {
+          ui.tabla.innerHTML =
+            '<tr><td colspan="4" class="center-align">No hay registros.</td></tr>';
+          return;
+        }
+        ui.tabla.innerHTML = lista
+          .map(
+            (item, indice) => `
+            <tr>
+              <td>${indice + 1}</td>
+              <td>${item.nombre || ""}</td>
+              <td>${item.estado_display || ""}</td>
+              <td>${item.orden ?? ""}</td>
+            </tr>
+          `
+          )
+          .join("");
+      }
+    </script>
+  </body>
+</html>

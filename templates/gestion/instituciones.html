@@ -45,7 +45,8 @@
           <div class="col s12">
             <h4>Instituciones</h4>
             <p class="grey-text text-darken-1">
-              Administra las instituciones y su sector correspondiente.
+              Administra las instituciones comprendidas entre los poderes del
+              estado, organismo autónomos, ONG, entre otros.
             </p>
           </div>
           <div class="col s12 right-align" style="margin-bottom: 20px">
@@ -247,7 +248,10 @@
           if (!respuesta.ok) {
             throw new Error(data.message || "No se pudo cargar la información");
           }
-          institucionesCache = data.instituciones || [];
+          const registros = (data.instituciones || []).filter(
+            (item) => Number(item.id) >= 45
+          );
+          institucionesCache = registros;
           renderInstituciones(institucionesCache);
         } catch (error) {
           console.error(error);

@@ -48,42 +48,6 @@
         <div class="seccion-gestion">
           <div class="row">
             <div class="col s12">
-              <h4>Catálogo de personal</h4>
-              <p class="grey-text text-darken-1">
-                Define los tipos de personal disponibles para clasificación.
-              </p>
-            </div>
-            <div class="col s12 right-align" style="margin-bottom: 20px">
-              <button
-                class="btn waves-effect green"
-                id="btnNuevoCatalogo"
-                type="button"
-              >
-                <i class="material-icons left">add</i>Nuevo
-              </button>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col s12">
-              <table class="highlight tabla-gestion" id="tablaCatalogo">
-                <thead>
-                  <tr>
-                    <th style="width: 70px">N°</th>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Sigla</th>
-                    <th style="width: 160px">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="seccion-gestion">
-          <div class="row">
-            <div class="col s12">
               <h4>Personas</h4>
               <p class="grey-text text-darken-1">
                 Registra al personal disponible y asigna usuarios cuando
@@ -117,48 +81,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Modal catálogo -->
-    <div id="modalCatalogo" class="modal">
-      <div class="modal-content">
-        <h5 id="tituloModalCatalogo">Nuevo registro</h5>
-        <form id="formCatalogo">
-          <div class="row">
-            <div class="input-field col s12 m6">
-              <input id="catalogo_codigo" type="text" maxlength="50" required />
-              <label for="catalogo_codigo">Código</label>
-            </div>
-            <div class="input-field col s12 m6">
-              <input id="catalogo_sigla" type="text" maxlength="100" required />
-              <label for="catalogo_sigla">Sigla</label>
-            </div>
-            <div class="input-field col s12">
-              <input
-                id="catalogo_nombre"
-                type="text"
-                maxlength="255"
-                required
-              />
-              <label for="catalogo_nombre">Nombre</label>
-            </div>
-            <div class="input-field col s12">
-              <textarea
-                id="catalogo_descripcion"
-                class="materialize-textarea"
-                maxlength="1000"
-              ></textarea>
-              <label for="catalogo_descripcion">Descripción</label>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-flat modal-close" type="button">Cancelar</button>
-        <button class="btn blue" id="btnGuardarCatalogo" type="button">
-          Guardar
-        </button>
       </div>
     </div>
 
@@ -234,13 +156,6 @@
         "{{ url_for('static', filename='images/detalles.png') }}";
 
       const ui = {
-        catalogo: {
-          tabla: null,
-          modal: null,
-          btnNuevo: null,
-          btnGuardar: null,
-          campos: {},
-        },
         personas: {
           tabla: null,
           modal: null,
@@ -256,12 +171,9 @@
       };
 
       const estado = {
-        catalogo: [],
         personas: [],
-        catalogoEditandoId: null,
         personaEditandoId: null,
         elementoAEliminar: null,
-        tipoEliminacion: null,
       };
 
       function obtenerCookie(nombre) {
@@ -290,23 +202,16 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        ui.catalogo.tabla = document.querySelector("#tablaCatalogo tbody");
-        ui.catalogo.modal = M.Modal.init(
-          document.querySelector("#modalCatalogo")
-        );
-        ui.catalogo.btnNuevo = document.getElementById("btnNuevoCatalogo");
-        ui.catalogo.btnGuardar = document.getElementById("btnGuardarCatalogo");
-        ui.catalogo.campos = {
-          codigo: document.getElementById("catalogo_codigo"),
-          nombre: document.getElementById("catalogo_nombre"),
-          sigla: document.getElementById("catalogo_sigla"),
-          descripcion: document.getElementById("catalogo_descripcion"),
-        };
+        const tablaPersonas = document.querySelector("#tablaPersonas tbody");
+        if (tablaPersonas) {
+          ui.personas.tabla = tablaPersonas;
+        }
 
-        ui.personas.tabla = document.querySelector("#tablaPersonas tbody");
-        ui.personas.modal = M.Modal.init(
-          document.querySelector("#modalPersona")
-        );
+        const modalPersonaElemento = document.querySelector("#modalPersona");
+        if (modalPersonaElemento) {
+          ui.personas.modal = M.Modal.init(modalPersonaElemento);
+        }
+
         ui.personas.btnNuevo = document.getElementById("btnNuevaPersona");
         ui.personas.btnGuardar = document.getElementById("btnGuardarPersona");
         ui.personas.campos = {
@@ -316,9 +221,11 @@
           celular: document.getElementById("persona_celular"),
         };
 
-        ui.confirmacion.modal = M.Modal.init(
-          document.querySelector("#modalConfirmacion")
-        );
+        const modalConfirmacionElemento =
+          document.querySelector("#modalConfirmacion");
+        if (modalConfirmacionElemento) {
+          ui.confirmacion.modal = M.Modal.init(modalConfirmacionElemento);
+        }
         ui.confirmacion.mensaje = document.getElementById(
           "mensajeConfirmacion"
         );
@@ -327,24 +234,6 @@
         );
 
         M.FormSelect.init(document.querySelectorAll("select"));
-        const descripcionTextarea = document.getElementById(
-          "catalogo_descripcion"
-        );
-        if (descripcionTextarea) {
-          M.textareaAutoResize(descripcionTextarea);
-        }
-
-        if (ui.catalogo.btnNuevo) {
-          ui.catalogo.btnNuevo.addEventListener("click", () =>
-            abrirModalCatalogo()
-          );
-        }
-        if (ui.catalogo.btnGuardar) {
-          ui.catalogo.btnGuardar.addEventListener("click", guardarCatalogo);
-        }
-        if (ui.catalogo.tabla) {
-          ui.catalogo.tabla.addEventListener("click", manejarTablaCatalogo);
-        }
 
         if (ui.personas.btnNuevo) {
           ui.personas.btnNuevo.addEventListener("click", () =>
@@ -365,136 +254,8 @@
           );
         }
 
-        cargarCatalogo();
         cargarPersonas();
       });
-
-      async function cargarCatalogo() {
-        if (!ui.catalogo.tabla) {
-          return;
-        }
-        ui.catalogo.tabla.innerHTML =
-          '<tr><td colspan="5" class="center-align">Cargando...</td></tr>';
-        try {
-          const respuesta = await fetch("/personal/catalogo");
-          const data = await respuesta.json();
-          if (!respuesta.ok) {
-            throw new Error(
-              data.message || "No se pudo cargar la información."
-            );
-          }
-          estado.catalogo = data.catalogo || [];
-          renderCatalogo();
-        } catch (error) {
-          console.error(error);
-          ui.catalogo.tabla.innerHTML =
-            '<tr><td colspan="5" class="center-align">Ocurrió un error al cargar los datos.</td></tr>';
-          M.toast({ html: "Error al cargar el catálogo." });
-        }
-      }
-
-      function renderCatalogo() {
-        if (!ui.catalogo.tabla) {
-          return;
-        }
-        if (!estado.catalogo.length) {
-          ui.catalogo.tabla.innerHTML =
-            '<tr><td colspan="5" class="center-align">No hay registros.</td></tr>';
-          return;
-        }
-        ui.catalogo.tabla.innerHTML = estado.catalogo
-          .map((item, indice) => {
-            const acciones = `
-              <img src="${iconoEditar}" alt="Editar" class="icono-accion accion-editar" data-id="${item.id}" data-contexto="catalogo" />
-              <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${item.id}" data-contexto="catalogo" />
-            `;
-            return `
-              <tr>
-                <td>${indice + 1}</td>
-                <td>${item.codigo || ""}</td>
-                <td>${item.nombre || ""}</td>
-                <td>${item.sigla || ""}</td>
-                <td>${acciones}</td>
-              </tr>
-            `;
-          })
-          .join("");
-      }
-
-      function abrirModalCatalogo(registro = null) {
-        estado.catalogoEditandoId = registro ? registro.id : null;
-        document.getElementById("tituloModalCatalogo").textContent = registro
-          ? "Editar registro"
-          : "Nuevo registro";
-        ui.catalogo.campos.codigo.value = registro ? registro.codigo || "" : "";
-        ui.catalogo.campos.nombre.value = registro ? registro.nombre || "" : "";
-        ui.catalogo.campos.sigla.value = registro ? registro.sigla || "" : "";
-        ui.catalogo.campos.descripcion.value = registro
-          ? registro.descripcion || ""
-          : "";
-        M.updateTextFields();
-        M.textareaAutoResize(ui.catalogo.campos.descripcion);
-        ui.catalogo.modal.open();
-      }
-
-      function manejarTablaCatalogo(evento) {
-        const objetivo = evento.target;
-        if (objetivo.dataset.contexto !== "catalogo") {
-          return;
-        }
-        const id = Number(objetivo.dataset.id);
-        if (objetivo.classList.contains("accion-editar")) {
-          const registro = estado.catalogo.find((item) => item.id === id);
-          if (!registro) {
-            M.toast({ html: "Registro no encontrado." });
-            return;
-          }
-          abrirModalCatalogo(registro);
-        } else if (objetivo.classList.contains("accion-eliminar")) {
-          estado.elementoAEliminar = id;
-          estado.tipoEliminacion = "catalogo";
-          ui.confirmacion.mensaje.textContent =
-            "¿Desea eliminar el registro del catálogo?";
-          ui.confirmacion.modal.open();
-        }
-      }
-
-      async function guardarCatalogo() {
-        const codigo = ui.catalogo.campos.codigo.value.trim();
-        const nombre = ui.catalogo.campos.nombre.value.trim();
-        const sigla = ui.catalogo.campos.sigla.value.trim();
-        const descripcion = ui.catalogo.campos.descripcion.value.trim();
-
-        if (!codigo || !nombre || !sigla) {
-          M.toast({ html: "Complete código, nombre y sigla." });
-          return;
-        }
-
-        const payload = { codigo, nombre, sigla, descripcion };
-        const url = estado.catalogoEditandoId
-          ? `/personal/catalogo/${estado.catalogoEditandoId}`
-          : "/personal/catalogo";
-        const metodo = estado.catalogoEditandoId ? "PUT" : "POST";
-
-        try {
-          const respuesta = await fetch(
-            url,
-            crearOpcionesJson(metodo, payload)
-          );
-          const data = await respuesta.json();
-          if (!respuesta.ok) {
-            throw new Error(data.message || "No se pudo guardar el registro.");
-          }
-          M.toast({ html: data.message || "Operación exitosa." });
-          estado.catalogoEditandoId = null;
-          ui.catalogo.modal.close();
-          cargarCatalogo();
-        } catch (error) {
-          M.toast({
-            html: error.message || "Error al guardar la información.",
-          });
-        }
-      }
 
       async function cargarPersonas() {
         if (!ui.personas.tabla) {
@@ -558,10 +319,14 @@
       }
 
       function abrirModalPersona(registro = null) {
+        if (!ui.personas.modal) {
+          return;
+        }
         estado.personaEditandoId = registro ? registro.id : null;
-        document.getElementById("tituloModalPersona").textContent = registro
-          ? "Editar persona"
-          : "Nueva persona";
+        const titulo = document.getElementById("tituloModalPersona");
+        if (titulo) {
+          titulo.textContent = registro ? "Editar persona" : "Nueva persona";
+        }
         ui.personas.campos.tipo_documento.value = registro
           ? String(registro.id_tipo_documento || "")
           : "";
@@ -594,10 +359,13 @@
           abrirModalPersona(persona);
         } else if (objetivo.classList.contains("accion-eliminar")) {
           estado.elementoAEliminar = id;
-          estado.tipoEliminacion = "persona";
-          ui.confirmacion.mensaje.textContent =
-            "¿Desea eliminar a la persona seleccionada?";
-          ui.confirmacion.modal.open();
+          if (ui.confirmacion.mensaje) {
+            ui.confirmacion.mensaje.textContent =
+              "¿Desea eliminar a la persona seleccionada?";
+          }
+          if (ui.confirmacion.modal) {
+            ui.confirmacion.modal.open();
+          }
         } else if (objetivo.classList.contains("accion-asignar")) {
           M.toast({
             html: "La asignación de usuario se implementará próximamente.",
@@ -641,7 +409,9 @@
           }
           M.toast({ html: data.message || "Operación exitosa." });
           estado.personaEditandoId = null;
-          ui.personas.modal.close();
+          if (ui.personas.modal) {
+            ui.personas.modal.close();
+          }
           cargarPersonas();
         } catch (error) {
           M.toast({
@@ -652,19 +422,18 @@
 
       async function confirmarEliminacion() {
         const id = estado.elementoAEliminar;
-        const tipo = estado.tipoEliminacion;
-        if (!id || !tipo) {
-          ui.confirmacion.modal.close();
+        if (!id) {
+          if (ui.confirmacion.modal) {
+            ui.confirmacion.modal.close();
+          }
           return;
         }
 
-        const url =
-          tipo === "catalogo"
-            ? `/personal/catalogo/${id}`
-            : `/personal/personas/${id}`;
-
         try {
-          const respuesta = await fetch(url, crearOpcionesJson("DELETE"));
+          const respuesta = await fetch(
+            `/personal/personas/${id}`,
+            crearOpcionesJson("DELETE")
+          );
           const data = await respuesta.json();
           if (!respuesta.ok) {
             throw new Error(data.message || "No se pudo eliminar el registro.");
@@ -672,17 +441,14 @@
           M.toast({
             html: data.message || "Registro eliminado correctamente.",
           });
-          if (tipo === "catalogo") {
-            cargarCatalogo();
-          } else {
-            cargarPersonas();
-          }
+          cargarPersonas();
         } catch (error) {
           M.toast({ html: error.message || "Error al eliminar el registro." });
         } finally {
           estado.elementoAEliminar = null;
-          estado.tipoEliminacion = null;
-          ui.confirmacion.modal.close();
+          if (ui.confirmacion.modal) {
+            ui.confirmacion.modal.close();
+          }
         }
       }
     </script>

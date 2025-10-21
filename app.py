@@ -28,6 +28,7 @@ def create_app():
   from routes.categorias import bp as categorias_bp
   from routes.personal import bp as personal_bp
   from routes.usuarios import bp as usuarios_bp
+  from routes.tipos_servicios import bp as tipos_servicios_bp
 
   app.register_blueprint(gestion_bp)
   app.register_blueprint(usuarios_bp)
@@ -37,6 +38,7 @@ def create_app():
   app.register_blueprint(personal_bp)
   app.register_blueprint(capas_geograficas_bp)
   app.register_blueprint(geoportal_bp)
+  app.register_blueprint(tipos_servicios_bp)
 
   def asegurar_perfiles_basicos():
     from sqlalchemy import func, inspect

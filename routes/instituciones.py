@@ -30,7 +30,8 @@ def datos():
   consulta = (
     db.session.query(Institucion, sector_alias.nombre.label('sector_nombre'))
     .outerjoin(sector_alias, Institucion.id_padre == sector_alias.id)
-    .filter(Institucion.id_padre.in_(SECTOR_IDS))
+    #.filter(Institucion.id_padre.in_(SECTOR_IDS))
+    .filter(Institucion.id >= 45)
     .order_by(Institucion.nombre.asc())
   )
   instituciones = [
