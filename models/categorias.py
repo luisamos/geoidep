@@ -13,7 +13,7 @@ class Categoria(db.Model):
   nombre = db.Column(db.String(500), nullable=False)
   sigla = db.Column(db.String(500), nullable=False)
   definicion = db.Column(db.Text)
-  id_padre = db.Column(db.Integer)
+  id_padre = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
