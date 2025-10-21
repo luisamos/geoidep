@@ -3,7 +3,7 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 ('Servicios OGC', 'Los servicios del Open Geospatial Consortium son estándares internacionales que permiten a diferentes sistemas compartir y acceder a datos e información geográfica a través de la web de forma abierta e interoperable.', True, 0, 2,  1, '01-08-2025'),
 ('Servicios Rest de ArcGIS', 'Los Servicios REST de ArcGIS son una tecnología que permite a las aplicaciones conectarse y consultar datos y funcionalidades geográficas a través de la red usando el protocolo HTTP', True, 0, 3,  1, '01-08-2025'),
 ('Servicios Rest', 'Son servicios desarrollados propiamente por la entidad', True, 0, 4, 1, '01-08-2025'),
-('Geoportales', 'Geoportales de entidades públicas.', True, 1, 1,  1, '01-08-2025'),
+('Geoportales', 'Portales públicos que comparten información geográfica y servicios especializados.', True, 1, 1,  1, '01-08-2025'),
 ('Visores de mapas', 'Visores de mapas institucionales.', True, 1, 2,  1, '01-08-2025'),
 ('Observatorios digitales', 'Un observatorio digital es una plataforma o sistema diseñado para recopilar, procesar, analizar y clasificar información de diversos entornos digitales con el fin de extraer conocimiento y apoyar la toma de decisiones', True, 1, 3,  1, '01-08-2025'),
 ('Aplicaciones y módulos', 'Aplicaciones GIS y módulos geográficos.', True, 1, 4,  1, '01-08-2025'),
@@ -25,4 +25,4 @@ INSERT INTO ide.def_tipos_servicios (nombre, descripcion, estado, id_padre, orde
 SELECT id, nombre FROM ide.def_tipos_servicios WHERE id_padre IN (2,3);
 
 SELECT id AS id_tipo_servicio, nombre
-FROM ide.def_tipos_servicios WHERE id_padre IN (2,3) AND estado = True ORDER BY id ASC;
+FROM ide.def_tipos_servicios WHERE id_padre IN (1, 2,3) AND estado = True ORDER BY id ASC;

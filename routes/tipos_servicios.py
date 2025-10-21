@@ -18,8 +18,8 @@ def listar():
 @jwt_required()
 def datos():
   tipos = (
-    TipoServicio.query.filter_by(id_padre=1)
-    .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
+    TipoServicio.query.filter(TipoServicio.id_padre.in_([1, 2, 3]))
+    .order_by(TipoServicio.id.asc())
     .all()
   )
   data = []
