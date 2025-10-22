@@ -93,9 +93,25 @@ SELECT
 	MAX(CASE WHEN id_tipo = 20 THEN url_pub END) AS kml
 FROM tmp.datos
 WHERE id_tipo IN (11,12,14,17,20)
+AND url_pub IS NULL
 GROUP BY id_institucion, id_categoria, capa
 ORDER BY 4;
 
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
+ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
+
 
 SELECT * FROM tmp.datos WHERE capa LIKE ('%Otros Usos%');
+
+SELECT * FROM public.def_layer;
+
+
+SELECT a.id_institucion, a.capa, b.capa, b.nombre_capa, b.idsubsistema
+FROM tmp.datos a
+INNER JOIN public.def_layer b
+ON a.capa = b.capa
+WHERE a.id_tipo = 11 AND b.idestado = 1 AND b.idsubsistema= 0 AND url_pub IS NULL AND LENGTH(b.nombre_capa)>0
+ORDER BY 1,2;
+
+SELECT * FROM def_tipocapa;
+
