@@ -626,6 +626,12 @@
                   </span>
                 </div>
                 <div class="js-catalog-theme-search-results">
+                  {% set slugs_con_boton_copiar = [
+                    'servicios_ogc_wms',
+                    'servicios_ogc_wfs',
+                    'servicios_ogc_wmts',
+                    'servicios_rest_arcgis'
+                  ] %}
                   {% for categoria in categorias %}
                     <div class="child my-6" id="container-{{ categoria.id }}">
                       <div class="child-title"><h3>{{ categoria.nombre }}</h3></div>
@@ -633,111 +639,188 @@
                       <div class="child-pages mt-4">
                         {% for herramienta in categoria.herramientas %}
                           <div class="card-page border border-blue-200 rounded-md shadow p-8 my-4 mx-0">
-                            <div class="flex flex-col md:flex-row gap-x-6 align-center">
-                              <div class="card-title w-full md:w-5/6">
-                                <span class="mb-2 block text-blue-700 font-bold w-fit">
+                            {% if slug in slugs_con_boton_copiar %}
+                              {% set servicio_principal = herramienta.servicios[0] if herramienta.servicios is defined and herramienta.servicios else None %}
+                              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div class="card-title w-full md:w-auto">
+                                  <span class="mb-2 block text-blue-700 font-bold w-fit">
+                                    {{ herramienta.nombre }}
+                                  </span>
+                                  {% if herramienta.institucion %}
+                                    <p class="text-sm text-gray-600">
+                                      <span class="font-bold">Elaborado por</span>
+                                      {{ herramienta.institucion.nombre }}
+                                    </p>
+                                  {% endif %}
+                                </div>
+                                {% if servicio_principal and servicio_principal.url %}
+                                  <div class="flex flex-row flex-wrap gap-2 justify-start md:justify-end w-full md:w-auto">
+                                    <a
+                                      class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center px-4 py-2 rounded"
+                                      href="{{ servicio_principal.url }}"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <span class="flex-align-center justify-center">
+                                        <span class="mr-2">Abrir</span>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="20"
+                                          height="20"
+                                          viewBox="0 0 20 20"
+                                          fill="none"
+                                          aria-hidden="true"
+                                          class="ml-3"
+                                        >
+                                          <g id="keyboard_arrow_right">
+                                            <path
+                                              id="Vector"
+                                              d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
+                                              fill="#0056AC"
+                                            ></path>
+                                          </g>
+                                        </svg>
+                                      </span>
+                                    </a>
+                                    <button
+                                      type="button"
+                                      class="bg-blue-100 inline-block no-underline hover:no-underline btn--pages-button text-center px-4 py-2 rounded js-copy-service-url"
+                                      data-copy-url="{{ servicio_principal.url }}"
+                                      data-default-label="Copiar URL"
+                                    >
+                                      <span class="flex-align-center justify-center">
+                                        <span class="mr-2 js-copy-service-url-label">Copiar URL</span>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="20"
+                                          height="20"
+                                          viewBox="0 0 20 20"
+                                          fill="none"
+                                          aria-hidden="true"
+                                          class="ml-3"
+                                        >
+                                          <path
+                                            d="M7.08301 12.9167C6.67883 12.9167 6.33301 12.5708 6.33301 12.1667V5.83333C6.33301 4.66667 7.29134 3.75 8.49967 3.75H12.4163C12.8205 3.75 13.1663 4.09583 13.1663 4.5C13.1663 4.90417 12.8205 5.25 12.4163 5.25H8.49967C8.00925 5.25 7.83301 5.60417 7.83301 5.83333V12.1667C7.83301 12.5708 7.48717 12.9167 7.08301 12.9167Z"
+                                            fill="#0056AC"
+                                          ></path>
+                                          <path
+                                            d="M12.5827 16.25H9.08268C7.83268 16.25 7.08268 15.5 7.08268 14.25V8.33333C7.08268 7.08333 7.83268 6.33333 9.08268 6.33333H12.5827C13.8327 6.33333 14.5827 7.08333 14.5827 8.33333V14.25C14.5827 15.5 13.8327 16.25 12.5827 16.25ZM9.08268 7.83333C8.83268 7.83333 8.58268 8.08333 8.58268 8.33333V14.25C8.58268 14.5 8.83268 14.75 9.08268 14.75H12.5827C12.8327 14.75 13.0827 14.5 13.0827 14.25V8.33333C13.0827 8.08333 12.8327 7.83333 12.5827 7.83333H9.08268Z"
+                                            fill="#0056AC"
+                                          ></path>
+                                        </svg>
+                                      </span>
+                                    </button>
+                                  </div>
+                                {% endif %}
+                              </div>
+                            {% else %}
+                              <div class="flex flex-col md:flex-row gap-x-6 align-center">
+                                <div class="card-title w-full md:w-5/6">
+                                  <span class="mb-2 block text-blue-700 font-bold w-fit">
+                                    {% if herramienta.recurso %}
+                                      <a
+                                        class="text-blue-700 hover:underline"
+                                        href="{{ herramienta.recurso }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {{ herramienta.nombre }}
+                                      </a>
+                                    {% else %}
+                                      {{ herramienta.nombre }}
+                                    {% endif %}
+                                  </span>
+                                  {% if herramienta.descripcion %}
+                                    <p class="text-gray-700">{{ herramienta.descripcion }}</p>
+                                  {% endif %}
+                                  {% if herramienta.institucion %}
+                                    <p class="mt-3 text-sm text-gray-600">
+                                      <span class="font-bold">Elaborado por</span>
+                                      {{ herramienta.institucion.nombre }}
+                                    </p>
+                                  {% endif %}
+                                  {% if herramienta.servicios is defined and herramienta.servicios %}
+                                    <div class="mt-4">
+                                      <p class="text-sm font-semibold text-gray-700">
+                                        Servicios disponibles
+                                      </p>
+                                      <ul class="mt-3 space-y-2">
+                                        {% for servicio in herramienta.servicios %}
+                                          <li class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                            <div class="text-gray-700">
+                                              {{ servicio.etiqueta or servicio.titulo or servicio.nombre }}
+                                            </div>
+                                            {% if servicio.url %}
+                                              <div class="flex flex-col md:flex-row gap-2 md:justify-end w-full md:w-auto">
+                                                <a
+                                                  class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center px-4 py-2 rounded"
+                                                  href="{{ servicio.url }}"
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                >
+                                                  <span class="flex-align-center justify-center">
+                                                    <span class="mr-2">Abrir</span>
+                                                    <svg
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      width="20"
+                                                      height="20"
+                                                      viewBox="0 0 20 20"
+                                                      fill="none"
+                                                      aria-hidden="true"
+                                                      class="ml-3"
+                                                    >
+                                                      <g id="keyboard_arrow_right">
+                                                        <path
+                                                          id="Vector"
+                                                          d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
+                                                          fill="#0056AC"
+                                                        ></path>
+                                                      </g>
+                                                    </svg>
+                                                  </span>
+                                                </a>
+                                              </div>
+                                            {% endif %}
+                                          </li>
+                                        {% endfor %}
+                                      </ul>
+                                    </div>
+                                  {% endif %}
+                                </div>
+                                <div class="card-button w-full md:w-1/6 flex flex-col gap-4">
                                   {% if herramienta.recurso %}
                                     <a
-                                      class="text-blue-700 hover:underline"
+                                      class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
                                       href="{{ herramienta.recurso }}"
                                       target="_blank"
                                       rel="noopener noreferrer"
                                     >
-                                      {{ herramienta.nombre }}
+                                      <span class="flex-align-center justify-center">
+                                        <span class="mr-2">Ver</span>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="20"
+                                          height="20"
+                                          viewBox="0 0 20 20"
+                                          fill="none"
+                                          aria-hidden="true"
+                                          class="ml-3"
+                                        >
+                                          <g id="keyboard_arrow_right">
+                                            <path
+                                              id="Vector"
+                                              d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
+                                              fill="#0056AC"
+                                            ></path>
+                                          </g>
+                                        </svg>
+                                      </span>
                                     </a>
-                                  {% else %}
-                                    {{ herramienta.nombre }}
                                   {% endif %}
-                                </span>
-                                {% if herramienta.descripcion %}
-                                  <p class="text-gray-700">{{ herramienta.descripcion }}</p>
-                                {% endif %}
-                                {% if herramienta.institucion %}
-                                  <p class="mt-3 text-sm text-gray-600">
-                                    <span class="font-bold">Elaborado por</span>
-                                    {{ herramienta.institucion.nombre }}
-                                  </p>
-                                {% endif %}
-                                {% if herramienta.servicios is defined and herramienta.servicios %}
-                                  <div class="mt-4">
-                                    <p class="text-sm font-semibold text-gray-700">
-                                      Servicios disponibles
-                                    </p>
-                                    <ul class="mt-3 space-y-2">
-                                      {% for servicio in herramienta.servicios %}
-                                        <li class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                          <div class="text-gray-700">
-                                            {{ servicio.etiqueta or servicio.titulo or servicio.nombre }}
-                                          </div>
-                                          {% if servicio.url %}
-                                            <a
-                                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center px-4 py-2 rounded"
-                                              href="{{ servicio.url }}"
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                            >
-                                              <span class="flex-align-center justify-center">
-                                                <span class="mr-2">Abrir</span>
-                                                <svg
-                                                  xmlns="http://www.w3.org/2000/svg"
-                                                  width="20"
-                                                  height="20"
-                                                  viewBox="0 0 20 20"
-                                                  fill="none"
-                                                  aria-hidden="true"
-                                                  class="ml-3"
-                                                >
-                                                  <g id="keyboard_arrow_right">
-                                                    <path
-                                                      id="Vector"
-                                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                                      fill="#0056AC"
-                                                    ></path>
-                                                  </g>
-                                                </svg>
-                                              </span>
-                                            </a>
-                                          {% endif %}
-                                        </li>
-                                      {% endfor %}
-                                    </ul>
-                                  </div>
-                                {% endif %}
+                                </div>
                               </div>
-                              <div class="card-button w-full md:w-1/6 flex flex-col gap-4">
-                                {% if herramienta.recurso %}
-                                  <a
-                                    class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center w-11/12 m-auto"
-                                    href="{{ herramienta.recurso }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <span class="flex-align-center justify-center">
-                                      <span class="mr-2">Ir</span>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        aria-hidden="true"
-                                        class="ml-3"
-                                      >
-                                        <g id="keyboard_arrow_right">
-                                          <path
-                                            id="Vector"
-                                            d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
-                                            fill="#0056AC"
-                                          ></path>
-                                        </g>
-                                      </svg>
-                                    </span>
-                                  </a>
-                                {% endif %}
-                              </div>
-                            </div>
-                          </div>
-                        {% endfor %}
+                            {% endif %}
+                          </div>                        {% endfor %}
                       </div>
                     </div>
                   {% endfor %}
@@ -758,5 +841,86 @@
       </div>
     </main>
     {% include 'geoportal/pie_pagina.html' %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var copyButtons = document.querySelectorAll('.js-copy-service-url');
+        if (!copyButtons.length) {
+          return;
+        }
+
+        copyButtons.forEach(function (button) {
+          var defaultLabel = button.getAttribute('data-default-label') || button.textContent.trim();
+          var labelElement = button.querySelector('.js-copy-service-url-label');
+
+          button.addEventListener('click', function () {
+            var url = button.getAttribute('data-copy-url');
+            if (!url) {
+              return;
+            }
+
+            var updateLabel = function (text) {
+              if (labelElement) {
+                labelElement.textContent = text;
+              } else {
+                button.textContent = text;
+              }
+            };
+
+            var resetLabel = function () {
+              updateLabel(defaultLabel);
+            };
+
+            var handleSuccess = function () {
+              updateLabel('Copiado');
+              button.classList.add('copied');
+              setTimeout(function () {
+                button.classList.remove('copied');
+                resetLabel();
+              }, 2000);
+            };
+
+            var handleError = function () {
+              updateLabel('Error');
+              setTimeout(function () {
+                resetLabel();
+              }, 2000);
+            };
+
+            var tryClipboard = function () {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(handleSuccess).catch(function () {
+                  fallbackCopy(url, handleSuccess, handleError);
+                });
+              } else {
+                fallbackCopy(url, handleSuccess, handleError);
+              }
+            };
+
+            tryClipboard();
+          });
+        });
+
+        function fallbackCopy(text, onSuccess, onError) {
+          try {
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            var successful = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (successful) {
+              onSuccess();
+            } else {
+              onError();
+            }
+          } catch (error) {
+            onError();
+          }
+        }
+      });
+    </script>
   </body>
 </html>

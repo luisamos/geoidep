@@ -100,13 +100,11 @@ ORDER BY 4;
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
 ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
 
-
 SELECT * FROM tmp.datos WHERE capa LIKE ('%Otros Usos%');
 
 SELECT * FROM public.def_layer;
 
-
-SELECT a.id_institucion, a.capa, b.capa, b.nombre_capa, b.idsubsistema
+SELECT a.id_institucion, a.capa, b.capa, b.nombre_capa
 FROM tmp.datos a
 INNER JOIN public.def_layer b
 ON a.capa = b.capa

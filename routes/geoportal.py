@@ -38,22 +38,22 @@ CATALOGO_SLUG_TO_ID = {slug: id_tipo for id_tipo, slug in CATALOGO_SLUGS.items()
 
 CATALOGO_TIPO_FALLBACKS = {
   11: {
-    'nombre': 'Servicios OGC WMS',
+    'nombre': 'Servicios OGC: WMS',
     'descripcion': None,
     'logotipo': None,
   },
   12: {
-    'nombre': 'Servicios OGC WFS',
+    'nombre': 'Servicios OGC: WFS',
     'descripcion': None,
     'logotipo': None,
   },
   14: {
-    'nombre': 'Servicio OGC WMTS',
+    'nombre': 'Servicio OGC: WMTS',
     'descripcion': None,
     'logotipo': None,
   },
   17: {
-    'nombre': 'Servicios REST ArcGIS',
+    'nombre': 'Servicios REST: ArcGIS',
     'descripcion': None,
     'logotipo': None,
   },
