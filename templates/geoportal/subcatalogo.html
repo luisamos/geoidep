@@ -658,6 +658,51 @@
                                     {{ herramienta.institucion.nombre }}
                                   </p>
                                 {% endif %}
+                                {% if herramienta.servicios is defined and herramienta.servicios %}
+                                  <div class="mt-4">
+                                    <p class="text-sm font-semibold text-gray-700">
+                                      Servicios disponibles
+                                    </p>
+                                    <ul class="mt-3 space-y-2">
+                                      {% for servicio in herramienta.servicios %}
+                                        <li class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                          <div class="text-gray-700">
+                                            {{ servicio.etiqueta or servicio.titulo or servicio.nombre }}
+                                          </div>
+                                          {% if servicio.url %}
+                                            <a
+                                              class="bg-blue-100 track-ga-click inline-block no-underline hover:no-underline btn--pages-button text-center px-4 py-2 rounded"
+                                              href="{{ servicio.url }}"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              <span class="flex-align-center justify-center">
+                                                <span class="mr-2">Abrir</span>
+                                                <svg
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  width="20"
+                                                  height="20"
+                                                  viewBox="0 0 20 20"
+                                                  fill="none"
+                                                  aria-hidden="true"
+                                                  class="ml-3"
+                                                >
+                                                  <g id="keyboard_arrow_right">
+                                                    <path
+                                                      id="Vector"
+                                                      d="M7.49961 13.2292L10.7329 9.99583L7.49961 6.7625C7.17461 6.4375 7.17461 5.9125 7.49961 5.5875C7.82461 5.2625 8.34961 5.2625 8.67461 5.5875L12.4996 9.4125C12.8246 9.7375 12.8246 10.2625 12.4996 10.5875L8.67461 14.4125C8.34961 14.7375 7.82461 14.7375 7.49961 14.4125C7.18294 14.0875 7.17461 13.5542 7.49961 13.2292Z"
+                                                      fill="#0056AC"
+                                                    ></path>
+                                                  </g>
+                                                </svg>
+                                              </span>
+                                            </a>
+                                          {% endif %}
+                                        </li>
+                                      {% endfor %}
+                                    </ul>
+                                  </div>
+                                {% endif %}
                               </div>
                               <div class="card-button w-full md:w-1/6 flex flex-col gap-4">
                                 {% if herramienta.recurso %}
