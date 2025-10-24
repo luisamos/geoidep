@@ -200,6 +200,11 @@
         max-height: none !important;
         overflow-y: hidden !important;
       }
+
+      .autocomplete-content {
+        max-height: 220px !important;
+        overflow-y: hidden !important;
+      }
     </style>
   </head>
 
@@ -550,10 +555,12 @@
         let instance = M.Autocomplete.getInstance(input);
         if (instance) {
           instance.updateData(data);
+          instance.options.limit = 5;
         } else {
           instance = M.Autocomplete.init(input, {
             data,
             minLength: 0,
+            limit: 5,
             onAutocomplete: (seleccion) => {
               const info = mapaInstitucionesPorEtiqueta.get(
                 (seleccion || "").toLowerCase()

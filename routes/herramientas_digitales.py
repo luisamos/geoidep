@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -15,6 +16,24 @@ from routes._helpers import obtener_usuario_actual
 bp = Blueprint('herramientas_digitales', __name__, url_prefix='/herramientas_digitales')
 
 EXCLUDED_PARENT_IDS = tuple(range(10))
+
+def sincronizar_secuencia(modelo):
+  tabla = modelo.__table__
+  pk_columna = next(iter(tabla.primary_key.columns))
+  atributo_pk = getattr(modelo, pk_columna.name)
+  max_id = db.session.query(func.coalesce(func.max(atributo_pk), 0)).scalar()
+  nombre_secuencia = f"{tabla.name}_{pk_columna.name}_seq"
+  if tabla.schema:
+    nombre_secuencia = f"{tabla.schema}.{nombre_secuencia}"
+  valor = max_id if max_id else 1
+  db.session.execute(
+    text("SELECT setval(:secuencia::regclass, :valor, :llamado)"),
+    {
+      'secuencia': nombre_secuencia,
+      'valor': valor,
+      'llamado': bool(max_id),
+    },
+  )
 
 def obtener_instituciones_para(usuario):
   if not usuario:
@@ -183,6 +202,7 @@ def guardar():
 
   estado = datos['estado'] if datos['estado_incluido'] else None
 
+  sincronizar_secuencia(HerramientaDigital)
   herramienta = HerramientaDigital(
     nombre=datos['nombre'],
     descripcion=datos['descripcion'],

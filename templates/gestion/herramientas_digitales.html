@@ -72,6 +72,47 @@
       .icono-tabla.inferior {
         margin: 0;
       }
+
+      .estado-filtros-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        margin-bottom: 0;
+        flex-wrap: wrap;
+      }
+
+      .estado-filtros {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .estado-filtros-acciones {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .autocomplete-content {
+        max-height: 220px !important;
+        overflow-y: hidden !important;
+      }
+
+      @media (max-width: 600px) {
+        .estado-filtros-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+
+        .estado-filtros-acciones {
+          justify-content: flex-start;
+          width: 100%;
+        }
+      }
     </style>
   </head>
 
@@ -114,25 +155,29 @@
         </div>
 
         <div class="row">
-          <div class="estado-filtros">
-            <div class="switch">
-              <label>
-                Inactivo
-                <input type="checkbox" id="switchActivos" checked />
-                <span class="lever"></span>
-                Activo
-              </label>
+          <div class="col s12">
+            <div class="estado-filtros-row">
+              <div class="estado-filtros">
+                <div class="switch">
+                  <label>
+                    Inactivo
+                    <input type="checkbox" id="switchActivos" checked />
+                    <span class="lever"></span>
+                    Activo
+                  </label>
+                </div>
+              </div>
+              <div class="estado-filtros-acciones">
+                <button
+                  id="btnAgregar"
+                  class="btn waves-light btn-small green"
+                  data-target="modalHerramienta"
+                  type="button"
+                >
+                  <i class="material-icons left">add</i>Nuevo
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="right">
-            <button
-              id="btnAgregar"
-              class="btn waves-light btn-small green"
-              data-target="modalHerramienta"
-              type="button"
-            >
-              <i class="material-icons left">add</i>Nuevo
-            </button>
           </div>
         </div>
 
@@ -215,29 +260,40 @@
           </div>
 
           {% if puede_editar_institucion %}
+          <input
+            type="hidden"
+            id="institucion_herramienta"
+            value="{{ institucion_usuario.id if institucion_usuario else '' }}"
+          />
           <div class="input-field">
-            <select id="institucion_herramienta">
-              <option value="" disabled {% if not institucion_usuario %}selected{% endif %}>
-                Seleccione institución
-              </option>
-              {% for institucion in instituciones_disponibles %}
-              <option
-                value="{{ institucion.id }}"
-                {% if institucion_usuario and institucion_usuario.id == institucion.id %}selected{% endif %}
-              >
-                {{ institucion.nombre }}
-              </option>
-              {% endfor %}
-            </select>
-            <label>Institución</label>
+            <input
+              type="text"
+              id="institucion_autocomplete"
+              class="autocomplete validate"
+              autocomplete="off"
+              required
+            />
+            <label for="institucion_autocomplete">Institución</label>
+            <span
+              class="helper-text"
+              data-error="Seleccione una institución válida"
+            ></span>
           </div>
           {% else %}
-          <p>
-            <strong>Institución:</strong>
-            <span id="institucionNombre">
-              {{ institucion_usuario.nombre if institucion_usuario else 'No asociada' }}
-            </span>
-          </p>
+          <input
+            type="hidden"
+            id="institucion_herramienta"
+            value="{{ institucion_usuario.id if institucion_usuario else '' }}"
+          />
+          <div class="input-field">
+            <label class="active" for="institucion_herramienta"
+              >Institución</label
+            >
+            <p id="institucionNombre">
+              {{ institucion_usuario.nombre if institucion_usuario else 'No
+              asociada' }}
+            </p>
+          </div>
           {% endif %}
 
           <div class="input-field">
@@ -279,6 +335,7 @@
       const iconoEditar = "{{ url_for('static', filename='images/editar.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='images/eliminar.png') }}";
+      const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
 
       function obtenerCookie(nombre) {
         const prefijo = `${nombre}=`;
@@ -328,7 +385,9 @@
         categoriaHerramienta: null,
         recursoHerramienta: null,
         institucionTag: null,
-        institucionSelect: null,
+        institucionHerramienta: null,
+        institucionAutocomplete: null,
+        institucionNombre: null,
         modalConfirmacion: null,
         btnEliminarProceder: null,
         btnEliminarCancelar: null,
@@ -338,6 +397,10 @@
       let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
       let herramientaEditandoId = null;
       let herramientaEliminandoId = null;
+      const mapaInstitucionesPorId = new Map();
+      const mapaInstitucionesPorEtiqueta = new Map();
+      let institucionBaseId = '';
+      let institucionBaseNombre = '';
 
       document.addEventListener("DOMContentLoaded", function () {
         ui.tablaHerramientasBody = document.querySelector(
@@ -366,15 +429,30 @@
         );
         ui.recursoHerramienta = document.getElementById("recurso_herramienta");
         ui.institucionTag = document.getElementById("institucionTag");
-        ui.institucionSelect = document.getElementById("institucion_herramienta");
+        ui.institucionHerramienta = document.getElementById(
+          "institucion_herramienta"
+        );
+        ui.institucionAutocomplete = document.getElementById(
+          "institucion_autocomplete"
+        );
+        ui.institucionNombre = document.getElementById("institucionNombre");
         ui.modalConfirmacion = document.getElementById("modalConfirmacion");
         ui.btnEliminarProceder = document.getElementById("btnEliminarProceder");
         ui.btnEliminarCancelar = document.getElementById("btnEliminarCancelar");
         ui.imgCloseModalLayer = document.getElementById("imgClose_modal_layer");
 
+        if (ui.institucionTag) {
+          institucionBaseId = ui.institucionTag.dataset.institucionId || '';
+          institucionBaseNombre =
+            ui.institucionTag.dataset.institucionNombre || '';
+        }
+
+        prepararDatosInstituciones();
+
         const modalElems = document.querySelectorAll(".modal");
         M.Modal.init(modalElems);
         inicializarSelects();
+        inicializarBusquedaInstituciones();
 
         if (ui.btnBuscar) {
           ui.btnBuscar.addEventListener("click", cargarHerramientas);
@@ -401,13 +479,10 @@
             if (ui.formHerramienta) {
               ui.formHerramienta.reset();
             }
-            if (puedeEditarInstitucion && ui.institucionSelect) {
-              const opcionSeleccionada = ui.institucionSelect.querySelector(
-                "option[selected]"
-              );
-              ui.institucionSelect.value = opcionSeleccionada
-                ? opcionSeleccionada.value
-                : "";
+            if (puedeEditarInstitucion) {
+              limpiarSeleccionInstitucion();
+            } else {
+              restablecerInstitucionBase();
             }
             herramientaEditandoId = null;
             if (ui.modalTituloHerramienta) {
@@ -418,6 +493,7 @@
             modal?.open();
             setTimeout(() => {
               inicializarSelects();
+              inicializarBusquedaInstituciones();
               M.updateTextFields();
               if (ui.descripcionHerramienta) {
                 ui.descripcionHerramienta.value = "";
@@ -505,6 +581,206 @@
       function inicializarSelects() {
         const selects = document.querySelectorAll("select");
         M.FormSelect.init(selects);
+      }
+
+      function prepararDatosInstituciones() {
+        mapaInstitucionesPorId.clear();
+        mapaInstitucionesPorEtiqueta.clear();
+        institucionesDisponibles.forEach((inst) => {
+          if (!inst || inst.id === undefined || inst.id === null) {
+            return;
+          }
+          const etiqueta = obtenerEtiquetaInstitucion(inst);
+          if (!etiqueta) {
+            return;
+          }
+          const info = {
+            id: String(inst.id),
+            nombre: inst.nombre || "",
+            sigla: inst.sigla || "",
+            etiqueta,
+          };
+          mapaInstitucionesPorId.set(info.id, info);
+          mapaInstitucionesPorEtiqueta.set(etiqueta.toLowerCase(), info);
+        });
+      }
+
+      function obtenerEtiquetaInstitucion(institucion) {
+        if (!institucion) {
+          return "";
+        }
+        const nombre = (institucion.nombre || "").trim();
+        const sigla = (institucion.sigla || "").trim();
+        if (!nombre) {
+          return "";
+        }
+        return sigla ? `${nombre} - ${sigla}` : nombre;
+      }
+
+      function inicializarBusquedaInstituciones() {
+        if (!puedeEditarInstitucion) {
+          restablecerInstitucionBase();
+          actualizarEtiquetaInstitucionBase();
+          return;
+        }
+
+        const input = ui.institucionAutocomplete;
+        if (!input) {
+          return;
+        }
+
+        const data = {};
+        mapaInstitucionesPorId.forEach((info) => {
+          if (info.etiqueta) {
+            data[info.etiqueta] = null;
+          }
+        });
+
+        let instance = M.Autocomplete.getInstance(input);
+        if (instance) {
+          instance.updateData(data);
+          instance.options.limit = 5;
+        } else {
+          instance = M.Autocomplete.init(input, {
+            data,
+            minLength: 0,
+            limit: 5,
+            onAutocomplete: (seleccion) => {
+              const info = mapaInstitucionesPorEtiqueta.get(
+                (seleccion || "").toLowerCase()
+              );
+              if (info) {
+                if (ui.institucionHerramienta) {
+                  ui.institucionHerramienta.value = info.id;
+                }
+                input.value = info.etiqueta;
+                input.classList.remove("invalid");
+              }
+            },
+          });
+          input.dataset.autocompleteInicializado = "true";
+          input.addEventListener("focus", () => {
+            const autocomplete = M.Autocomplete.getInstance(input);
+            autocomplete?.open();
+          });
+          input.addEventListener("input", () => {
+            if (ui.institucionHerramienta) {
+              ui.institucionHerramienta.value = "";
+            }
+            input.classList.remove("invalid");
+          });
+          input.addEventListener("blur", () => {
+            validarInstitucionSeleccionada();
+          });
+        }
+
+        if (ui.institucionHerramienta?.value) {
+          establecerInstitucionSeleccionadaPorId(
+            ui.institucionHerramienta.value
+          );
+        } else {
+          limpiarSeleccionInstitucion();
+        }
+      }
+
+      function limpiarSeleccionInstitucion() {
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = "";
+        }
+        if (ui.institucionAutocomplete) {
+          ui.institucionAutocomplete.value = "";
+          ui.institucionAutocomplete.classList.remove("invalid");
+          M.updateTextFields();
+        }
+      }
+
+      function restablecerInstitucionBase() {
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = institucionBaseId || "";
+        }
+        if (puedeEditarInstitucion && ui.institucionAutocomplete) {
+          ui.institucionAutocomplete.value = "";
+          ui.institucionAutocomplete.classList.remove("invalid");
+          M.updateTextFields();
+        } else {
+          actualizarEtiquetaInstitucionBase();
+        }
+      }
+
+      function actualizarEtiquetaInstitucionBase() {
+        if (puedeEditarInstitucion) {
+          return;
+        }
+        if (ui.institucionNombre) {
+          const texto = institucionBaseNombre || "No asociada";
+          ui.institucionNombre.textContent = texto;
+        }
+      }
+
+      function validarInstitucionSeleccionada() {
+        if (!puedeEditarInstitucion) {
+          return Boolean(ui.institucionHerramienta?.value || institucionBaseId);
+        }
+        const input = ui.institucionAutocomplete;
+        if (!input) {
+          return false;
+        }
+        const valorTexto = input.value.trim();
+        if (!valorTexto) {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = "";
+          }
+          input.classList.add("invalid");
+          return false;
+        }
+        const info = mapaInstitucionesPorEtiqueta.get(valorTexto.toLowerCase());
+        if (info) {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = info.id;
+          }
+          input.value = info.etiqueta;
+          input.classList.remove("invalid");
+          return true;
+        }
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = "";
+        }
+        input.classList.add("invalid");
+        return false;
+      }
+
+      function establecerInstitucionSeleccionadaPorId(
+        id,
+        nombreAlternativo = ""
+      ) {
+        const valorId = id != null ? String(id) : "";
+        if (puedeEditarInstitucion) {
+          const info = valorId ? mapaInstitucionesPorId.get(valorId) : null;
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = info ? info.id : valorId;
+          }
+          if (ui.institucionAutocomplete) {
+            ui.institucionAutocomplete.value = info
+              ? info.etiqueta
+              : nombreAlternativo || "";
+            ui.institucionAutocomplete.classList.remove("invalid");
+            M.updateTextFields();
+          }
+        } else {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = valorId;
+          }
+          const info = valorId ? mapaInstitucionesPorId.get(valorId) : null;
+          institucionBaseId = valorId;
+          institucionBaseNombre = info
+            ? info.nombre || info.etiqueta
+            : nombreAlternativo || institucionBaseNombre;
+          if (ui.institucionTag) {
+            ui.institucionTag.dataset.institucionId = institucionBaseId;
+            ui.institucionTag.dataset.institucionNombre = institucionBaseNombre;
+          }
+          actualizarEtiquetaInstitucionBase();
+        }
       }
 
       function renderHerramientas() {
@@ -663,14 +939,19 @@
           : "";
         const recurso = (ui.recursoHerramienta?.value || "").trim();
 
-        const institucionBase = ui.institucionTag
-          ? Number(ui.institucionTag.dataset.institucionId || 0)
+        let institucionSeleccionada = ui.institucionHerramienta
+          ? Number(ui.institucionHerramienta.value || 0)
           : 0;
-
-        let institucionSeleccionada = institucionBase;
-        if (puedeEditarInstitucion && ui.institucionSelect) {
-          const valorSeleccion = ui.institucionSelect.value;
-          institucionSeleccionada = valorSeleccion ? Number(valorSeleccion) : 0;
+        if (puedeEditarInstitucion) {
+          if (!validarInstitucionSeleccionada()) {
+            M.toast({ html: "Seleccione una institución válida." });
+            return;
+          }
+          institucionSeleccionada = ui.institucionHerramienta
+            ? Number(ui.institucionHerramienta.value || 0)
+            : 0;
+        } else if (!institucionSeleccionada) {
+          institucionSeleccionada = Number(institucionBaseId || 0);
         }
 
         const esEdicion = Boolean(herramientaEditandoId);
@@ -723,16 +1004,25 @@
             ui.formHerramienta.reset();
           }
           inicializarSelects();
+          inicializarBusquedaInstituciones();
           M.updateTextFields();
-          if (!puedeEditarInstitucion && ui.institucionTag) {
-            ui.institucionTag.dataset.institucionId = String(
-              institucionSeleccionada
-            );
-            const spanInstitucion = document.getElementById("institucionNombre");
-            if (spanInstitucion) {
-              spanInstitucion.textContent =
-                ui.institucionTag.dataset.institucionNombre || spanInstitucion.textContent;
+          if (puedeEditarInstitucion) {
+            limpiarSeleccionInstitucion();
+          } else {
+            const valorId = String(institucionSeleccionada || '');
+            if (ui.institucionTag) {
+              ui.institucionTag.dataset.institucionId = valorId;
             }
+            const info = mapaInstitucionesPorId.get(valorId);
+            const nombreBase = info
+              ? info.nombre || info.etiqueta
+              : ui.institucionTag?.dataset.institucionNombre || '';
+            institucionBaseId = valorId;
+            institucionBaseNombre = nombreBase || institucionBaseNombre;
+            if (ui.institucionTag) {
+              ui.institucionTag.dataset.institucionNombre = institucionBaseNombre;
+            }
+            restablecerInstitucionBase();
           }
           if (ui.modalTituloHerramienta) {
             ui.modalTituloHerramienta.textContent = "NUEVA HERRAMIENTA DIGITAL";
@@ -800,23 +1090,26 @@
         if (ui.recursoHerramienta) {
           ui.recursoHerramienta.value = herramienta.recurso || "";
         }
-        if (puedeEditarInstitucion && ui.institucionSelect) {
-          establecerValorSelect(
-            ui.institucionSelect,
-            herramienta.id_institucion
+        if (puedeEditarInstitucion) {
+          establecerInstitucionSeleccionadaPorId(
+            herramienta.id_institucion,
+            herramienta.institucion || ""
           );
-        } else if (!puedeEditarInstitucion && ui.institucionTag) {
-          ui.institucionTag.dataset.institucionId = herramienta.id_institucion || "";
+        } else if (ui.institucionTag) {
+          ui.institucionTag.dataset.institucionId =
+            herramienta.id_institucion != null
+              ? String(herramienta.id_institucion)
+              : "";
           ui.institucionTag.dataset.institucionNombre =
-            herramienta.institucion || "";
-          const spanInstitucion = document.getElementById("institucionNombre");
-          if (spanInstitucion) {
-            spanInstitucion.textContent =
-              herramienta.institucion || spanInstitucion.textContent;
-          }
+            herramienta.institucion || ui.institucionTag.dataset.institucionNombre || "";
+          institucionBaseId = ui.institucionTag.dataset.institucionId || "";
+          institucionBaseNombre =
+            ui.institucionTag.dataset.institucionNombre || institucionBaseNombre;
+          restablecerInstitucionBase();
         }
 
         inicializarSelects();
+        inicializarBusquedaInstituciones();
         M.updateTextFields();
 
         const modal = obtenerInstanciaModal(ui.modalHerramienta);
