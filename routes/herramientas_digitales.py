@@ -60,6 +60,14 @@ def inicio():
     .all()
   )
   instituciones = obtener_instituciones_para(usuario)
+  instituciones_disponibles = [
+    {
+      'id': institucion.id,
+      'nombre': institucion.nombre or '',
+      'sigla': institucion.sigla or '',
+    }
+    for institucion in instituciones
+  ]
   institucion_usuario = usuario.institucion if usuario else None
   puede_editar_institucion = usuario.puede_gestionar_multiples_instituciones if usuario else False
   return render_template(
@@ -67,7 +75,7 @@ def inicio():
     categorias=categorias,
     tipos_servicio=tipos_servicio,
     institucion_usuario=institucion_usuario,
-    instituciones_disponibles=instituciones,
+    instituciones_disponibles=instituciones_disponibles,
     puede_editar_institucion=puede_editar_institucion,
   )
 
