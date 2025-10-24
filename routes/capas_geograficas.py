@@ -305,35 +305,67 @@ def listar():
   if usuario.es_gestor:
     consulta = consulta.filter(CapaGeografica.id_institucion == usuario.id_institucion)
 
-  data = []
+  activos = []
+  inactivos = []
+  sin_estado = []
+
   for capa in consulta.all():
-    servicios_en_capa = [
-      (serv.tipo_servicio.id, serv.tipo_servicio.nombre)
-      for serv in capa.servicios
-      if serv.tipo_servicio
-    ]
-    servicios = ', '.join(nombre for _, nombre in servicios_en_capa)
-    data.append(
-      {
-        'id': capa.id,
-        'nombre': capa.nombre,
-        'descripcion': capa.descripcion,
-        'tipo_capa': capa.tipo_capa,
-        'en_geoperu': capa.publicar_geoperu,
-        'servicios': servicios,
-        'categoria': capa.categoria.nombre if capa.categoria else None,
-        'id_categoria': capa.id_categoria,
-        'institucion_sigla': (
-          capa.institucion.sigla or '' if capa.institucion else ''
-        ),
-        'institucion_nombre': (
-          capa.institucion.nombre if capa.institucion else None
-        ),
-        'id_institucion': capa.id_institucion,
-        'servicio_ids': [serv_id for serv_id, _ in servicios_en_capa],
-      }
+    servicios_detalle = []
+    tiene_activos = False
+    tiene_inactivos = False
+
+    for servicio in capa.servicios:
+      if not servicio.tipo_servicio:
+        continue
+
+      estado_servicio = None
+      if servicio.estado is True:
+        estado_servicio = True
+        tiene_activos = True
+      elif servicio.estado is False:
+        estado_servicio = False
+        tiene_inactivos = True
+
+      servicios_detalle.append(
+        {
+          'id': servicio.tipo_servicio.id,
+          'nombre': servicio.tipo_servicio.nombre,
+          'estado': estado_servicio,
+        }
+      )
+
+    nombres_servicios = ', '.join(
+      detalle['nombre'] for detalle in servicios_detalle if detalle.get('nombre')
     )
-  return jsonify(data)
+
+    capa_data = {
+      'id': capa.id,
+      'nombre': capa.nombre,
+      'descripcion': capa.descripcion,
+      'tipo_capa': capa.tipo_capa,
+      'en_geoperu': capa.publicar_geoperu,
+      'servicios': nombres_servicios,
+      'servicios_detalle': servicios_detalle,
+      'categoria': capa.categoria.nombre if capa.categoria else None,
+      'id_categoria': capa.id_categoria,
+      'institucion_sigla': (
+        capa.institucion.sigla or '' if capa.institucion else ''
+      ),
+      'institucion_nombre': (
+        capa.institucion.nombre if capa.institucion else None
+      ),
+      'id_institucion': capa.id_institucion,
+      'servicio_ids': [detalle['id'] for detalle in servicios_detalle],
+    }
+
+    if tiene_activos and not tiene_inactivos:
+      activos.append(capa_data)
+    elif tiene_inactivos and not tiene_activos:
+      inactivos.append(capa_data)
+    else:
+      sin_estado.append(capa_data)
+
+  return jsonify({'activos': activos, 'inactivos': inactivos, 'sin_estado': sin_estado})
 
 
 @bp.route('/detalle/<int:capa_id>')

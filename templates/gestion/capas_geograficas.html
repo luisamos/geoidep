@@ -110,6 +110,66 @@
       .estado-indicador--oculto {
         visibility: hidden;
       }
+
+      .estado-filtros-row {
+        margin-bottom: 0;
+      }
+
+      .estado-filtros {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+      }
+
+      .servicios-listado {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .servicio-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 14px;
+        border: 2px solid transparent;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        background-color: #fafafa;
+      }
+
+      .servicio-badge--activo {
+        border-color: #2e7d32;
+        color: #2e7d32;
+      }
+
+      .servicio-badge--inactivo {
+        border-color: #c62828;
+        color: #c62828;
+      }
+
+      .servicio-badge--sin-estado {
+        border-color: #9e9e9e;
+        color: #616161;
+      }
+
+      .select-search-wrapper {
+        padding: 8px 16px;
+        position: sticky;
+        top: 0;
+        background-color: #fff;
+        z-index: 2;
+      }
+
+      .select-search-wrapper input {
+        margin: 0;
+      }
+
+      .select-dropdown.dropdown-content.with-search {
+        max-height: 260px !important;
+        overflow-y: auto !important;
+      }
     </style>
   </head>
 
@@ -158,6 +218,21 @@
             >
               <i class="material-icons left">add</i>Nueva capa
             </button>
+          </div>
+        </div>
+
+        <div class="row estado-filtros-row">
+          <div class="col s12 m6 l4">
+            <div class="estado-filtros">
+              <div class="switch">
+                <label>
+                  Inactivo
+                  <input type="checkbox" id="switchEstados" checked />
+                  <span class="lever"></span>
+                  Activo
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -290,7 +365,6 @@
       </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
       const iconoEditar = "{{ url_for('static', filename='images/editar.png') }}";
@@ -329,6 +403,7 @@
 
       const tablaCapas = document.querySelector("#tablaCapas tbody");
       let capas = [];
+      let capasCache = { activos: [], inactivos: [], sin_estado: [] };
       let modalInstance = null;
       const tablaServiciosBody = document.querySelector(
         "#tablaServicios tbody"
@@ -339,6 +414,7 @@
           "select:not(.browser-default)"
         );
         M.FormSelect.init(selects);
+        inicializarBusquedaInstituciones();
         if (!modalInstance) {
           const modalElement = document.getElementById("modalCapa");
           if (modalElement) {
@@ -353,6 +429,120 @@
         );
         M.FormSelect.init(formSelects);
         M.updateTextFields();
+        inicializarBusquedaInstituciones();
+      }
+
+      function inicializarBusquedaInstituciones() {
+        const select = document.getElementById("institucion_capa");
+        if (!select) {
+          return;
+        }
+
+        const instance = M.FormSelect.getInstance(select);
+        if (!instance) {
+          return;
+        }
+
+        const selectId = select.getAttribute("id");
+        if (!selectId) {
+          return;
+        }
+
+        const dropdownId = `select-options-${selectId}`;
+        const dropdown = document.getElementById(dropdownId);
+        if (!dropdown) {
+          return;
+        }
+
+        dropdown.classList.add("with-search");
+        dropdown.style.maxHeight = "260px";
+        dropdown.style.overflowY = "auto";
+
+        let searchWrapper = dropdown.querySelector(".select-search-wrapper");
+        if (!searchWrapper) {
+          searchWrapper = document.createElement("li");
+          searchWrapper.className = "select-search-wrapper";
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.className = "select-search-input";
+          searchInput.placeholder = "Buscar institución";
+          searchWrapper.appendChild(searchInput);
+          dropdown.insertBefore(searchWrapper, dropdown.firstChild);
+        }
+
+        const searchInput = searchWrapper.querySelector("input");
+        if (!searchInput) {
+          return;
+        }
+
+        const yaTieneBusqueda = searchInput.dataset.enhanced === "true";
+
+        const obtenerOpciones = () =>
+          Array.from(dropdown.querySelectorAll("li")).filter(
+            (item) =>
+              !item.classList.contains("select-search-wrapper") &&
+              !item.classList.contains("optgroup") &&
+              !item.classList.contains("divider")
+          );
+
+        const dropdownInstance = instance.dropdown;
+
+        const recalcular = () => {
+          if (
+            dropdownInstance &&
+            typeof dropdownInstance.recalculateDimensions === "function"
+          ) {
+            dropdownInstance.recalculateDimensions();
+          }
+        };
+
+        const filtrarOpciones = () => {
+          const termino = searchInput.value.trim().toLowerCase();
+          obtenerOpciones().forEach((item) => {
+            if (item.classList.contains("disabled")) {
+              return;
+            }
+            const texto = (item.textContent || "").toLowerCase();
+            const coincide = !termino || texto.includes(termino);
+            item.style.display = coincide ? "" : "none";
+          });
+          recalcular();
+        };
+
+        if (!yaTieneBusqueda) {
+          searchInput.addEventListener("input", filtrarOpciones);
+        }
+
+        if (dropdownInstance && !dropdownInstance.__searchEnhanced) {
+          const originalOpen = dropdownInstance.options.onOpenEnd;
+          dropdownInstance.options.onOpenEnd = function (...args) {
+            if (typeof originalOpen === "function") {
+              originalOpen.apply(this, args);
+            }
+            setTimeout(() => {
+              searchInput.focus();
+              filtrarOpciones();
+            }, 0);
+          };
+
+          const originalClose = dropdownInstance.options.onCloseEnd;
+          dropdownInstance.options.onCloseEnd = function (...args) {
+            if (typeof originalClose === "function") {
+              originalClose.apply(this, args);
+            }
+            searchInput.value = "";
+            obtenerOpciones().forEach((item) => {
+              item.style.display = "";
+            });
+            recalcular();
+          };
+
+          dropdownInstance.__searchEnhanced = true;
+        }
+
+        if (!yaTieneBusqueda) {
+          searchInput.dataset.enhanced = "true";
+        }
       }
 
       function limpiarFormulario() {
@@ -1034,13 +1224,45 @@
           const nombre = escaparHtml(capa.nombre || "");
           const categoria = escaparHtml(capa.categoria || "");
           const institucion = escaparHtml(capa.institucion_sigla || "");
-          const servicios = escaparHtml(capa.servicios || "");
+          const serviciosDetalle = Array.isArray(capa.servicios_detalle)
+            ? capa.servicios_detalle
+            : [];
+
+          let serviciosHtml = "";
+          if (serviciosDetalle.length) {
+            serviciosHtml = serviciosDetalle
+              .map((servicio) => {
+                const nombreServicio = escaparHtml(servicio.nombre || "");
+                let claseEstado = "servicio-badge--sin-estado";
+                let tituloEstado = "Estado no especificado";
+                if (servicio.estado === true) {
+                  claseEstado = "servicio-badge--activo";
+                  tituloEstado = "Servicio activo";
+                } else if (servicio.estado === false) {
+                  claseEstado = "servicio-badge--inactivo";
+                  tituloEstado = "Servicio inactivo";
+                }
+                return `<span class="servicio-badge ${claseEstado}" title="${tituloEstado}">${nombreServicio}</span>`;
+              })
+              .join("");
+          }
+
+          let serviciosContenido = "";
+          if (serviciosHtml) {
+            serviciosContenido = `<div class="servicios-listado">${serviciosHtml}</div>`;
+          } else if (capa.servicios) {
+            serviciosContenido = escaparHtml(capa.servicios);
+          } else {
+            serviciosContenido =
+              "<span class=\"grey-text text-darken-1\">Sin servicios</span>";
+          }
+
           fila.innerHTML = `
             <td style="padding-left:20px;">${index + 1}</td>
             <td>${nombre}</td>
             <td>${categoria}</td>
             <td>${institucion}</td>
-            <td>${servicios}</td>
+            <td>${serviciosContenido}</td>
             <td class="col-opciones">
               <img
                 src="${iconoEditar}"
@@ -1067,10 +1289,23 @@
       async function cargarCapas() {
         try {
           const respuesta = await fetch("/capas_geograficas/listar");
+          const json = await respuesta.json();
           if (!respuesta.ok) {
-            throw new Error("No se pudo obtener la lista de capas.");
+            throw new Error(
+              json && json.message
+                ? json.message
+                : "No se pudo obtener la lista de capas."
+            );
           }
-          capas = await respuesta.json();
+          capasCache = {
+            activos: Array.isArray(json.activos) ? json.activos : [],
+            inactivos: Array.isArray(json.inactivos) ? json.inactivos : [],
+            sin_estado: Array.isArray(json.sin_estado) ? json.sin_estado : [],
+          };
+          capas = []
+            .concat(capasCache.activos)
+            .concat(capasCache.inactivos)
+            .concat(capasCache.sin_estado);
           aplicarFiltros();
         } catch (error) {
           console.error(error);
@@ -1087,7 +1322,15 @@
         const filtroTipoServicio =
           document.getElementById("filtroTipoServicio").value;
 
-        const filtradas = capas.filter((capa) => {
+        const switchEstados = document.getElementById("switchEstados");
+        const mostrarActivos = switchEstados ? switchEstados.checked : true;
+
+        let base = mostrarActivos
+          ? (capasCache.activos || []).slice()
+          : (capasCache.inactivos || []).slice();
+        base = base.concat(capasCache.sin_estado || []);
+
+        const filtradas = base.filter((capa) => {
           const coincideNombre = capa.nombre
             ? capa.nombre.toLowerCase().includes(filtroNombre)
             : false;
@@ -1198,6 +1441,11 @@
         document
           .getElementById("filtroTipoServicio")
           .addEventListener("change", aplicarFiltros);
+
+        const switchEstados = document.getElementById("switchEstados");
+        if (switchEstados) {
+          switchEstados.addEventListener("change", aplicarFiltros);
+        }
 
         tablaCapas.addEventListener("click", async (event) => {
           const accion = event.target.closest("img[data-action]");
