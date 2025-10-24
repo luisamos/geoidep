@@ -8,6 +8,7 @@ from flask_jwt_extended import jwt_required
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from requests.exceptions import RequestException
+from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -25,29 +26,37 @@ OGC_WFS_IDS = {12}
 OGC_WMTS_IDS = {14}
 ARCGIS_MAPSERVER_IDS = {17}
 
-
-def _obtener_instituciones_para(usuario):
-  consulta = Institucion.query.filter(Institucion.id >= 45)
-  if usuario and usuario.es_gestor:
-    consulta = consulta.filter(Institucion.id == usuario.id_institucion)
-  return consulta.order_by(Institucion.id.asc()).all()
-
-def _limpiar_texto(elemento):
+def limpiar_texto(elemento):
   if not elemento or not elemento.text:
     return None
   texto = elemento.text.strip()
   return texto or None
 
+def sincronizar_secuencia(modelo):
+  tabla = modelo.__table__
+  pk_columna = next(iter(tabla.primary_key.columns))
+  atributo_pk = getattr(modelo, pk_columna.name)
+  max_id = db.session.query(func.coalesce(func.max(atributo_pk), 0)).scalar()
+  nombre_secuencia = f"{tabla.name}_{pk_columna.name}_seq"
+  if tabla.schema:
+    nombre_secuencia = f"{tabla.schema}.{nombre_secuencia}"
+  valor = max_id if max_id else 1
+  db.session.execute(
+      text("SELECT setval(:secuencia::regclass, :valor, :llamado)"),
+      {
+          'secuencia': nombre_secuencia,
+          'valor': valor,
+          'llamado': bool(max_id),
+      },
+  )
 
-def _obtener_nombre_local(tag):
-  if not tag:
-    return ''
-  if '}' in tag:
-    return tag.split('}', 1)[1]
-  return tag
+def obtener_instituciones_para(usuario):
+  consulta = Institucion.query.filter(Institucion.id >= 45)
+  if usuario and usuario.es_gestor:
+    consulta = consulta.filter(Institucion.id == usuario.id_institucion)
+  return consulta.order_by(Institucion.id.asc()).all()
 
-
-def _extraer_capas_wms(contenido):
+def extraer_capas_wms(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
 
@@ -75,51 +84,35 @@ def _extraer_capas_wms(contenido):
 
   return capas
 
-def _extraer_capas_wfs(contenido):
+def extraer_capas_wfs(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
   for feature in raiz.findall('.//{*}FeatureType'):
-    nombre = _limpiar_texto(feature.find('{*}Name'))
+    nombre = limpiar_texto(feature.find('{*}Name'))
     if not nombre:
       continue
-    titulo = _limpiar_texto(feature.find('{*}Title'))
+    titulo = limpiar_texto(feature.find('{*}Title'))
     etiqueta = titulo if titulo else nombre
     if titulo and titulo != nombre:
       etiqueta = f"{titulo} ({nombre})"
       capas.append({'value': nombre, 'label': etiqueta})
   return capas
 
-
-def _extraer_capas_wmts(contenido):
+def extraer_capas_wmts(contenido):
   capas = []
   raiz = ET.fromstring(contenido)
   for layer in raiz.findall('.//{*}Contents/{*}Layer'):
-    identificador = _limpiar_texto(layer.find('{*}Identifier'))
+    identificador = limpiar_texto(layer.find('{*}Identifier'))
     if not identificador:
       continue
-    titulo = _limpiar_texto(layer.find('{*}Title'))
+    titulo = limpiar_texto(layer.find('{*}Title'))
     etiqueta = titulo if titulo else identificador
     if titulo and titulo != identificador:
       etiqueta = f"{titulo} ({identificador})"
       capas.append({'value': identificador, 'label': etiqueta})
   return capas
 
-
-def _extraer_capas_wmts(contenido):
-  capas = []
-  raiz = ET.fromstring(contenido)
-  for layer in raiz.findall('.//{*}Contents/{*}Layer'):
-    identificador = _limpiar_texto(layer.find('{*}Identifier'))
-    if not identificador:
-      continue
-    titulo = _limpiar_texto(layer.find('{*}Title'))
-    etiqueta = titulo if titulo else identificador
-    if titulo and titulo != identificador:
-      etiqueta = f"{titulo} ({identificador})"
-    capas.append({'value': identificador, 'label': etiqueta})
-  return capas
-
-def _es_servicio_wms(tipo_servicio):
+def es_servicio_wms(tipo_servicio):
   if not tipo_servicio:
     return False
   if tipo_servicio.id in OGC_WMS_IDS:
@@ -127,8 +120,7 @@ def _es_servicio_wms(tipo_servicio):
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wms' in nombre
 
-
-def _es_servicio_wfs(tipo_servicio):
+def es_servicio_wfs(tipo_servicio):
   if not tipo_servicio:
     return False
   if tipo_servicio.id in OGC_WFS_IDS:
@@ -136,8 +128,7 @@ def _es_servicio_wfs(tipo_servicio):
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wfs' in nombre
 
-
-def _es_servicio_wmts(tipo_servicio):
+def es_servicio_wmts(tipo_servicio):
   if not tipo_servicio:
     return False
   if tipo_servicio.id in OGC_WMTS_IDS:
@@ -145,22 +136,21 @@ def _es_servicio_wmts(tipo_servicio):
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wmts' in nombre
 
-
-def _preparar_url_capabilities(tipo_servicio, url):
+def preparar_url_capabilities(tipo_servicio, url):
   if not url:
     return url
 
   parametros = None
-  if _es_servicio_wms(tipo_servicio):
+  if es_servicio_wms(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WMS'}
-  elif _es_servicio_wfs(tipo_servicio):
+  elif es_servicio_wfs(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WFS'}
-  elif _es_servicio_wmts(tipo_servicio):
+  elif es_servicio_wmts(tipo_servicio):
     parametros = {'request': 'GetCapabilities', 'service': 'WMTS'}
 
   if not parametros:
     return url
-  
+
   parsed = urlparse(url)
   query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
   claves_parametros = {clave.lower() for clave in parametros}
@@ -176,7 +166,7 @@ def _preparar_url_capabilities(tipo_servicio, url):
   parsed = parsed._replace(query=nueva_query)
   return urlunparse(parsed)
 
-def _es_servicio_arcgis_mapserver(tipo_servicio):
+def es_servicio_arcgis_mapserver(tipo_servicio):
   if not tipo_servicio:
     return False
   if tipo_servicio.id in ARCGIS_MAPSERVER_IDS:
@@ -186,7 +176,7 @@ def _es_servicio_arcgis_mapserver(tipo_servicio):
   nombre = (tipo_servicio.nombre or '').lower()
   return 'arcgis' in nombre and 'mapserver' in nombre
 
-def _asegurar_parametro(url, clave, valor):
+def asegurar_parametro(url, clave, valor):
   if not url:
     return url
 
@@ -198,8 +188,8 @@ def _asegurar_parametro(url, clave, valor):
   nueva_query = urlencode(filtrados, doseq=True)
   return urlunparse(parsed._replace(query=nueva_query))
 
-def _obtener_capas_desde_mapserver(url):
-  url_json = _asegurar_parametro(url, 'f', 'pjson')
+def obtener_capas_desde_mapserver(url):
+  url_json = asegurar_parametro(url, 'f', 'pjson')
   try:
     respuesta = requests.get(url_json, timeout=15)
     respuesta.raise_for_status()
@@ -224,8 +214,8 @@ def _obtener_capas_desde_mapserver(url):
 
   return capas
 
-def _obtener_capas_desde_servicio(tipo_servicio, url):
-  url_capabilities = _preparar_url_capabilities(tipo_servicio, url)
+def obtener_capas_desde_servicio(tipo_servicio, url):
+  url_capabilities = preparar_url_capabilities(tipo_servicio, url)
   try:
     respuesta = requests.get(url_capabilities, timeout=15)
     respuesta.raise_for_status()
@@ -234,17 +224,16 @@ def _obtener_capas_desde_servicio(tipo_servicio, url):
 
   contenido = respuesta.text
   try:
-    if _es_servicio_wms(tipo_servicio):
-      return _extraer_capas_wms(contenido)
-    if _es_servicio_wfs(tipo_servicio):
-      return _extraer_capas_wfs(contenido)
-    if _es_servicio_wmts(tipo_servicio):
-      return _extraer_capas_wmts(contenido)
+    if es_servicio_wms(tipo_servicio):
+      return extraer_capas_wms(contenido)
+    if es_servicio_wfs(tipo_servicio):
+      return extraer_capas_wfs(contenido)
+    if es_servicio_wmts(tipo_servicio):
+      return extraer_capas_wmts(contenido)
   except ET.ParseError as error:
     raise ValueError('La respuesta del servicio no es un XML válido.') from error
 
   raise ValueError('El tipo de servicio OGC seleccionado no está soportado.')
-
 
 @bp.route('/')
 @jwt_required()
@@ -270,7 +259,15 @@ def inicio():
     }
     for tipo in tipos_serv_query
   ]
-  instituciones = _obtener_instituciones_para(usuario)
+  instituciones = obtener_instituciones_para(usuario)
+  instituciones_disponibles = [
+    {
+      'id': institucion.id,
+      'nombre': institucion.nombre or '',
+      'sigla': institucion.sigla or '',
+    }
+    for institucion in instituciones
+  ]
   puede_editar_institucion = (
     usuario.puede_gestionar_multiples_instituciones if usuario else False
   )
@@ -278,7 +275,7 @@ def inicio():
     'gestion/capas_geograficas.html',
     categorias=categorias,
     tipos_serv=tipos_serv,
-    instituciones=instituciones,
+    instituciones_disponibles=instituciones_disponibles,
     institucion_usuario=usuario.institucion if usuario else None,
     puede_editar_institucion=puede_editar_institucion,
   )
@@ -544,6 +541,7 @@ def guardar():
         403,
       )
   else:
+    sincronizar_secuencia(CapaGeografica)
     capa = CapaGeografica(usuario_crea=usuario.id)
     db.session.add(capa)
 
@@ -701,7 +699,7 @@ def guardar():
             400,
           )
         servicio['titulo_capa'] = None
-    elif _es_servicio_arcgis_mapserver(tipo_servicio):
+    elif es_servicio_arcgis_mapserver(tipo_servicio):
       if servicio['estado']:
         if not servicio['nombre_capa'] or not servicio['titulo_capa']:
           return (
@@ -770,6 +768,7 @@ def guardar():
         )
       ids_a_conservar.add(servicio_id)
     else:
+      sincronizar_secuencia(ServicioGeografico)
       servicio_instancia = ServicioGeografico(
         capa=capa,
         usuario_crea=usuario.id,
@@ -857,9 +856,9 @@ def obtener_capas_servicio():
 
   try:
     if tipo_servicio.id_padre == 2:
-      capas = _obtener_capas_desde_servicio(tipo_servicio, url)
-    elif _es_servicio_arcgis_mapserver(tipo_servicio):
-      capas = _obtener_capas_desde_mapserver(url)
+      capas = obtener_capas_desde_servicio(tipo_servicio, url)
+    elif es_servicio_arcgis_mapserver(tipo_servicio):
+      capas = obtener_capas_desde_mapserver(url)
     else:
       return (
         jsonify(

@@ -26,7 +26,6 @@ def obtener_instituciones_para(usuario):
     consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
   return consulta.order_by(Institucion.id.asc()).all()
 
-
 @bp.route('/')
 @jwt_required()
 def inicio():

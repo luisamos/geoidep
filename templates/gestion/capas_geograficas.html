@@ -67,6 +67,11 @@
         gap: 16px;
       }
 
+      .institucion-label {
+        margin: 8px 0 0;
+        font-weight: 500;
+      }
+
       .tabla-servicios {
         margin-top: 24px;
       }
@@ -115,23 +120,35 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 8px 0;
       }
 
       .estado-filtros-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
         margin-bottom: 0;
+        flex-wrap: wrap;
       }
 
       .estado-filtros-acciones {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding: 8px 0;
+        gap: 12px;
       }
 
       @media (max-width: 600px) {
+        .estado-filtros-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+
         .estado-filtros-acciones {
           justify-content: flex-start;
+          width: 100%;
         }
       }
 
@@ -180,8 +197,8 @@
       }
 
       .select-dropdown.dropdown-content.with-search {
-        max-height: 260px !important;
-        overflow-y: auto !important;
+        max-height: none !important;
+        overflow-y: hidden !important;
       }
     </style>
   </head>
@@ -224,28 +241,30 @@
           </div>
         </div>
 
-        <div class="row estado-filtros-row">
-          <div class="col s12 m6 l6">
-            <div class="estado-filtros">
-              <div class="switch">
-                <label>
-                  Inactivo
-                  <input type="checkbox" id="switchEstados" checked />
-                  <span class="lever"></span>
-                  Activo
-                </label>
+        <div class="row">
+          <div class="col s12">
+            <div class="estado-filtros-row">
+              <div class="estado-filtros">
+                <div class="switch">
+                  <label>
+                    Inactivo
+                    <input type="checkbox" id="switchEstados" checked />
+                    <span class="lever"></span>
+                    Activo
+                  </label>
+                </div>
+              </div>
+              <div class="estado-filtros-acciones">
+                <button
+                  id="btnAgregar"
+                  class="btn waves-light btn-small green"
+                  data-target="modalCapa"
+                  type="button"
+                >
+                  <i class="material-icons left">add</i>Nuevo
+                </button>
               </div>
             </div>
-          </div>
-          <div class="col s12 m6 l6 estado-filtros-acciones right-align">
-            <button
-              id="btnAgregar"
-              class="btn waves-light btn-small green"
-              data-target="modalCapa"
-              type="button"
-            >
-              <i class="material-icons left">add</i>Nueva capa
-            </button>
           </div>
         </div>
 
@@ -338,21 +357,46 @@
             <label>Categoría</label>
           </div>
 
+          {% if puede_editar_institucion %}
           <div class="input-field">
-            <select id="institucion_capa" required>
-              <option value="" disabled selected>Seleccione institución</option>
-              {% for inst in instituciones %}
-              <option value="{{ inst.id }}">{{ inst.nombre }}</option>
-              {% endfor %}
-            </select>
-            <label>Institución</label>
+            <input type="hidden" id="institucion_capa" />
+            <input
+              type="text"
+              id="institucion_autocomplete"
+              class="autocomplete validate"
+              autocomplete="off"
+              required
+            />
+            <label for="institucion_autocomplete">Institución</label>
+            <span
+              class="helper-text"
+              data-error="Seleccione una institución válida"
+            ></span>
           </div>
+          {% else %}
+          <div class="input-field">
+            <input
+              type="hidden"
+              id="institucion_capa"
+              value="{{ institucion_usuario.id if institucion_usuario else '' }}"
+            />
+            <label class="active" for="institucion_capa">Institución</label>
+            <p id="institucionNombre" class="institucion-label">
+              {{ institucion_usuario.nombre if institucion_usuario else 'No
+              asociada' }}
+            </p>
+          </div>
+          {% endif %}
 
           <div class="tabla-servicios">
             <h6>Servicios Asociados</h6>
-            <div class="responsive-table">
+            <div
+              class="responsive-table"
+              id="tablaServiciosWrapper"
+              style="display: none"
+            >
               <table class="highlight" id="tablaServicios">
-                <thead>
+                <thead id="tablaServiciosHead" style="display: none">
                   <tr>
                     <th>Tipo</th>
                     <th>Dirección</th>
@@ -392,6 +436,7 @@
       const iconoEliminar =
         "{{ url_for('static', filename='images/eliminar.png') }}";
       const tiposServicio = {{ tipos_serv | tojson | safe }};
+      const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
 
       function obtenerCookie(nombre) {
         const prefijo = `${nombre}=`;
@@ -440,15 +485,24 @@
         publicarGeoperu: null,
         categoriaCapa: null,
         institucionCapa: null,
+        institucionAutocomplete: null,
+        institucionNombre: null,
         btnAddServicio: null,
         imgCloseModalLayer: null,
         tablaServiciosBody: null,
+        tablaServiciosWrapper: null,
+        tablaServiciosHead: null,
         institucionTag: null,
       };
 
       let capas = [];
       let capasCache = { activos: [], inactivos: [], sin_estado: [] };
       let modalInstance = null;
+      let puedeEditarInstitucion = false;
+      const mapaInstitucionesPorId = new Map();
+      const mapaInstitucionesPorEtiqueta = new Map();
+      let institucionBaseId = '';
+      let institucionBaseNombre = '';
 
       function inicializarComponentesBase() {
         const selects = document.querySelectorAll(
@@ -474,115 +528,199 @@
       }
 
       function inicializarBusquedaInstituciones() {
-        const select = ui.institucionCapa;
-        if (!select) {
+        if (!puedeEditarInstitucion) {
+          actualizarEtiquetaInstitucionBase();
           return;
         }
 
-        const instance = M.FormSelect.getInstance(select);
-        if (!instance) {
+        const input = ui.institucionAutocomplete;
+        if (!input) {
           return;
         }
 
-        const selectId = select.getAttribute("id");
-        if (!selectId) {
-          return;
-        }
+        prepararDatosInstituciones();
 
-        const dropdownId = `select-options-${selectId}`;
-        const dropdown = document.getElementById(dropdownId);
-        if (!dropdown) {
-          return;
-        }
-
-        dropdown.classList.add("with-search");
-        dropdown.style.maxHeight = "260px";
-        dropdown.style.overflowY = "auto";
-
-        let searchWrapper = dropdown.querySelector(".select-search-wrapper");
-        if (!searchWrapper) {
-          searchWrapper = document.createElement("li");
-          searchWrapper.className = "select-search-wrapper";
-          const searchInput = document.createElement("input");
-          searchInput.type = "text";
-          searchInput.className = "select-search-input";
-          searchInput.placeholder = "Buscar institución";
-          searchWrapper.appendChild(searchInput);
-          dropdown.insertBefore(searchWrapper, dropdown.firstChild);
-        }
-
-        const searchInput = searchWrapper.querySelector("input");
-        if (!searchInput) {
-          return;
-        }
-
-        const yaTieneBusqueda = searchInput.dataset.enhanced === "true";
-
-        const obtenerOpciones = () =>
-          Array.from(dropdown.querySelectorAll("li")).filter(
-            (item) =>
-              !item.classList.contains("select-search-wrapper") &&
-              !item.classList.contains("optgroup") &&
-              !item.classList.contains("divider")
-          );
-
-        const dropdownInstance = instance.dropdown;
-
-        const recalcular = () => {
-          if (
-            dropdownInstance &&
-            typeof dropdownInstance.recalculateDimensions === "function"
-          ) {
-            dropdownInstance.recalculateDimensions();
+        const data = {};
+        mapaInstitucionesPorId.forEach((info) => {
+          if (info.etiqueta) {
+            data[info.etiqueta] = null;
           }
-        };
+        });
 
-        const filtrarOpciones = () => {
-          const termino = searchInput.value.trim().toLowerCase();
-          obtenerOpciones().forEach((item) => {
-            if (item.classList.contains("disabled")) {
-              return;
-            }
-            const texto = (item.textContent || "").toLowerCase();
-            const coincide = !termino || texto.includes(termino);
-            item.style.display = coincide ? "" : "none";
+        let instance = M.Autocomplete.getInstance(input);
+        if (instance) {
+          instance.updateData(data);
+        } else {
+          instance = M.Autocomplete.init(input, {
+            data,
+            minLength: 0,
+            onAutocomplete: (seleccion) => {
+              const info = mapaInstitucionesPorEtiqueta.get(
+                (seleccion || "").toLowerCase()
+              );
+              if (info) {
+                ui.institucionCapa.value = info.id;
+                input.value = info.etiqueta;
+                input.classList.remove("invalid");
+              }
+            },
           });
-          recalcular();
-        };
-
-        if (!yaTieneBusqueda) {
-          searchInput.addEventListener("input", filtrarOpciones);
-        }
-
-        if (dropdownInstance && !dropdownInstance.__searchEnhanced) {
-          const originalOpen = dropdownInstance.options.onOpenEnd;
-          dropdownInstance.options.onOpenEnd = function (...args) {
-            if (typeof originalOpen === "function") {
-              originalOpen.apply(this, args);
+          input.dataset.autocompleteInicializado = "true";
+          input.addEventListener("focus", () => {
+            const autocomplete = M.Autocomplete.getInstance(input);
+            if (autocomplete) {
+              autocomplete.open();
             }
-            setTimeout(() => {
-              searchInput.focus();
-              filtrarOpciones();
-            }, 0);
-          };
-
-          const originalClose = dropdownInstance.options.onCloseEnd;
-          dropdownInstance.options.onCloseEnd = function (...args) {
-            if (typeof originalClose === "function") {
-              originalClose.apply(this, args);
-            }
-            searchInput.value = "";
-            obtenerOpciones().forEach((item) => {
-              item.style.display = "";
-            });
-            recalcular();
-          };
-
-          dropdownInstance.__searchEnhanced = true;
+          });
+          input.addEventListener("input", () => {
+            ui.institucionCapa.value = "";
+            input.classList.remove("invalid");
+          });
+          input.addEventListener("blur", () => {
+            validarInstitucionSeleccionada();
+          });
         }
+      }
 
-        if (!yaTieneBusqueda) {
-          searchInput.dataset.enhanced = "true";
+      function obtenerEtiquetaInstitucion(institucion) {
+        if (!institucion) {
+          return "";
+        }
+        const nombre = (institucion.nombre || "").trim();
+        const sigla = (institucion.sigla || "").trim();
+        if (!nombre) {
+          return "";
+        }
+        return sigla ? `${nombre} - ${sigla}` : nombre;
+      }
+
+      function prepararDatosInstituciones() {
+        mapaInstitucionesPorId.clear();
+        mapaInstitucionesPorEtiqueta.clear();
+        institucionesDisponibles.forEach((inst) => {
+          if (!inst || inst.id === undefined || inst.id === null) {
+            return;
+          }
+          const etiqueta = obtenerEtiquetaInstitucion(inst);
+          if (!etiqueta) {
+            return;
+          }
+          const info = {
+            id: String(inst.id),
+            nombre: inst.nombre || "",
+            sigla: inst.sigla || "",
+            etiqueta,
+          };
+          mapaInstitucionesPorId.set(String(inst.id), info);
+          mapaInstitucionesPorEtiqueta.set(etiqueta.toLowerCase(), info);
+        });
+      }
+
+      function obtenerIdBaseInstitucion() {
+        return institucionBaseId || "";
+      }
+
+      function obtenerNombreBaseInstitucion() {
+        return institucionBaseNombre || "";
+      }
+
+      function actualizarEtiquetaInstitucionBase() {
+        if (puedeEditarInstitucion) {
+          return;
+        }
+        if (ui.institucionNombre) {
+          const texto = obtenerNombreBaseInstitucion() || "No asociada";
+          ui.institucionNombre.textContent = texto;
+        }
+      }
+
+      function limpiarSeleccionInstitucion() {
+        if (!ui.institucionCapa) {
+          return;
+        }
+        ui.institucionCapa.value = "";
+        if (ui.institucionAutocomplete) {
+          ui.institucionAutocomplete.value = "";
+          ui.institucionAutocomplete.classList.remove("invalid");
+          M.updateTextFields();
+        }
+      }
+
+      function restablecerInstitucionBase() {
+        if (!ui.institucionCapa) {
+          return;
+        }
+        ui.institucionCapa.value = obtenerIdBaseInstitucion();
+        actualizarEtiquetaInstitucionBase();
+      }
+
+      function validarInstitucionSeleccionada() {
+        if (!ui.institucionCapa) {
+          return false;
+        }
+        if (!puedeEditarInstitucion) {
+          const valor = ui.institucionCapa.value;
+          return Boolean(valor);
+        }
+        const input = ui.institucionAutocomplete;
+        if (!input) {
+          return false;
+        }
+        const valorTexto = input.value.trim();
+        if (!valorTexto) {
+          ui.institucionCapa.value = "";
+          input.classList.add("invalid");
+          return false;
+        }
+        const info = mapaInstitucionesPorEtiqueta.get(valorTexto.toLowerCase());
+        if (info) {
+          ui.institucionCapa.value = info.id;
+          input.value = info.etiqueta;
+          input.classList.remove("invalid");
+          return true;
+        }
+        ui.institucionCapa.value = "";
+        input.classList.add("invalid");
+        return false;
+      }
+
+      function establecerInstitucionSeleccionadaPorId(id, nombreAlternativo = "") {
+        if (!ui.institucionCapa) {
+          return;
+        }
+        const valorId = id != null ? String(id) : "";
+        if (puedeEditarInstitucion) {
+          const info = valorId ? mapaInstitucionesPorId.get(valorId) : null;
+          ui.institucionCapa.value = info ? info.id : valorId;
+          if (ui.institucionAutocomplete) {
+            ui.institucionAutocomplete.value = info
+              ? info.etiqueta
+              : nombreAlternativo || "";
+            ui.institucionAutocomplete.classList.remove("invalid");
+            M.updateTextFields();
+          }
+        } else {
+          ui.institucionCapa.value = valorId;
+          if (ui.institucionNombre) {
+            if (nombreAlternativo) {
+              ui.institucionNombre.textContent = nombreAlternativo;
+            } else {
+              actualizarEtiquetaInstitucionBase();
+            }
+          }
+        }
+      }
+
+      function actualizarVisibilidadTablaServicios() {
+        if (!ui.tablaServiciosBody) {
+          return;
+        }
+        const tieneFilas = Boolean(ui.tablaServiciosBody.querySelector("tr"));
+        if (ui.tablaServiciosWrapper) {
+          ui.tablaServiciosWrapper.style.display = tieneFilas ? "" : "none";
+        }
+        if (ui.tablaServiciosHead) {
+          ui.tablaServiciosHead.style.display = tieneFilas ? "" : "none";
         }
       }
 
@@ -593,8 +731,15 @@
         if (ui.capaId) {
           ui.capaId.value = "";
         }
+        if (ui.tipoCapaModal) {
+          ui.tipoCapaModal.value = "1";
+        }
+        if (puedeEditarInstitucion) {
+          limpiarSeleccionInstitucion();
+        } else {
+          restablecerInstitucionBase();
+        }
         limpiarTablaServicios();
-        agregarFilaServicio();
         setTimeout(() => {
           refrescarCamposFormulario();
           if (ui.descripcionCapa) {
@@ -608,6 +753,7 @@
         if (tablaServicios) {
           tablaServicios.innerHTML = "";
         }
+        actualizarVisibilidadTablaServicios();
       }
 
       function obtenerTipoServicioPorId(tipoId) {
@@ -908,6 +1054,7 @@
         } else {
           setEstadoFilaServicio(fila, true);
         }
+        actualizarVisibilidadTablaServicios();
       }
 
       function obtenerOpcionesDesdeFila(fila) {
@@ -1187,28 +1334,24 @@
           }
           const json = await respuesta.json();
           const servicios = Array.isArray(json.servicios) ? json.servicios : [];
-          if (!servicios.length) {
-            agregarFilaServicio();
-          } else {
-            servicios.forEach((servicio) => {
-              agregarFilaServicio({
-                id: servicio.id,
-                id_tipo_servicio: servicio.id_tipo_servicio,
-                direccion_web: servicio.direccion_web,
-                nombre_capa: servicio.nombre_capa,
-                titulo_capa: servicio.titulo_capa,
-                estado:
-                  servicio.estado === false
-                    ? false
-                    : Boolean(servicio.estado),
-              });
+          servicios.forEach((servicio) => {
+            agregarFilaServicio({
+              id: servicio.id,
+              id_tipo_servicio: servicio.id_tipo_servicio,
+              direccion_web: servicio.direccion_web,
+              nombre_capa: servicio.nombre_capa,
+              titulo_capa: servicio.titulo_capa,
+              estado:
+                servicio.estado === false
+                  ? false
+                  : Boolean(servicio.estado),
             });
-          }
+          });
         } catch (error) {
           console.error(error);
           M.toast({ html: error.message || "Error al cargar servicios." });
-          agregarFilaServicio();
         }
+        actualizarVisibilidadTablaServicios();
       }
 
       function cerrarModal() {
@@ -1253,9 +1396,10 @@
         if (ui.categoriaCapa) {
           ui.categoriaCapa.value = capa.id_categoria || "";
         }
-        if (ui.institucionCapa) {
-          ui.institucionCapa.value = capa.id_institucion || "";
-        }
+        establecerInstitucionSeleccionadaPorId(
+          capa.id_institucion,
+          capa.institucion_nombre || ""
+        );
         await cargarServiciosDeCapa(capa.id);
         setTimeout(() => {
           refrescarCamposFormulario();
@@ -1431,6 +1575,10 @@
           ? ui.publicarGeoperu.checked
           : false;
         const categoriaId = ui.categoriaCapa ? ui.categoriaCapa.value : "";
+        if (!validarInstitucionSeleccionada()) {
+          M.toast({ html: "Seleccione una institución válida." });
+          return;
+        }
         const institucionId = ui.institucionCapa
           ? ui.institucionCapa.value
           : "";
@@ -1493,9 +1641,33 @@
         ui.publicarGeoperu = document.getElementById("publicar_geoperu");
         ui.categoriaCapa = document.getElementById("categoria_capa");
         ui.institucionCapa = document.getElementById("institucion_capa");
+        ui.institucionAutocomplete = document.getElementById(
+          "institucion_autocomplete"
+        );
+        ui.institucionNombre = document.getElementById("institucionNombre");
         ui.btnAddServicio = document.getElementById("btnAddServicio");
         ui.imgCloseModalLayer = document.getElementById("imgClose_modal_layer");
+        ui.tablaServiciosWrapper = document.getElementById(
+          "tablaServiciosWrapper"
+        );
+        ui.tablaServiciosHead = document.getElementById("tablaServiciosHead");
         ui.institucionTag = document.getElementById("institucionTag");
+
+        if (ui.institucionTag) {
+          institucionBaseId = ui.institucionTag.dataset.institucionId || "";
+          institucionBaseNombre =
+            ui.institucionTag.dataset.institucionNombre || "";
+          puedeEditarInstitucion =
+            ui.institucionTag.dataset.permiteEditar === "true";
+        } else {
+          institucionBaseId = "";
+          institucionBaseNombre = "";
+          puedeEditarInstitucion = false;
+        }
+
+        prepararDatosInstituciones();
+        actualizarEtiquetaInstitucionBase();
+        actualizarVisibilidadTablaServicios();
 
         inicializarComponentesBase();
         cargarCapas();
@@ -1608,9 +1780,7 @@
 
             if (event.target.closest(".btn-eliminar-servicio")) {
               fila.remove();
-              if (!tablaServiciosBody.querySelector("tr")) {
-                agregarFilaServicio();
-              }
+              actualizarVisibilidadTablaServicios();
             }
           });
         }
