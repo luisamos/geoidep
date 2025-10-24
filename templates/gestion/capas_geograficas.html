@@ -572,7 +572,7 @@
         if (servicio.id) {
           fila.dataset.servicioId = servicio.id;
         }
-        fila.dataset.visible = servicio.visible === false ? "false" : "true";
+        fila.dataset.visible = servicio.estado === false ? "false" : "true";
         fila.dataset.tipo = servicio.id_tipo_servicio || "";
         establecerTituloCapaEnFila(fila, servicio.titulo_capa || "");
         const requiereConexion = requiereConexionServicio(
@@ -961,7 +961,6 @@
                   servicio.estado === false
                     ? false
                     : Boolean(servicio.estado),
-                visible: servicio.visible,
               });
             });
           }

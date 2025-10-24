@@ -377,7 +377,6 @@ def detalle(capa_id):
       'nombre_capa': servicio.nombre_capa,
       'titulo_capa': servicio.titulo_capa,
       'estado': servicio.estado,
-      'visible': servicio.visible,
       'tipo_servicio_nombre': servicio.tipo_servicio.nombre
       if servicio.tipo_servicio
       else None,

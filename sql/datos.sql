@@ -84,8 +84,7 @@ UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Geoprocesamiento';--GEOPERU
 
 SELECT
     ROW_NUMBER() OVER () AS numero,
-    id_institucion, id_categoria, capa AS layer,
-	--origen,
+    id_institucion, id_categoria, capa AS layer, '' AS nombre_capa,
     MAX(CASE WHEN id_tipo = 11 THEN url_pub END) AS wms,
     MAX(CASE WHEN id_tipo = 12 THEN url_pub END) AS wfs,
 	MAX(CASE WHEN id_tipo = 14 THEN url_pub END) AS wmts,
@@ -95,7 +94,8 @@ FROM tmp.datos
 WHERE id_tipo IN (11,12,14,17,20)
 AND url_pub IS NULL
 GROUP BY id_institucion, id_categoria, capa
-ORDER BY 4;
+ORDER BY 1,4
+LIMIT 5;
 
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
 ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
@@ -111,5 +111,80 @@ ON a.capa = b.capa
 WHERE a.id_tipo = 11 AND b.idestado = 1 AND b.idsubsistema= 0 AND url_pub IS NULL AND LENGTH(b.nombre_capa)>0
 ORDER BY 1,2;
 
-SELECT * FROM def_tipocapa;
+--
+-- CONSULTA PRINCIPAL
+--
+-- DROP TABLE tmp.resultado_servicios;
+CREATE TABLE tmp.resultado_servicios AS
+WITH base AS (
+  SELECT
+      id_institucion,
+      id_categoria,
+      capa,
+	  CASE
+	    WHEN geo= 'SI' THEN True
+	    ELSE False
+	  END AS publicar_geoperu,
+      MAX(url_pub) FILTER (WHERE id_tipo = 11) AS wms,
+      MAX(url_pub) FILTER (WHERE id_tipo = 12) AS wfs,
+      MAX(url_pub) FILTER (WHERE id_tipo = 14) AS wmts,
+      MAX(url_pub) FILTER (WHERE id_tipo = 17) AS arcgis,
+      MAX(url_pub) FILTER (WHERE id_tipo = 20) AS kml
+  FROM tmp.datos
+  WHERE id_tipo IN (11,12,14,17,20)
+  GROUP BY id_institucion, id_categoria, capa, geo
+),
+enriquecida AS (
+  SELECT
+    b.*,
+    dl.nombre_capa AS nombre_capa_def
+  FROM base b
+  LEFT JOIN LATERAL (
+    SELECT d.nombre_capa
+    FROM public.def_layer d
+    WHERE d.capa = b.capa
+      AND d.idestado = 1
+      AND d.idsubsistema = 0
+      AND LENGTH(d.nombre_capa) > 0
+    LIMIT 1
+  ) dl ON TRUE
+)
+SELECT
+  ROW_NUMBER() OVER (ORDER BY id_institucion ASC, capa ASC) AS numero,
+  id_institucion,
+  id_categoria,
+  publicar_geoperu,
+  capa AS layer,
+  CASE
+    WHEN wms IS NULL THEN COALESCE(nombre_capa_def, '')
+    ELSE '0'
+  END AS nombre_capa,
+  CASE
+    WHEN wms IS NULL THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/wms?'
+    ELSE wms
+  END AS wms,
+  wfs,
+  wmts,
+  arcgis,
+  kml
+FROM enriquecida
+WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
+ORDER BY id_institucion ASC, layer ASC;
+
+SELECT * FROM tmp.resultado_servicios;
+
+INSERT INTO ide.def_capas_geograficas(id, nombre, tipo_capa, publicar_geoperu, id_categoria, id_institucion, usuario_crea)
+SELECT numero, layer, 1, publicar_geoperu, id_categoria, id_institucion, 1 FROM tmp.resultado_servicios ORDER BY numero ASC;
+
+
+SELECT * FROM tmp.datos WHERE id_tipo = 14;
+
+INSERT INTO ide.def_servicios_geograficos(id_capa, id_tipo_servicio, direccion_web, nombre_capa, titulo_capa, estado, usuario_crea)
+SELECT numero, 11, wms AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wms IS NOT NULL UNION
+SELECT numero, 12, wfs AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wfs IS NOT NULL UNION
+SELECT numero, 14, wmts AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wmts IS NOT NULL UNION
+SELECT numero, 17, arcgis AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE arcgis IS NOT NULL UNION
+SELECT numero, 20, kml AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE kml IS NOT NULL;
+
+
 
