@@ -10,7 +10,12 @@ menus_permitidos = usuario_menu.menus_permitidos if usuario_menu else [] %}
   style="background-color: #fff; padding: 10px"
 >
   <div style="float: left; top: 10px; position: absolute; left: 10px">
-    <!-- Puedes poner un logo aquí -->
+    <a
+      href="{{ url_for('geoportal.principal') }}"
+      class="btn waves-effect blue darken-1 white-text"
+    >
+      <i class="material-icons left white-text">public</i>Ir al Geoportal
+    </a>
   </div>
   <div style="float: right; position: absolute; top: 10px; right: 10px">
     <a
@@ -103,7 +108,7 @@ menus_permitidos = usuario_menu.menus_permitidos if usuario_menu else [] %}
   {% endif %} {% if 'menu06' in menus_permitidos %}
   <li id="menu06">
     <a href="{{ url_for('personal.listar') }}" class="white-text"
-      ><i class="material-icons white-text">people_outline</i> Personal</a
+      ><i class="material-icons white-text">person</i> Personal</a
     >
   </li>
   {% endif %} {% if 'menu07' in menus_permitidos %}
@@ -132,7 +137,8 @@ menus_permitidos = usuario_menu.menus_permitidos if usuario_menu else [] %}
   <li><a class="subheader white-text">MI CUENTA</a></li>
   <li id="menu10">
     <a href="#" class="white-text"
-      ><i class="material-icons white-text">person</i> Datos personales</a
+      ><i class="material-icons white-text">perm_identity</i> Datos
+      personales</a
     >
   </li>
   {% endif %}

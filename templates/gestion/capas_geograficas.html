@@ -111,15 +111,28 @@
         visibility: hidden;
       }
 
-      .estado-filtros-row {
-        margin-bottom: 0;
-      }
-
       .estado-filtros {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 8px 0;
+      }
+
+      .estado-filtros-row {
+        margin-bottom: 0;
+      }
+
+      .estado-filtros-acciones {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 8px 0;
+      }
+
+      @media (max-width: 600px) {
+        .estado-filtros-acciones {
+          justify-content: flex-start;
+        }
       }
 
       .servicios-listado {
@@ -209,20 +222,10 @@
               <i class="material-icons left">search</i> Buscar
             </button>
           </div>
-          <div class="col s6 m2 l3 right-align">
-            <button
-              id="btnAgregar"
-              class="btn waves-light btn-small green"
-              data-target="modalCapa"
-              type="button"
-            >
-              <i class="material-icons left">add</i>Nueva capa
-            </button>
-          </div>
         </div>
 
         <div class="row estado-filtros-row">
-          <div class="col s12 m6 l4">
+          <div class="col s12 m6 l6">
             <div class="estado-filtros">
               <div class="switch">
                 <label>
@@ -233,6 +236,16 @@
                 </label>
               </div>
             </div>
+          </div>
+          <div class="col s12 m6 l6 estado-filtros-acciones right-align">
+            <button
+              id="btnAgregar"
+              class="btn waves-light btn-small green"
+              data-target="modalCapa"
+              type="button"
+            >
+              <i class="material-icons left">add</i>Nueva capa
+            </button>
           </div>
         </div>
 
@@ -352,16 +365,24 @@
               </table>
             </div>
             <div class="right-align" style="margin-top: 12px">
-              <button class="btn orange" id="btnAddServicio" type="button">
-                Agregar Servicio
+              <button
+                class="btn btn-small orange"
+                id="btnAddServicio"
+                type="button"
+              >
+                <i class="material-icons small left">add</i>Agregar Servicio
               </button>
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button class="modal-close btn grey" type="button">Cancelar</button>
-        <button class="btn blue" id="btnGuardar" type="button">Guardar</button>
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardar" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
       </div>
     </div>
 
@@ -401,13 +422,33 @@
         return opciones;
       }
 
-      const tablaCapas = document.querySelector("#tablaCapas tbody");
+      const ui = {
+        tablaCapasBody: null,
+        btnBuscar: null,
+        txtBuscarNombre: null,
+        filtroTipoServicio: null,
+        switchEstados: null,
+        btnAgregar: null,
+        btnGuardar: null,
+        modalCapa: null,
+        modalTituloCapa: null,
+        formCapa: null,
+        capaId: null,
+        nombreCapa: null,
+        descripcionCapa: null,
+        tipoCapaModal: null,
+        publicarGeoperu: null,
+        categoriaCapa: null,
+        institucionCapa: null,
+        btnAddServicio: null,
+        imgCloseModalLayer: null,
+        tablaServiciosBody: null,
+        institucionTag: null,
+      };
+
       let capas = [];
       let capasCache = { activos: [], inactivos: [], sin_estado: [] };
       let modalInstance = null;
-      const tablaServiciosBody = document.querySelector(
-        "#tablaServicios tbody"
-      );
 
       function inicializarComponentesBase() {
         const selects = document.querySelectorAll(
@@ -416,7 +457,7 @@
         M.FormSelect.init(selects);
         inicializarBusquedaInstituciones();
         if (!modalInstance) {
-          const modalElement = document.getElementById("modalCapa");
+          const modalElement = ui.modalCapa;
           if (modalElement) {
             modalInstance = M.Modal.init(modalElement, { dismissible: false });
           }
@@ -433,7 +474,7 @@
       }
 
       function inicializarBusquedaInstituciones() {
-        const select = document.getElementById("institucion_capa");
+        const select = ui.institucionCapa;
         if (!select) {
           return;
         }
@@ -546,19 +587,26 @@
       }
 
       function limpiarFormulario() {
-        const form = document.getElementById("formCapa");
-        form.reset();
-        document.getElementById("capaId").value = "";
+        if (ui.formCapa) {
+          ui.formCapa.reset();
+        }
+        if (ui.capaId) {
+          ui.capaId.value = "";
+        }
         limpiarTablaServicios();
         agregarFilaServicio();
         setTimeout(() => {
           refrescarCamposFormulario();
+          if (ui.descripcionCapa) {
+            M.textareaAutoResize(ui.descripcionCapa);
+          }
         }, 0);
       }
 
       function limpiarTablaServicios() {
-        if (tablaServiciosBody) {
-          tablaServiciosBody.innerHTML = "";
+        const tablaServicios = ui.tablaServiciosBody;
+        if (tablaServicios) {
+          tablaServicios.innerHTML = "";
         }
       }
 
@@ -756,7 +804,8 @@
       }
 
       function agregarFilaServicio(servicio = {}) {
-        if (!tablaServiciosBody) return;
+        const tablaServicios = ui.tablaServiciosBody;
+        if (!tablaServicios) return;
 
         const fila = document.createElement("tr");
         if (servicio.id) {
@@ -844,7 +893,7 @@
         fila.appendChild(celdaEstado);
         fila.appendChild(celdaAcciones);
 
-        tablaServiciosBody.appendChild(fila);
+        tablaServicios.appendChild(fila);
 
         if (typeof servicio.estado === "boolean") {
           if (servicio.estado) {
@@ -1023,8 +1072,9 @@
       }
 
       function obtenerServiciosDeTabla() {
-        if (!tablaServiciosBody) return [];
-        const filas = Array.from(tablaServiciosBody.querySelectorAll("tr"));
+        const tablaServicios = ui.tablaServiciosBody;
+        if (!tablaServicios) return [];
+        const filas = Array.from(tablaServicios.querySelectorAll("tr"));
         return filas
           .map((fila) => {
             const selectTipo = fila.querySelector(".tipo-servicio");
@@ -1169,8 +1219,9 @@
 
       function abrirModalParaNueva() {
         limpiarFormulario();
-        document.getElementById("modalTituloCapa").textContent =
-          "NUEVA CAPA GEOGRÁFICA";
+        if (ui.modalTituloCapa) {
+          ui.modalTituloCapa.textContent = "NUEVA CAPA GEOGRÁFICA";
+        }
         if (!modalInstance) {
           inicializarComponentesBase();
         }
@@ -1181,23 +1232,36 @@
 
       async function abrirModalParaEditar(capa) {
         limpiarFormulario();
-        document.getElementById("modalTituloCapa").textContent =
-          "EDITAR CAPA GEOGRÁFICA";
-        document.getElementById("capaId").value = capa.id;
-        document.getElementById("nombre_capa").value = capa.nombre || "";
-        document.getElementById("descripcion_capa").value =
-          capa.descripcion || "";
-        document.getElementById("tipo_capa_modal").value = String(
-          capa.tipo_capa || ""
-        );
-        document.getElementById("publicar_geoperu").checked = !!capa.en_geoperu;
-        document.getElementById("categoria_capa").value =
-          capa.id_categoria || "";
-        document.getElementById("institucion_capa").value =
-          capa.id_institucion || "";
+        if (ui.modalTituloCapa) {
+          ui.modalTituloCapa.textContent = "EDITAR CAPA GEOGRÁFICA";
+        }
+        if (ui.capaId) {
+          ui.capaId.value = capa.id;
+        }
+        if (ui.nombreCapa) {
+          ui.nombreCapa.value = capa.nombre || "";
+        }
+        if (ui.descripcionCapa) {
+          ui.descripcionCapa.value = capa.descripcion || "";
+        }
+        if (ui.tipoCapaModal) {
+          ui.tipoCapaModal.value = String(capa.tipo_capa || "");
+        }
+        if (ui.publicarGeoperu) {
+          ui.publicarGeoperu.checked = !!capa.en_geoperu;
+        }
+        if (ui.categoriaCapa) {
+          ui.categoriaCapa.value = capa.id_categoria || "";
+        }
+        if (ui.institucionCapa) {
+          ui.institucionCapa.value = capa.id_institucion || "";
+        }
         await cargarServiciosDeCapa(capa.id);
         setTimeout(() => {
           refrescarCamposFormulario();
+          if (ui.descripcionCapa) {
+            M.textareaAutoResize(ui.descripcionCapa);
+          }
         }, 0);
         if (!modalInstance) {
           inicializarComponentesBase();
@@ -1208,14 +1272,18 @@
       }
 
       function renderTabla(data) {
-        tablaCapas.innerHTML = "";
+        const tabla = ui.tablaCapasBody;
+        if (!tabla) {
+          return;
+        }
+        tabla.innerHTML = "";
         if (!data.length) {
           const fila = document.createElement("tr");
           const celda = document.createElement("td");
           celda.colSpan = 6;
           celda.textContent = "No hay capas registradas.";
           fila.appendChild(celda);
-          tablaCapas.appendChild(fila);
+          tabla.appendChild(fila);
           return;
         }
 
@@ -1282,7 +1350,7 @@
               />
             </td>
           `;
-          tablaCapas.appendChild(fila);
+          tabla.appendChild(fila);
         });
       }
 
@@ -1314,15 +1382,14 @@
       }
 
       function aplicarFiltros() {
-        const filtroNombre = (
-          document.getElementById("txtBuscarNombre").value || ""
-        )
+        const filtroNombre = (ui.txtBuscarNombre?.value || "")
           .toLowerCase()
           .trim();
-        const filtroTipoServicio =
-          document.getElementById("filtroTipoServicio").value;
+        const filtroTipoServicio = ui.filtroTipoServicio
+          ? ui.filtroTipoServicio.value
+          : "";
 
-        const switchEstados = document.getElementById("switchEstados");
+        const switchEstados = ui.switchEstados;
         const mostrarActivos = switchEstados ? switchEstados.checked : true;
 
         let base = mostrarActivos
@@ -1354,15 +1421,19 @@
       }
 
       async function guardarCapa() {
-        const id = document.getElementById("capaId").value || null;
-        const nombre = document.getElementById("nombre_capa").value.trim();
-        const descripcion = document
-          .getElementById("descripcion_capa")
-          .value.trim();
-        const tipoCapa = document.getElementById("tipo_capa_modal").value;
-        const publicar = document.getElementById("publicar_geoperu").checked;
-        const categoriaId = document.getElementById("categoria_capa").value;
-        const institucionId = document.getElementById("institucion_capa").value;
+        const id = ui.capaId ? ui.capaId.value || null : null;
+        const nombre = ui.nombreCapa ? ui.nombreCapa.value.trim() : "";
+        const descripcion = ui.descripcionCapa
+          ? ui.descripcionCapa.value.trim()
+          : "";
+        const tipoCapa = ui.tipoCapaModal ? ui.tipoCapaModal.value : "";
+        const publicar = ui.publicarGeoperu
+          ? ui.publicarGeoperu.checked
+          : false;
+        const categoriaId = ui.categoriaCapa ? ui.categoriaCapa.value : "";
+        const institucionId = ui.institucionCapa
+          ? ui.institucionCapa.value
+          : "";
 
         if (!nombre || !tipoCapa || !categoriaId || !institucionId) {
           M.toast({ html: "Complete los campos obligatorios." });
@@ -1404,63 +1475,88 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
+        ui.tablaCapasBody = document.querySelector("#tablaCapas tbody");
+        ui.tablaServiciosBody = document.querySelector("#tablaServicios tbody");
+        ui.btnBuscar = document.getElementById("btnBuscar");
+        ui.txtBuscarNombre = document.getElementById("txtBuscarNombre");
+        ui.filtroTipoServicio = document.getElementById("filtroTipoServicio");
+        ui.switchEstados = document.getElementById("switchEstados");
+        ui.btnAgregar = document.getElementById("btnAgregar");
+        ui.btnGuardar = document.getElementById("btnGuardar");
+        ui.modalCapa = document.getElementById("modalCapa");
+        ui.modalTituloCapa = document.getElementById("modalTituloCapa");
+        ui.formCapa = document.getElementById("formCapa");
+        ui.capaId = document.getElementById("capaId");
+        ui.nombreCapa = document.getElementById("nombre_capa");
+        ui.descripcionCapa = document.getElementById("descripcion_capa");
+        ui.tipoCapaModal = document.getElementById("tipo_capa_modal");
+        ui.publicarGeoperu = document.getElementById("publicar_geoperu");
+        ui.categoriaCapa = document.getElementById("categoria_capa");
+        ui.institucionCapa = document.getElementById("institucion_capa");
+        ui.btnAddServicio = document.getElementById("btnAddServicio");
+        ui.imgCloseModalLayer = document.getElementById("imgClose_modal_layer");
+        ui.institucionTag = document.getElementById("institucionTag");
+
         inicializarComponentesBase();
         cargarCapas();
 
-        document.getElementById("btnAgregar").addEventListener("click", () => {
-          abrirModalParaNueva();
-        });
+        if (ui.btnAgregar) {
+          ui.btnAgregar.addEventListener("click", abrirModalParaNueva);
+        }
 
-        document
-          .getElementById("imgClose_modal_layer")
-          .addEventListener("click", () => {
-            cerrarModal();
-          });
+        if (ui.imgCloseModalLayer) {
+          ui.imgCloseModalLayer.style.cursor = "pointer";
+          ui.imgCloseModalLayer.addEventListener("click", cerrarModal);
+        }
 
-        document
-          .getElementById("btnGuardar")
-          .addEventListener("click", guardarCapa);
+        if (ui.btnGuardar) {
+          ui.btnGuardar.addEventListener("click", guardarCapa);
+        }
 
-        const botonAgregarServicio = document.getElementById("btnAddServicio");
-        if (botonAgregarServicio) {
-          botonAgregarServicio.addEventListener("click", () => {
+        if (ui.btnAddServicio) {
+          ui.btnAddServicio.addEventListener("click", () => {
             agregarFilaServicio();
           });
         }
 
-        document
-          .getElementById("btnBuscar")
-          .addEventListener("click", aplicarFiltros);
-        document
-          .getElementById("txtBuscarNombre")
-          .addEventListener("keyup", (event) => {
+        if (ui.btnBuscar) {
+          ui.btnBuscar.addEventListener("click", aplicarFiltros);
+        }
+
+        if (ui.txtBuscarNombre) {
+          ui.txtBuscarNombre.addEventListener("keyup", (event) => {
             if (event.key === "Enter") {
               aplicarFiltros();
             }
           });
-        document
-          .getElementById("filtroTipoServicio")
-          .addEventListener("change", aplicarFiltros);
-
-        const switchEstados = document.getElementById("switchEstados");
-        if (switchEstados) {
-          switchEstados.addEventListener("change", aplicarFiltros);
         }
 
-        tablaCapas.addEventListener("click", async (event) => {
-          const accion = event.target.closest("img[data-action]");
-          if (!accion) return;
-          const id = accion.getAttribute("data-id");
-          const tipo = accion.getAttribute("data-action");
-          const capa = capas.find((item) => String(item.id) === String(id));
-          if (!capa) return;
-          if (tipo === "actualizar") {
-            await abrirModalParaEditar(capa);
-          } else if (tipo === "eliminar") {
-            M.toast({ html: "La eliminación se habilitará próximamente." });
-          }
-        });
+        if (ui.filtroTipoServicio) {
+          ui.filtroTipoServicio.addEventListener("change", aplicarFiltros);
+        }
 
+        if (ui.switchEstados) {
+          ui.switchEstados.addEventListener("change", aplicarFiltros);
+        }
+
+        const tablaCapasBody = ui.tablaCapasBody;
+        if (tablaCapasBody) {
+          tablaCapasBody.addEventListener("click", async (event) => {
+            const accion = event.target.closest("img[data-action]");
+            if (!accion) return;
+            const id = accion.getAttribute("data-id");
+            const tipo = accion.getAttribute("data-action");
+            const capa = capas.find((item) => String(item.id) === String(id));
+            if (!capa) return;
+            if (tipo === "actualizar") {
+              await abrirModalParaEditar(capa);
+            } else if (tipo === "eliminar") {
+              M.toast({ html: "La eliminación se habilitará próximamente." });
+            }
+          });
+        }
+
+        const tablaServiciosBody = ui.tablaServiciosBody;
         if (tablaServiciosBody) {
           tablaServiciosBody.addEventListener("change", (event) => {
             const fila = event.target.closest("tr");
@@ -1516,6 +1612,12 @@
                 agregarFilaServicio();
               }
             }
+          });
+        }
+
+        if (ui.descripcionCapa) {
+          ui.descripcionCapa.addEventListener("input", () => {
+            M.textareaAutoResize(ui.descripcionCapa);
           });
         }
       });
