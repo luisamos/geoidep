@@ -91,10 +91,10 @@ def create_app():
 
     csp_directives = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://www.googletagmanager.com https://www.clarity.ms https://www.youtube.com https://www.google.com https://www.gstatic.com http://127.0.0.7",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com http://127.0.0.7",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://www.googletagmanager.com https://www.clarity.ms https://www.youtube.com https://www.google.com https://www.gstatic.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' data: https://fonts.gstatic.com",
-        "img-src 'self' data: blob: https://*.gob.pe https://cdn.www.gob.pe https://www.youtube.com https://i.ytimg.com https://www.facebook.com https://twitter.com https://play.google.com https://www.google.com https://www.gstatic.com http://127.0.0.4 http://127.0.0.7",
+        "img-src 'self' data: blob: https://*.gob.pe https://cdn.www.gob.pe https://www.youtube.com https://i.ytimg.com https://www.facebook.com https://twitter.com https://play.google.com https://www.google.com https://www.gstatic.com",
         "connect-src 'self' https://www.gob.pe https://www.googletagmanager.com https://www.clarity.ms https://www.google.com https://www.gstatic.com",
         "frame-src https://www.youtube.com https://www.googletagmanager.com https://www.google.com https://www.gstatic.com",
         "object-src 'none'",
@@ -113,20 +113,20 @@ def create_app():
 
 if __name__ == "__main__":
   if config.IS_DEV:
-      print("\n🔴\t[DESAROLLO] - GEOIDEP | GEOPORTAL | GESTION\n")
-      create_app().run(
-          port=5000,
-          debug=True,
-          host="127.0.0.8",
-          use_reloader=True,
-          threaded=True,
-      )
+    print("\n🔴\t[DESAROLLO] - GEOIDEP | GEOPORTAL | GESTION\n")
+    create_app().run(
+        port=5000,
+        debug=True,
+        host="127.0.0.8",
+        use_reloader=True,
+        threaded=True,
+    )
   else:
-      print("\n🟢\t[PRODUCCIÓN] - GEOIDEP | GEOPORTAL | GESTION\n")
-      create_app().run(
-          port=81,
-          debug=True,
-          host="0.0.0.0",
-          use_reloader=True,
-          threaded=True,
-      )
+    print("\n🟢\t[PRODUCCIÓN] - GEOIDEP | GEOPORTAL | GESTION\n")
+    create_app().run(
+        port=81,
+        debug=False,
+        host="0.0.0.0",
+        use_reloader=True,
+        threaded=True,
+    )
