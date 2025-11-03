@@ -12,7 +12,7 @@ class TipoServicio(db.Model):
   nombre = db.Column(db.String(100), unique=True, nullable=False)
   descripcion = db.Column(db.Text, nullable=True)
   estado = db.Column(db.Boolean)
-  logotipo = db.Column(db.String(500), nullable=True)
+  logotipo = db.Column(db.Text, nullable=True)
   orden = db.Column(db.Integer, nullable=False)
   id_padre = db.Column(db.Integer, nullable=False)
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')

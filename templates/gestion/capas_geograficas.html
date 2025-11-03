@@ -6,7 +6,7 @@
     <link
       rel="icon"
       type="image/x-icon"
-      href="{{ url_for('static', filename='images/favicon-1760a09d.ico' ) }}"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico' ) }}"
     />
     <title>GEOIDEP | Capas geográficas</title>
 
@@ -311,7 +311,7 @@
           <img
             id="imgClose_modal_layer"
             alt="Cerrar ventana"
-            src="{{ url_for('static', filename='images/close.png') }}"
+            src="{{ url_for('static', filename='imagenes/close.png') }}"
             style="position: absolute; right: 10px; top: 10px"
           />
         </div>
@@ -437,9 +437,9 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
-      const iconoEditar = "{{ url_for('static', filename='images/editar.png') }}";
+      const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar =
-        "{{ url_for('static', filename='images/eliminar.png') }}";
+        "{{ url_for('static', filename='imagenes/eliminar.png') }}";
       const tiposServicio = {{ tipos_serv | tojson | safe }};
       const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
 

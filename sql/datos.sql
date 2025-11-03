@@ -114,17 +114,16 @@ ORDER BY 1,2;
 --
 -- CONSULTA PRINCIPAL
 --
--- DROP TABLE tmp.resultado_servicios;
+-- 
+DROP TABLE IF EXISTS tmp.resultado_servicios;
+
 CREATE TABLE tmp.resultado_servicios AS
 WITH base AS (
   SELECT
       id_institucion,
       id_categoria,
       capa,
-	  CASE
-	    WHEN geo= 'SI' THEN True
-	    ELSE False
-	  END AS publicar_geoperu,
+      BOOL_OR(geo = 'SI') AS publicar_geoperu,          -- <- unifica por geo
       MAX(url_pub) FILTER (WHERE id_tipo = 11) AS wms,
       MAX(url_pub) FILTER (WHERE id_tipo = 12) AS wfs,
       MAX(url_pub) FILTER (WHERE id_tipo = 14) AS wmts,
@@ -132,7 +131,7 @@ WITH base AS (
       MAX(url_pub) FILTER (WHERE id_tipo = 20) AS kml
   FROM tmp.datos
   WHERE id_tipo IN (11,12,14,17,20)
-  GROUP BY id_institucion, id_categoria, capa, geo
+  GROUP BY id_institucion, id_categoria, capa
 ),
 enriquecida AS (
   SELECT
@@ -148,6 +147,18 @@ enriquecida AS (
       AND LENGTH(d.nombre_capa) > 0
     LIMIT 1
   ) dl ON TRUE
+),
+ranked AS (
+  SELECT
+    e.*,
+    ROW_NUMBER() OVER (
+      PARTITION BY e.id_institucion, e.id_categoria, e.capa
+      ORDER BY (e.wms IS NOT NULL) DESC,
+               e.publicar_geoperu DESC,
+               (e.nombre_capa_def IS NOT NULL) DESC
+    ) AS rn
+  FROM enriquecida e
+  WHERE (e.wms IS NOT NULL OR e.nombre_capa_def IS NOT NULL)
 )
 SELECT
   ROW_NUMBER() OVER (ORDER BY id_institucion ASC, capa ASC) AS numero,
@@ -167,9 +178,23 @@ SELECT
   wmts,
   arcgis,
   kml
-FROM enriquecida
-WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
+FROM ranked
+WHERE rn = 1
 ORDER BY id_institucion ASC, layer ASC;
+
+-- Refuerzo de unicidad (opcional pero recomendado)
+CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
+
+-- Verificación
+SELECT * FROM tmp.resultado_servicios ORDER BY numero;
+
+-- Inserción en la tabla destino (sin cambios en tu flujo)
+INSERT INTO ide.def_capas_geograficas
+  (id, nombre, tipo_capa, publicar_geoperu, id_categoria, id_institucion, usuario_crea)
+SELECT numero, layer, 1, publicar_geoperu, id_categoria, id_institucion, 1
+FROM tmp.resultado_servicios
+ORDER BY numero ASC;
+
 
 SELECT * FROM tmp.resultado_servicios;
 
