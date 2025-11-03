@@ -73,7 +73,44 @@ def obtener_tipos_servicios_catalogo():
 @bp.route('/')
 def principal():
   tipos_catalogo = obtener_tipos_servicios_catalogo()
-  return render_template('geoportal/inicio.html', tipos_servicios=tipos_catalogo.lista)
+  geoportales_count = HerramientaDigital.query.filter(
+      HerramientaDigital.id_tipo_servicio == 5
+  ).count()
+  servicios_mapas_count = CapaGeografica.query.count()
+  visores_count = HerramientaDigital.query.filter(
+      HerramientaDigital.id_tipo_servicio == 6
+  ).count()
+  catalogo_metadatos_count = HerramientaDigital.query.filter(
+      HerramientaDigital.id_tipo_servicio == 9
+  ).count()
+
+  estadisticas = [
+    {
+      'label': 'Geoportales institucionales',
+      'count': geoportales_count,
+    },
+    {
+      'label': 'Servicios de mapas geográficos',
+      'count': servicios_mapas_count,
+    },
+    {
+      'label': 'Visores de mapas institucional',
+      'count': visores_count,
+    },
+    {
+      'label': 'Catálogo de Metadatos geográficos',
+      'count': catalogo_metadatos_count,
+    },
+  ]
+
+  for estadistica in estadisticas:
+    estadistica['display_value'] = f"+{estadistica['count']:,}".replace(',', '')
+
+  return render_template(
+      'geoportal/inicio.html',
+      tipos_servicios=tipos_catalogo.lista,
+      estadisticas=estadisticas,
+  )
 
 @bp.route('/catalogo')
 def catalogo():
