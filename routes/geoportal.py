@@ -16,48 +16,9 @@ from models.capas_geograficas import CapaGeografica, ServicioGeografico
 
 bp = Blueprint('geoportal', __name__)
 
-CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17)
-CATALOGO_TIPO_IDS = (5, 6, 7, 8, 9, 10) + CATALOGO_CAPA_TIPO_IDS
+CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
 
 EXCLUDED_PARENT_IDS = tuple(range(10))
-
-CATALOGO_SLUGS = {
-  5: 'geoportales',
-  6: 'visores',
-  7: 'observatorios',
-  8: 'apps',
-  9: 'metadatos',
-  10: 'descargas',
-  11: 'servicios_ogc_wms',
-  12: 'servicios_ogc_wfs',
-  14: 'servicios_ogc_wmts',
-  17: 'servicios_rest_arcgis',
-}
-
-CATALOGO_SLUG_TO_ID = {slug: id_tipo for id_tipo, slug in CATALOGO_SLUGS.items()}
-
-CATALOGO_TIPO_FALLBACKS = {
-  11: {
-    'nombre': 'Servicios OGC: WMS',
-    'descripcion': None,
-    'logotipo': None,
-  },
-  12: {
-    'nombre': 'Servicios OGC: WFS',
-    'descripcion': None,
-    'logotipo': None,
-  },
-  14: {
-    'nombre': 'Servicio OGC: WMTS',
-    'descripcion': None,
-    'logotipo': None,
-  },
-  17: {
-    'nombre': 'Servicios REST: ArcGIS',
-    'descripcion': None,
-    'logotipo': None,
-  },
-}
 
 def slugify(value):
   if not value:
@@ -77,70 +38,57 @@ def sanitize_text(value):
 def obtener_tipos_servicios_catalogo():
   tipos = (
     TipoServicio.query.filter(
-      TipoServicio.id_padre == 1,
-      TipoServicio.id.in_(CATALOGO_TIPO_IDS),
-      or_(TipoServicio.estado.is_(True), TipoServicio.estado.is_(None)),
+      TipoServicio.id_padre.in_((1, 2, 3)),
+      TipoServicio.estado.is_(True),
     )
     .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
     .all()
   )
 
-  tipos_por_id = {tipo.id: tipo for tipo in tipos}
   tipos_catalogo = []
+  tipos_por_slug = {}
 
-  for tipo_id in CATALOGO_TIPO_IDS:
-    tipo = tipos_por_id.get(tipo_id)
-    if tipo:
-      tipos_catalogo.append(
-        {
-          'id': tipo.id,
-          'nombre': sanitize_text(tipo.nombre),
-          'descripcion': sanitize_text(tipo.descripcion),
-          'logotipo': tipo.logotipo,
-          'slug': CATALOGO_SLUGS.get(tipo.id, slugify(tipo.nombre)),
-        }
-      )
-      continue
+  for tipo in tipos:
+    slug_base = (tipo.tag or '').strip() or slugify(tipo.nombre)
+    if not slug_base:
+      slug_base = f"tipo-{tipo.id}"
 
-    fallback = CATALOGO_TIPO_FALLBACKS.get(tipo_id)
-    if not fallback:
-      continue
+    slug_normalizado = slug_base.lower()
 
-    nombre_fallback = fallback.get('nombre') or CATALOGO_SLUGS.get(tipo_id)
-    tipos_catalogo.append(
-      {
-        'id': tipo_id,
-        'nombre': sanitize_text(nombre_fallback),
-        'descripcion': sanitize_text(fallback.get('descripcion')),
-        'logotipo': fallback.get('logotipo'),
-        'slug': CATALOGO_SLUGS.get(tipo_id, slugify(nombre_fallback)),
-      }
-    )
+    tipo_data = {
+      'id': tipo.id,
+      'nombre': sanitize_text(tipo.nombre),
+      'descripcion': sanitize_text(tipo.descripcion),
+      'logotipo': tipo.logotipo,
+      'slug': slug_base,
+      'tag': slug_base,
+    }
 
-  return tipos_catalogo
+    tipos_catalogo.append(tipo_data)
+    if slug_normalizado and slug_normalizado not in tipos_por_slug:
+      tipos_por_slug[slug_normalizado] = tipo_data
+
+  return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
 
 @bp.route('/')
 def principal():
-  return render_template('geoportal/inicio.html')
+  tipos_catalogo = obtener_tipos_servicios_catalogo()
+  return render_template('geoportal/inicio.html', tipos_servicios=tipos_catalogo.lista)
 
 @bp.route('/catalogo')
 def catalogo():
-  tipos_servicios = obtener_tipos_servicios_catalogo()
-  return render_template('geoportal/catalogo.html', tipos_servicios=tipos_servicios)
+  tipos_catalogo = obtener_tipos_servicios_catalogo()
+  return render_template('geoportal/catalogo.html', tipos_servicios=tipos_catalogo.lista)
 
 @bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
   slug_normalizado = slug.lower()
-  id_tipo = CATALOGO_SLUG_TO_ID.get(slug_normalizado)
-  if not id_tipo:
-    abort(404)
-
-  tipos_servicios = obtener_tipos_servicios_catalogo()
-  tipo_config = next((tipo for tipo in tipos_servicios if tipo['id'] == id_tipo), None)
+  tipos_catalogo = obtener_tipos_servicios_catalogo()
+  tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
   if not tipo_config:
     abort(404)
 
-  tipo_nombre = sanitize_text(tipo_config['nombre'])
+  tipo_nombre = tipo_config['nombre']
   descripcion_config = tipo_config.get('descripcion')
   tipo_titulo = descripcion_config or tipo_nombre
   tipo_descripcion = descripcion_config
@@ -148,10 +96,9 @@ def catalogo_por_tipo(slug):
   id_institucion = request.args.get('id_institucion', type=int)
   filter_terms = request.args.get('filter_terms', default='', type=str).strip()
   if filter_terms:
-      filter_terms = re.sub(r'[<>"\'`]', '', filter_terms)
+    filter_terms = re.sub(r'[<>"\'`]', '', filter_terms)
 
-  if id_tipo not in CATALOGO_TIPO_IDS:
-    abort(404)
+  id_tipo = tipo_config['id']
 
   es_tipo_capa = id_tipo in CATALOGO_CAPA_TIPO_IDS
 
@@ -355,7 +302,7 @@ def catalogo_por_tipo(slug):
   return render_template(
     'geoportal/subcatalogo.html',
     slug=slug,
-    tipos_servicios=tipos_servicios,
+    tipos_servicios=tipos_catalogo.lista,
     tipo_nombre=tipo_nombre,
     tipo_titulo=tipo_titulo,
     tipo_descripcion=tipo_descripcion,
