@@ -123,34 +123,6 @@ def obtener_tipos_servicios_catalogo():
 def principal():
   return render_template('geoportal/inicio.html')
 
-@bp.route('/que_es_la_geoidep')
-def que_es_la_geoidep():
-  return None
-
-@bp.route('/idep')
-def idep():
-  return render_template('geoportal/idep.html')
-
-@bp.route('/que_es_idep')
-def que_es_idep():
-  return None
-
-@bp.route('/componente_idep')
-def componente_idep():
-  return None
-
-@bp.route('/ccidep')
-def ccidep():
-  return None
-
-@bp.route('/asistencia_tecnica')
-def asistencia_tecnica():
-  return None
-
-@bp.route('/secretaria_tecnica_ccidep')
-def secretaria_tecnica_ccidep():
-  return None
-
 @bp.route('/catalogo')
 def catalogo():
   tipos_servicios = obtener_tipos_servicios_catalogo()

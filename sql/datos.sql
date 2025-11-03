@@ -82,34 +82,12 @@ UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = '
 UPDATE tmp.datos SET id_tipo = 20 WHERE tipo_pub = 'KML';
 UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Geoprocesamiento';--GEOPERU
 
-SELECT
-    ROW_NUMBER() OVER () AS numero,
-    id_institucion, id_categoria, capa AS layer, '' AS nombre_capa,
-    MAX(CASE WHEN id_tipo = 11 THEN url_pub END) AS wms,
-    MAX(CASE WHEN id_tipo = 12 THEN url_pub END) AS wfs,
-	MAX(CASE WHEN id_tipo = 14 THEN url_pub END) AS wmts,
-	MAX(CASE WHEN id_tipo = 17 THEN url_pub END) AS arcgis,
-	MAX(CASE WHEN id_tipo = 20 THEN url_pub END) AS kml
-FROM tmp.datos
-WHERE id_tipo IN (11,12,14,17,20)
-AND url_pub IS NULL
-GROUP BY id_institucion, id_categoria, capa
-ORDER BY 1,4
-LIMIT 5;
-
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
 ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
 
 SELECT * FROM tmp.datos WHERE capa LIKE ('%Otros Usos%');
 
 SELECT * FROM public.def_layer;
-
-SELECT a.id_institucion, a.capa, b.capa, b.nombre_capa
-FROM tmp.datos a
-INNER JOIN public.def_layer b
-ON a.capa = b.capa
-WHERE a.id_tipo = 11 AND b.idestado = 1 AND b.idsubsistema= 0 AND url_pub IS NULL AND LENGTH(b.nombre_capa)>0
-ORDER BY 1,2;
 
 --
 -- CONSULTA PRINCIPAL
@@ -182,28 +160,18 @@ FROM ranked
 WHERE rn = 1
 ORDER BY id_institucion ASC, layer ASC;
 
--- Refuerzo de unicidad (opcional pero recomendado)
 CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
 
--- Verificación
 SELECT * FROM tmp.resultado_servicios ORDER BY numero;
 
--- Inserción en la tabla destino (sin cambios en tu flujo)
+-- CAPAS GEOGRAFICAS
 INSERT INTO ide.def_capas_geograficas
   (id, nombre, tipo_capa, publicar_geoperu, id_categoria, id_institucion, usuario_crea)
 SELECT numero, layer, 1, publicar_geoperu, id_categoria, id_institucion, 1
 FROM tmp.resultado_servicios
 ORDER BY numero ASC;
 
-
-SELECT * FROM tmp.resultado_servicios;
-
-INSERT INTO ide.def_capas_geograficas(id, nombre, tipo_capa, publicar_geoperu, id_categoria, id_institucion, usuario_crea)
-SELECT numero, layer, 1, publicar_geoperu, id_categoria, id_institucion, 1 FROM tmp.resultado_servicios ORDER BY numero ASC;
-
-
-SELECT * FROM tmp.datos WHERE id_tipo = 14;
-
+-- SERVICIOS GEOGRAFICOS
 INSERT INTO ide.def_servicios_geograficos(id_capa, id_tipo_servicio, direccion_web, nombre_capa, titulo_capa, estado, usuario_crea)
 SELECT numero, 11, wms AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wms IS NOT NULL UNION
 SELECT numero, 12, wfs AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wfs IS NOT NULL UNION

@@ -9,6 +9,7 @@ class TipoServicio(db.Model):
   __table_args__ = {'schema': SCHEMA_IDE}
 
   id = db.Column(db.Integer, primary_key=True)
+  tag = db.Column(db.String(50), nullable=True)
   nombre = db.Column(db.String(100), unique=True, nullable=False)
   descripcion = db.Column(db.Text, nullable=True)
   estado = db.Column(db.Boolean)

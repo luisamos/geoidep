@@ -199,301 +199,287 @@
           >
             <span class="text-2xl">←</span>
           </button>
-          <form
-            name="frm_buscar_catalogo_sector"
-            id="frm_buscar_catalogo_sector"
-            method="post"
-            action="../catalogo/catalogo_sectores.aspx"
-          >
-            <div
-              id="sectoresGrid"
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 flex-1"
-            >
-              <input
-                type="hidden"
-                name="codigo_sector"
-                id="codigo_sector"
-                value=""
-              />
 
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+          <div
+            id="tiposServiciosGrid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 flex-1"
+          >
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      quick_reference_all
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(28);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Cultura
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Protege y promueve el patrimonio cultural material e
-                      inmaterial del Per&#250;.
-                    </p>
-                  </div>
+                    quick_reference_all
+                  </span>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(28);"
+                    class="text-[#184397] font-semibold underline"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      recycling
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(27);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Ambiente
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Formula pol&#237;ticas ambientales nacionales, promueve la
-                      conservaci&#243;n de la biodiversidad y gestiona los
-                      recursos naturales.
-                    </p>
-                  </div>
+                    Cultura
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Protege y promueve el patrimonio cultural material e
+                    inmaterial del Per&#250;.
+                  </p>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      cottage
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(26);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Vivienda, Construcci&#243;n y Saneamiento
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Promueve el acceso a vivienda adecuada, planifica el
-                      desarrollo urbano y rural, y gestiona servicios de
-                      saneamiento b&#225;sico.
-                    </p>
-                  </div>
+                    recycling
+                  </span>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(27);"
+                    class="text-[#184397] font-semibold underline"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      payments
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(25);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Econom&#237;a y Finanzas
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Formula pol&#237;ticas econ&#243;micas nacionales,
-                      gestiona el presupuesto p&#250;blico y la deuda
-                      p&#250;blica.
-                    </p>
-                  </div>
+                    Ambiente
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Formula pol&#237;ticas ambientales nacionales, promueve la
+                    conservaci&#243;n de la biodiversidad y gestiona los
+                    recursos naturales.
+                  </p>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      balance
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(11);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Justicia
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Garantiza el acceso a la justicia, gestiona el sistema
-                      penitenciario y promueve la modernizaci&#243;n del sistema
-                      judicial.
-                    </p>
-                  </div>
+                    cottage
+                  </span>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(26);"
+                    class="text-[#184397] font-semibold underline"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      school
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(8);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Educaci&#243;n
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Formula pol&#237;ticas educativas nacionales, gestiona el
-                      curr&#237;culo educativo y promueve la calidad de la
-                      educaci&#243;n en todos sus niveles.
-                    </p>
-                  </div>
+                    Vivienda, Construcci&#243;n y Saneamiento
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Promueve el acceso a vivienda adecuada, planifica el
+                    desarrollo urbano y rural, y gestiona servicios de
+                    saneamiento b&#225;sico.
+                  </p>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      cardiology
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(7);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Salud
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Garantiza el derecho a la salud mediante la
-                      prestaci&#243;n de servicios de salud p&#250;blica.
-                    </p>
-                  </div>
+                    payments
+                  </span>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(25);"
+                    class="text-[#184397] font-semibold underline"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      factory
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(4);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Producci&#243;n
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Fomenta la actividad pesquera, acu&#237;cola e industrial.
-                    </p>
-                  </div>
+                    Econom&#237;a y Finanzas
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Formula pol&#237;ticas econ&#243;micas nacionales, gestiona
+                    el presupuesto p&#250;blico y la deuda p&#250;blica.
+                  </p>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      airport_shuttle
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(3);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Transportes y Comunicaciones
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Responsable de la infraestructura vial, ferroviaria,
-                      portuaria y aeroportuaria.
-                    </p>
-                  </div>
+                    balance
+                  </span>
                 </div>
-              </article>
-              <article
-                class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
-              >
-                <div class="flex items-start gap-6">
-                  <div
-                    class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(11);"
+                    class="text-[#184397] font-semibold underline"
                   >
-                    <span
-                      class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
-                    >
-                      psychiatry
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <a
-                      href="javascript: pnsp_js_listado_catalogo_sectores(1);"
-                      class="text-[#184397] font-semibold underline"
-                    >
-                      Agricultura
-                    </a>
-                    <p class="mt-2 text-gray-700 text-sm leading-6">
-                      Sector encargado de promover el desarrollo sostenible del
-                      agro peruano, la seguridad alimentaria, la competitividad
-                      agr&#237;cola y la gesti&#243;n de recursos naturales
-                      relacionados con la actividad agropecuaria.
-                    </p>
-                  </div>
+                    Justicia
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Garantiza el acceso a la justicia, gestiona el sistema
+                    penitenciario y promueve la modernizaci&#243;n del sistema
+                    judicial.
+                  </p>
                 </div>
-              </article>
-            </div>
-          </form>
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                  >
+                    school
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(8);"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    Educaci&#243;n
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Formula pol&#237;ticas educativas nacionales, gestiona el
+                    curr&#237;culo educativo y promueve la calidad de la
+                    educaci&#243;n en todos sus niveles.
+                  </p>
+                </div>
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                  >
+                    cardiology
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(7);"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    Salud
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Garantiza el derecho a la salud mediante la prestaci&#243;n
+                    de servicios de salud p&#250;blica.
+                  </p>
+                </div>
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                  >
+                    factory
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(4);"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    Producci&#243;n
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Fomenta la actividad pesquera, acu&#237;cola e industrial.
+                  </p>
+                </div>
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                  >
+                    airport_shuttle
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(3);"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    Transportes y Comunicaciones
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Responsable de la infraestructura vial, ferroviaria,
+                    portuaria y aeroportuaria.
+                  </p>
+                </div>
+              </div>
+            </article>
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                  >
+                    psychiatry
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="javascript: pnsp_js_listado_catalogo_sectores(1);"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    Agricultura
+                  </a>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    Sector encargado de promover el desarrollo sostenible del
+                    agro peruano, la seguridad alimentaria, la competitividad
+                    agr&#237;cola y la gesti&#243;n de recursos naturales
+                    relacionados con la actividad agropecuaria.
+                  </p>
+                </div>
+              </div>
+            </article>
+          </div>
 
           <button
             type="button"
@@ -507,7 +493,7 @@
 
         <div class="mt-8 flex justify-center">
           <a
-            href="catalogo/catalogo_servicios.aspx"
+            href="{{geoportal.catalogo}}"
             class="inline-flex items-center justify-center px-5 py-2.5 rounded-md border-2 border-[#184397] text-[#184397] font-medium hover:bg-[#184397]/5"
             >Ir al catálogo de servicios
           </a>
@@ -605,11 +591,11 @@
         <nav aria-label="Enlaces de pie de página" class="w-full">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div>
-              <h4
+              <h2
                 class="text-white text-[16px] leading-[22px] font-bold tracking-[0.22px] mb-4"
               >
                 Sobre el Estado Peruano
-              </h4>
+              </h2>
               <ul class="space-y-3 text-[14px] leading-6">
                 <!--<li><a class="text-white hover:underline hover:opacity-90" href="../secciones/pnsp_normatividad.aspx">Marco legal</a></li>-->
                 <li>
@@ -718,7 +704,7 @@
     <script>
       (function () {
         const pageSize = 6;
-        const grid = document.getElementById("sectoresGrid");
+        const grid = document.getElementById("tiposServiciosGrid");
         if (!grid) return;
 
         const items = Array.from(
