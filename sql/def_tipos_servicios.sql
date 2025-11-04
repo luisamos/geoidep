@@ -22,7 +22,7 @@ INSERT INTO ide.def_tipos_servicios (tag, nombre, descripcion, estado, id_padre,
 ('servicios_rest_arcgis_processing', 'Servicio REST:ArcGIS Geoprocessing', 'Servicio Rest de ArcGIS de geoprocesamiento es una interfaz de servicios web que permite acceder y ejecutar herramientas de geoprocesamiento a través de una URL. Se basa en un modelo de recursos jerárquico.', False, 3, 15,  1, '01-08-2025', null),
 ('servicios_rest_api', 'Servicio REST:API', 'Servicios Rest:Api es una interfaz de programación de aplicaciones (API) que se basa en el estilo arquitectónico REST (Transferencia de Estado Representacional) para permitir la comunicación entre sistemas a través de Internet.', True, 4, 16,  1, '01-08-2025', null);
 
-SELECT id AS id_tipo_servicio, tag, nombre, descripcion, logotipo, orden
+SELECT id AS id_tipo_servicio, tag, nombre, descripcion, logotipo, orden, id_padre
 FROM ide.def_tipos_servicios WHERE id_padre IN (1, 2, 3)
 AND estado = True
 ORDER BY orden ASC;

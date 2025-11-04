@@ -1,7 +1,7 @@
 from flask import Flask, flash, redirect, url_for
 
 import config
-from extensions import db, jwt, mail, migrate
+from extensions import db, jwt, mail, migrate, cache
 from flask_jwt_extended import unset_jwt_cookies
 
 def create_app():
@@ -12,6 +12,7 @@ def create_app():
   migrate.init_app(app, db)
   jwt.init_app(app)
   mail.init_app(app)
+  cache.init_app(app)
 
   @jwt.expired_token_loader
   def manejar_token_expirado(jwt_header, jwt_payload):

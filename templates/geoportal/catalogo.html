@@ -29,6 +29,7 @@
 {% include 'geoportal/cabecera.html' %}
 
 <form name="frm_buscar_catalogo" id="frm_buscar_catalogo" method="get" action="{{ catalogo_url }}">
+  <input type="hidden" name="search_token" value="{{ search_token }}" />
   <section class="bg-[#EEF3FB]">
     <div class="max-w-screen-xl mx-auto px-6 pt-[62px] pb-[62px]">
       <h2 class="text-black text-center [font-feature-settings:'liga'_off,'clig'_off] text-[32px] md:text-[36px] leading-[40px] font-bold">
@@ -233,6 +234,7 @@
     const institutionSelect = document.getElementById('entidad');
     const searchInput = document.getElementById('texto_busqueda');
     const clearButton = document.getElementById('clear-filters');
+    const searchTokenInput = document.querySelector('input[name="search_token"]');
 
     function buildUrl() {
       const slug = serviceSelect.value;
@@ -246,8 +248,13 @@
         params.set('id_institucion', institutionSelect.value);
       }
 
-      if (searchInput.value.trim()) {
-        params.set('filter_terms', searchInput.value.trim());
+      const searchValue = searchInput.value.trim();
+      if (searchValue) {
+        params.set('filter_terms', searchValue);
+      }
+
+      if (searchTokenInput && searchTokenInput.value && searchValue) {
+        params.set('search_token', searchTokenInput.value);
       }
 
       let url = baseCatalogUrl;

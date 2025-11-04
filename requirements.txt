@@ -1,4 +1,5 @@
 Flask
+Flask-Caching
 Flask-JWT-Extended
 Flask-Mail
 Flask-SQLAlchemy
