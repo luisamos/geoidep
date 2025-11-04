@@ -33,9 +33,9 @@ class HerramientaDigital(db.Model):
       nullable=False,
   )
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
-  fecha_crea = db.Column(db.DateTime, server_default=db.func.current_timestamp(), nullable=False)
+  fecha_crea = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
-  fecha_modifica = db.Column(db.DateTime, nullable=True, default=datetime.utcnow, onupdate=datetime.utcnow)
+  fecha_modifica = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
 
   tipo_servicio = db.relationship('TipoServicio', back_populates='herramientas')
   institucion = db.relationship('Institucion', back_populates='herramientas')

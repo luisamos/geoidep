@@ -1,0 +1,32 @@
+<header class="bg-white">
+  <div class="mx-auto flex items-center px-4 h-16 md:h-[120px] max-w-screen-xl">
+    <a href="{{ url_for('geoportal.principal') }}" aria-label="gob.pe">
+      <img
+        src="{{ url_for('static', filename='imagenes/escudo_blanco-peru.svg') }}"
+        alt="gob.pe"
+        class="h-9 w-auto md:hidden"
+      />
+    </a>
+
+    <a
+      href="{{ url_for('geoportal.principal') }}"
+      aria-label="gob.pe"
+      class="hidden md:flex items-center"
+    >
+      <img
+        src="{{ url_for('static', filename='imagenes/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg') }}"
+        alt="gob.pe"
+        class="h-10 w-auto"
+      />
+    </a>
+
+    <span class="md:inline-block md:mx-5 mx-2 h-8 w-px bg-[#B31312]"></span>
+
+    <span
+      class="ml-3 md:ml-0 text-[#B31312] leading-snug text-sm md:text-[20px] font-medium"
+      >Infraestructura de Datos Espaciales del Perú<br class="md:hidden" />
+    </span>
+
+    <div class="ml-auto"></div>
+  </div>
+</header>

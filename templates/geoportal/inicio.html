@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="keywords"
-      content="Portal de la Infraestructura de Datos Espaciales del Perú."
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú."
     />
     <meta
       name="description"
-      content="Portal de la Infraestructura de Datos Espaciales del Perú."
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú."
     />
     <meta
       name="author"
@@ -47,45 +47,7 @@
   </head>
 
   <body>
-    <link
-      rel="shortcut icon"
-      href="{{ url_for('static', filename='imagenes/peru.ico') }}"
-    />
-    <header class="bg-white">
-      <div
-        class="mx-auto flex items-center px-4 h-16 md:h-[120px] max-w-screen-xl"
-      >
-        <a href="{{ url_for('geoportal.principal') }}" aria-label="gob.pe">
-          <img
-            src="{{ url_for('static', filename='imagenes/escudo_blanco-peru.svg') }}"
-            alt="gob.pe"
-            class="h-9 w-auto md:hidden"
-          />
-        </a>
-
-        <a
-          href="{{ url_for('geoportal.principal') }}"
-          aria-label="gob.pe"
-          class="hidden md:flex items-center"
-        >
-          <img
-            src="{{ url_for('static', filename='imagenes/escudo_text_gobpe_bicentenario_rojo_2-f0bf4122.svg') }}"
-            alt="gob.pe"
-            class="h-10 w-auto"
-          />
-        </a>
-
-        <span class="md:inline-block md:mx-5 mx-2 h-8 w-px bg-[#B31312]"></span>
-
-        <span
-          class="ml-3 md:ml-0 text-[#B31312] leading-snug text-sm md:text-[20px] font-medium"
-          >Infraestructura de Datos Espaciales del Perú<br class="md:hidden" />
-        </span>
-
-        <div class="ml-auto"></div>
-      </div>
-    </header>
-
+    {% include 'geoportal/cabecera.html' %}
     <section class="bg-[#EEF3FB]">
       <div class="max-w-screen-xl mx-auto px-6 py-[40px]">
         <div
@@ -185,10 +147,10 @@
             >
               <div class="flex items-start gap-6">
                 <div
-                  class="shrink-0 h-12 w-12 rounded-full bg-violet-100 grid place-items-center p-[10px]"
+                  class="shrink-0 h-12 w-12 rounded-full bg-blue-100 grid place-items-center p-[10px]"
                 >
                   <span
-                    class="material-symbols-outlined text-[#562BDA] text-[20px] leading-none"
+                    class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
                   >
                     {{ tipo.logotipo or 'layers' }}
                   </span>
@@ -314,126 +276,7 @@
 
     <!-- Google Analytics -->
 
-    <footer class="bg-[#26292E] text-white">
-      <div
-        class="h-6 w-full bg-repeat [background-image:url({{ url_for('static', filename='imagenes/frame_footer_2-818dd620.svg') }})]"
-      ></div>
-
-      <div
-        class="max-w-screen-xl mx-auto px-6 py-[96px] flex flex-col items-start gap-6"
-      >
-        <nav aria-label="Enlaces de pie de página" class="w-full">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div>
-              <h2
-                class="text-white text-[16px] leading-[22px] font-bold tracking-[0.22px] mb-4"
-              >
-                Sobre el Estado Peruano
-              </h2>
-              <ul class="space-y-3 text-[14px] leading-6">
-                <!--<li><a class="text-white hover:underline hover:opacity-90" href="../secciones/pnsp_normatividad.aspx">Marco legal</a></li>-->
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="#"
-                    >Interoperabilidad</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="https://www.gob.pe/busquedas?categoria%5B%5D=59-transformacion-digital"
-                    >Transformación digital</a
-                  >
-                </li>
-              </ul>
-            </div>
-
-            <div class="mt-6 md:mt-[42px]">
-              <ul class="space-y-3 text-[14px] leading-6">
-                <!--<li><a class="text-white hover:underline hover:opacity-90" href="../secciones/pnsp_articulos.aspx">Información de interés</a></li>-->
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="../catalogo/catalogo_servicios.aspx"
-                    >Catálogo de aplicaciones</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="https://www.transparencia.gob.pe"
-                    >Transparencia Estándar</a
-                  >
-                </li>
-              </ul>
-            </div>
-
-            <div class="mt-6 md:mt-[42px]">
-              <ul class="space-y-3 text-[14px] leading-6">
-                <!--<li><a class="text-white hover:underline hover:opacity-90" href="https://www.gob.pe/7456-solicitar-software-publico-para-tu-entidad-estatal">Cómo solicitar acceso a software público</a></li>-->
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="https://www.datosabiertos.gob.pe/"
-                    >Datos abiertos</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="text-white hover:underline hover:opacity-90"
-                    href="https://www.gob.pe"
-                    >Plataforma Gob.pe</a
-                  >
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-
-        <div class="w-full my-8 h-[2px] bg-[#FFF]"></div>
-
-        <div
-          class="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-6"
-        >
-          <a
-            href="#"
-            class="text-sm text-white hover:underline hover:opacity-90"
-            >Políticas de privacidad para el manejo de datos
-          </a>
-
-          <div class="flex items-center gap-4">
-            <span class="text-sm font-semibold">Síguenos</span>
-
-            <a
-              href="#"
-              aria-label="Facebook"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-            >
-              <i
-                class="fa-brands fa-facebook-f text-[14px]"
-                aria-hidden="true"
-              ></i>
-            </a>
-
-            <a
-              href="#"
-              aria-label="X (Twitter)"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
-            >
-              <i
-                class="fa-brands fa-x-twitter text-[14px]"
-                aria-hidden="true"
-              ></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="h-6 w-full bg-repeat [background-image:url({{ url_for('static', filename='imagenes/frame_footer_2-818dd620.svg') }})]"
-      ></div>
-    </footer>
+    {% include 'geoportal/pie_pagina.html' %}
 
     <script>
       (function () {
