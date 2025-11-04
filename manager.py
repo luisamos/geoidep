@@ -11,7 +11,7 @@ from models.herramientas_digitales import HerramientaDigital
 
 # --- Configuración general ---
 MOBILE_VIEWPORT = {"width": 400, "height": 800}
-OUT_DIR = os.path.join("static", "imagenes", "temporal")
+OUT_DIR = os.path.join("static", "imagenes", "herramientas_digitales")
 TIMEOUT_MS = 15000  # 15 segundos máximo por carga
 BATCH_SIZE = 50     # registros por commit
 MOBILE_UA = (

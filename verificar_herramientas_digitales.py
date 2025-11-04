@@ -11,7 +11,7 @@ from app import create_app, db
 from models.herramientas_digitales import HerramientaDigital
 
 # ===== Config =====
-OUT_DIR = os.path.join("static", "imagenes", "temporal")
+OUT_DIR = os.path.join("static", "imagenes", "herramientas_digitales")
 MOBILE_VIEWPORT = {"width": 400, "height": 800}
 TIMEOUT_MS = 15000              # Playwright nav timeout (ms)
 REQ_TIMEOUT = (6, 12)           # (connect, read) en segundos

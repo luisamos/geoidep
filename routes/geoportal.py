@@ -60,7 +60,7 @@ def obtener_imagen_herramienta_url(herramienta_id):
 
   static_folder = Path(current_app.static_folder)
   candidate_paths = []
-  for directory in ('imagenes/temporal', 'imagenes/tmp', 'imagenes'):
+  for directory in ('imagenes/herramientas_digitales', 'imagenes'):
     for extension in ('webp', 'jpg', 'jpeg', 'png'):
       candidate_paths.append(Path(directory) / f"{herramienta_id}.{extension}")
 
