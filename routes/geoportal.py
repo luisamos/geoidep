@@ -3,10 +3,19 @@ from types import SimpleNamespace
 import re
 import unicodedata
 
-from flask import Blueprint, render_template, request, abort
+from flask import (
+  Blueprint,
+  current_app,
+  render_template,
+  request,
+  abort,
+  url_for,
+)
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, or_, and_
 from markupsafe import escape
+from pathlib import Path
+from urllib.parse import urlparse
 
 from models.herramientas_digitales import HerramientaDigital
 from models.categorias import Categoria
@@ -20,20 +29,46 @@ CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
 
 EXCLUDED_PARENT_IDS = tuple(range(10))
 
-def slugify(value):
-  if not value:
-    return ''
-  normalized = unicodedata.normalize('NFKD', value)
-  without_accents = ''.join(
-    character for character in normalized if not unicodedata.combining(character)
-  )
-  slug = re.sub(r'[^a-z0-9]+', '-', without_accents.lower())
-  return slug.strip('-')
-
 def sanitize_text(value):
   if value is None:
     return None
   return str(escape(value))
+
+def sanitize_query_text(value):
+  if not value:
+    return ''
+  return re.sub(r"[<>\"'`]", '', value).strip()
+
+def sanitize_external_url(value):
+  if not value:
+    return None
+
+  value = value.strip()
+  parsed = urlparse(value)
+
+  if parsed.scheme in {'http', 'https'}:
+    return value
+
+  if not parsed.scheme and value.startswith('/'):
+    return value
+
+  return None
+
+def obtener_imagen_herramienta_url(herramienta_id):
+  if not herramienta_id:
+    return url_for('static', filename='imagenes/imagen_no_disponible.jpg')
+
+  static_folder = Path(current_app.static_folder)
+  candidate_paths = []
+  for directory in ('imagenes/temporal', 'imagenes/tmp', 'imagenes'):
+    for extension in ('webp', 'jpg', 'jpeg', 'png'):
+      candidate_paths.append(Path(directory) / f"{herramienta_id}.{extension}")
+
+  for relative_path in candidate_paths:
+    if (static_folder / relative_path).is_file():
+      return url_for('static', filename=relative_path.as_posix())
+
+  return url_for('static', filename='imagenes/imagen_no_disponible.jpg')
 
 def obtener_tipos_servicios_catalogo():
   tipos = (
@@ -69,6 +104,333 @@ def obtener_tipos_servicios_catalogo():
       tipos_por_slug[slug_normalizado] = tipo_data
 
   return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
+  return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
+
+def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
+  id_institucion = request.args.get('id_institucion', type=int)
+  id_categoria = request.args.get('id_categoria', type=int)
+  filter_terms_raw = request.args.get('filter_terms', default='', type=str)
+  filter_terms = sanitize_query_text(filter_terms_raw)
+
+  if filter_terms_raw and not filter_terms:
+    # Solo se permitió caracteres inválidos, limpiar cualquier residuo para evitar redirecciones infinitas
+    filter_terms = ''
+
+  categorias = OrderedDict()
+  instituciones = OrderedDict()
+  categorias_opciones = []
+  instituciones_opciones = []
+  categorias_list = []
+  total_herramientas = 0
+  selected_tipo = None
+  applied_filters = []
+  selected_tipo_slug = None
+
+  if tipo_config:
+    selected_tipo = {
+      'id': tipo_config['id'],
+      'nombre': tipo_config['nombre'],
+      'descripcion': tipo_config.get('descripcion'),
+      'slug': tipo_config.get('slug') or tipo_config.get('tag'),
+    }
+    if selected_tipo['nombre']:
+      applied_filters.append(selected_tipo['nombre'])
+
+    id_tipo = tipo_config['id']
+    selected_tipo_slug = (tipo_config.get('slug') or tipo_config.get('tag') or '').lower()
+    es_tipo_capa = id_tipo in CATALOGO_CAPA_TIPO_IDS
+
+    if es_tipo_capa:
+      query = (
+        CapaGeografica.query.options(
+          joinedload(CapaGeografica.categoria),
+          joinedload(CapaGeografica.institucion),
+          joinedload(CapaGeografica.servicios),
+        )
+        .filter(
+          CapaGeografica.servicios.any(
+            and_(
+              ServicioGeografico.id_tipo_servicio == id_tipo,
+              or_(
+                ServicioGeografico.estado.is_(True),
+                ServicioGeografico.estado.is_(None),
+              ),
+            )
+          )
+        )
+      )
+
+      if id_institucion:
+        query = query.filter(CapaGeografica.id_institucion == id_institucion)
+
+      if filter_terms:
+        pattern = f"%{filter_terms}%"
+        query = query.filter(
+          or_(
+            CapaGeografica.nombre.ilike(pattern),
+            CapaGeografica.descripcion.ilike(pattern),
+            CapaGeografica.servicios.any(ServicioGeografico.nombre_capa.ilike(pattern)),
+            CapaGeografica.servicios.any(ServicioGeografico.titulo_capa.ilike(pattern)),
+          )
+        )
+
+      if id_categoria:
+        query = query.filter(CapaGeografica.id_categoria == id_categoria)
+
+      capas = query.all()
+      capas.sort(
+        key=lambda capa: (
+          (capa.categoria.nombre.lower() if capa.categoria and capa.categoria.nombre else ''),
+          (capa.nombre.lower() if capa.nombre else ''),
+        )
+      )
+
+      for capa in capas:
+        categoria = capa.categoria
+        if not categoria:
+          continue
+
+        servicios_relacionados = [
+          servicio
+          for servicio in capa.servicios
+          if servicio.id_tipo_servicio == id_tipo
+          and (servicio.estado is True or servicio.estado is None)
+        ]
+
+        if not servicios_relacionados:
+          continue
+
+        categoria_data = categorias.setdefault(
+          categoria.id,
+          {
+            'id': categoria.id,
+            'nombre': sanitize_text(categoria.nombre),
+            'descripcion': sanitize_text(categoria.definicion),
+            'herramientas': [],
+          },
+        )
+
+        institucion = capa.institucion
+        institucion_info = None
+        if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
+          instituciones.setdefault(
+            institucion.id,
+            {
+              'id': institucion.id,
+              'nombre': sanitize_text(institucion.nombre),
+            },
+          )
+          institucion_info = sanitize_text(institucion.nombre)
+
+        servicios_data = []
+        for servicio in sorted(
+          servicios_relacionados,
+          key=lambda item: (
+            (item.titulo_capa or item.nombre_capa or '').lower(),
+          ),
+        ):
+          etiqueta = servicio.titulo_capa or servicio.nombre_capa or capa.nombre
+          servicios_data.append(
+            {
+              'etiqueta': sanitize_text(etiqueta),
+              'nombre': sanitize_text(servicio.nombre_capa),
+              'titulo': sanitize_text(servicio.titulo_capa),
+              'url': servicio.direccion_web,
+            }
+          )
+
+        categoria_data['herramientas'].append(
+          {
+            'id': capa.id,
+            'nombre': sanitize_text(capa.nombre),
+            'descripcion': sanitize_text(capa.descripcion),
+            'institucion': institucion_info,
+            'servicios': servicios_data,
+            'estado': 1,
+            'estado_label': 'Disponible',
+            'estado_is_active': True,
+            'recurso': None,
+            'imagen_url': obtener_imagen_herramienta_url(capa.id),
+            'tipo_servicio': selected_tipo['nombre'],
+          }
+        )
+
+      instituciones_disponibles = (
+        Institucion.query.join(Institucion.capas)
+        .join(CapaGeografica.servicios)
+        .filter(
+          ServicioGeografico.id_tipo_servicio == id_tipo,
+          ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
+        )
+        .with_entities(Institucion.id, Institucion.nombre)
+        .order_by(Institucion.id.asc())
+        .distinct()
+        .all()
+      )
+
+      categorias_disponibles = (
+        Categoria.query.join(Categoria.capas)
+        .join(CapaGeografica.servicios)
+        .filter(ServicioGeografico.id_tipo_servicio == id_tipo)
+        .with_entities(Categoria.id, Categoria.nombre)
+        .order_by(Categoria.nombre.asc())
+        .distinct()
+        .all()
+      )
+    else:
+      query = (
+        HerramientaDigital.query.options(
+          joinedload(HerramientaDigital.categoria),
+          joinedload(HerramientaDigital.institucion),
+          joinedload(HerramientaDigital.tipo_servicio),
+        )
+        .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
+        .join(HerramientaDigital.categoria)
+      )
+
+      if id_categoria:
+        query = query.filter(HerramientaDigital.id_categoria == id_categoria)
+
+      if id_institucion:
+        query = query.filter(HerramientaDigital.id_institucion == id_institucion)
+
+      if filter_terms:
+        pattern = f"%{filter_terms}%"
+        query = query.filter(
+          or_(
+            HerramientaDigital.nombre.ilike(pattern),
+            HerramientaDigital.descripcion.ilike(pattern),
+          )
+        )
+
+      herramientas = query.order_by(
+        func.lower(Categoria.nombre), func.lower(HerramientaDigital.nombre)
+      ).all()
+
+      for herramienta in herramientas:
+        categoria = herramienta.categoria
+        if not categoria:
+          continue
+
+        categoria_data = categorias.setdefault(
+          categoria.id,
+          {
+            'id': categoria.id,
+            'nombre': sanitize_text(categoria.nombre),
+            'descripcion': sanitize_text(categoria.definicion),
+            'herramientas': [],
+          },
+        )
+
+        institucion = herramienta.institucion
+        institucion_nombre = None
+        if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
+          institucion_nombre = sanitize_text(institucion.nombre)
+          instituciones.setdefault(
+            institucion.id,
+            {
+              'id': institucion.id,
+              'nombre': institucion_nombre,
+            },
+          )
+
+        estado = herramienta.estado or 0
+        estado_is_active = estado == 1
+        estado_label = 'Disponible' if estado_is_active else 'En mantenimiento'
+        recurso = sanitize_external_url(herramienta.recurso)
+
+        categoria_data['herramientas'].append(
+          {
+            'id': herramienta.id,
+            'nombre': sanitize_text(herramienta.nombre),
+            'descripcion': sanitize_text(herramienta.descripcion),
+            'institucion': institucion_nombre,
+            'recurso': recurso,
+            'estado': estado,
+            'estado_label': estado_label,
+            'estado_is_active': estado_is_active,
+            'imagen_url': obtener_imagen_herramienta_url(herramienta.id),
+            'tipo_servicio': sanitize_text(
+              herramienta.tipo_servicio.nombre if herramienta.tipo_servicio else selected_tipo['nombre']
+            ),
+          }
+        )
+
+      instituciones_disponibles = (
+        Institucion.query.join(Institucion.herramientas)
+        .filter(
+          HerramientaDigital.id_tipo_servicio == id_tipo,
+          ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
+        )
+        .with_entities(Institucion.id, Institucion.nombre)
+        .order_by(Institucion.nombre.asc())
+        .distinct()
+        .all()
+      )
+
+      categorias_disponibles = (
+        Categoria.query.join(Categoria.herramientas)
+        .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
+        .with_entities(Categoria.id, Categoria.nombre)
+        .order_by(Categoria.nombre.asc())
+        .distinct()
+        .all()
+      )
+
+    categorias_list = list(categorias.values())
+    total_herramientas = sum(
+      len(categoria_data['herramientas']) for categoria_data in categorias_list
+    )
+
+    categorias_opciones = [
+      {'id': cat_id, 'nombre': sanitize_text(nombre)}
+      for cat_id, nombre in categorias_disponibles
+    ]
+
+    instituciones_opciones = [
+      {'id': inst_id, 'nombre': sanitize_text(nombre)}
+      for inst_id, nombre in instituciones_disponibles
+    ]
+
+    categorias_opciones.sort(key=lambda item: (item['nombre'] or '').lower())
+    instituciones_opciones.sort(key=lambda item: (item['nombre'] or '').lower())
+
+  if id_categoria:
+    selected_categoria_nombre = next(
+      (cat['nombre'] for cat in categorias_opciones if cat['id'] == id_categoria),
+      None,
+    )
+    if selected_categoria_nombre:
+      applied_filters.append(selected_categoria_nombre)
+
+  if id_institucion:
+    selected_institucion_nombre = next(
+      (inst['nombre'] for inst in instituciones_opciones if inst['id'] == id_institucion),
+      None,
+    )
+    if selected_institucion_nombre:
+      applied_filters.append(selected_institucion_nombre)
+
+  if filter_terms:
+    applied_filters.append(f"Contiene: {sanitize_text(filter_terms)}")
+
+  clear_filters_enabled = bool(applied_filters)
+
+  return {
+    'tipos_servicios': tipos_catalogo.lista,
+    'selected_tipo': selected_tipo,
+    'selected_tipo_slug': selected_tipo_slug,
+    'categorias': categorias_list,
+    'categorias_opciones': categorias_opciones,
+    'instituciones_opciones': instituciones_opciones,
+    'selected_categoria_id': id_categoria,
+    'selected_institucion_id': id_institucion,
+    'filter_terms': filter_terms,
+    'applied_filters': applied_filters,
+    'clear_filters_enabled': clear_filters_enabled,
+    'total_herramientas': total_herramientas,
+    'catalogo_url': url_for('geoportal.catalogo'),
+  }
 
 @bp.route('/')
 def principal():
@@ -115,7 +477,8 @@ def principal():
 @bp.route('/catalogo')
 def catalogo():
   tipos_catalogo = obtener_tipos_servicios_catalogo()
-  return render_template('geoportal/catalogo.html', tipos_servicios=tipos_catalogo.lista)
+  contexto = construir_contexto_catalogo(tipos_catalogo)
+  return render_template('geoportal/catalogo.html', **contexto)
 
 @bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
@@ -124,228 +487,5 @@ def catalogo_por_tipo(slug):
   tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
   if not tipo_config:
     abort(404)
-
-  tipo_nombre = tipo_config['nombre']
-  descripcion_config = tipo_config.get('descripcion')
-  tipo_titulo = descripcion_config or tipo_nombre
-  tipo_descripcion = descripcion_config
-
-  id_institucion = request.args.get('id_institucion', type=int)
-  filter_terms = request.args.get('filter_terms', default='', type=str).strip()
-  if filter_terms:
-    filter_terms = re.sub(r'[<>"\'`]', '', filter_terms)
-
-  id_tipo = tipo_config['id']
-
-  es_tipo_capa = id_tipo in CATALOGO_CAPA_TIPO_IDS
-
-  categorias = OrderedDict()
-  instituciones = OrderedDict()
-
-  if es_tipo_capa:
-    query = (
-      CapaGeografica.query.options(
-        joinedload(CapaGeografica.categoria),
-        joinedload(CapaGeografica.institucion),
-        joinedload(CapaGeografica.servicios),
-      )
-      .filter(
-        CapaGeografica.servicios.any(
-          and_(
-            ServicioGeografico.id_tipo_servicio == id_tipo,
-            or_(
-              ServicioGeografico.estado.is_(True),
-              ServicioGeografico.estado.is_(None),
-            ),
-          )
-        )
-      )
-    )
-
-    if id_institucion:
-      query = query.filter(CapaGeografica.id_institucion == id_institucion)
-
-    if filter_terms:
-      pattern = f"%{filter_terms}%"
-      query = query.filter(
-        or_(
-          CapaGeografica.nombre.ilike(pattern),
-          CapaGeografica.descripcion.ilike(pattern),
-          CapaGeografica.servicios.any(ServicioGeografico.nombre_capa.ilike(pattern)),
-          CapaGeografica.servicios.any(ServicioGeografico.titulo_capa.ilike(pattern)),
-        )
-      )
-
-    capas = query.all()
-    capas.sort(
-      key=lambda capa: (
-        (capa.categoria.nombre.lower() if capa.categoria and capa.categoria.nombre else ''),
-        (capa.nombre.lower() if capa.nombre else ''),
-      )
-    )
-
-    for capa in capas:
-      categoria = capa.categoria
-      if not categoria:
-        continue
-
-      servicios_relacionados = [
-        servicio
-        for servicio in capa.servicios
-        if servicio.id_tipo_servicio == id_tipo
-        and (servicio.estado is True or servicio.estado is None)
-      ]
-
-      if not servicios_relacionados:
-        continue
-
-      categoria_data = categorias.setdefault(
-        categoria.id,
-        {
-          'id': categoria.id,
-          'nombre': sanitize_text(categoria.nombre),
-          'descripcion': sanitize_text(categoria.definicion),
-          'herramientas': [],
-        },
-      )
-
-      institucion = capa.institucion
-      institucion_info = None
-      if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
-        instituciones.setdefault(
-          institucion.id,
-          {
-            'id': institucion.id,
-            'nombre': sanitize_text(institucion.nombre),
-          },
-        )
-        institucion_info = SimpleNamespace(
-          nombre=sanitize_text(institucion.nombre)
-        )
-
-      servicios_data = []
-      for servicio in sorted(
-        servicios_relacionados,
-        key=lambda item: (
-          (item.titulo_capa or item.nombre_capa or '').lower(),
-        ),
-      ):
-        etiqueta = servicio.titulo_capa or servicio.nombre_capa or capa.nombre
-        servicios_data.append(
-          SimpleNamespace(
-            etiqueta=sanitize_text(etiqueta),
-            nombre=sanitize_text(servicio.nombre_capa),
-            titulo=sanitize_text(servicio.titulo_capa),
-            url=servicio.direccion_web,
-          )
-        )
-
-      categoria_data['herramientas'].append(
-        SimpleNamespace(
-          nombre=sanitize_text(capa.nombre),
-          descripcion=sanitize_text(capa.descripcion),
-          recurso=None,
-          institucion=institucion_info,
-          servicios=servicios_data,
-        )
-      )
-
-    instituciones_disponibles = (
-      Institucion.query.join(Institucion.capas)
-      .join(CapaGeografica.servicios)
-      .filter(
-        ServicioGeografico.id_tipo_servicio == id_tipo,
-        ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
-      )
-      .with_entities(Institucion.id, Institucion.nombre)
-      .order_by(Institucion.id.asc())
-      .distinct()
-      .all()
-    )
-  else:
-    query = (
-      HerramientaDigital.query.options(
-        joinedload(HerramientaDigital.categoria),
-        joinedload(HerramientaDigital.institucion),
-      )
-      .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
-      .join(HerramientaDigital.categoria)
-    )
-
-    if id_institucion:
-      query = query.filter(HerramientaDigital.id_institucion == id_institucion)
-
-    if filter_terms:
-      pattern = f"%{filter_terms}%"
-      query = query.filter(
-        or_(
-          HerramientaDigital.nombre.ilike(pattern),
-          HerramientaDigital.descripcion.ilike(pattern),
-        )
-      )
-
-    herramientas = query.order_by(
-      func.lower(Categoria.nombre), func.lower(HerramientaDigital.nombre)
-    ).all()
-
-    for herramienta in herramientas:
-      categoria = herramienta.categoria
-      if not categoria:
-        continue
-      categoria_data = categorias.setdefault(
-        categoria.id,
-        {
-          'id': categoria.id,
-          'nombre': sanitize_text(categoria.nombre),
-          'descripcion': sanitize_text(categoria.definicion),
-          'herramientas': [],
-        },
-      )
-      categoria_data['herramientas'].append(herramienta)
-
-      institucion = herramienta.institucion
-      if institucion and institucion.id_padre not in EXCLUDED_PARENT_IDS:
-        instituciones.setdefault(
-          institucion.id,
-          {
-            'id': institucion.id,
-            'nombre': sanitize_text(institucion.nombre),
-          },
-        )
-
-    instituciones_disponibles = (
-      Institucion.query.join(Institucion.herramientas)
-      .filter(
-        HerramientaDigital.id_tipo_servicio == id_tipo,
-        ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
-      )
-      .with_entities(Institucion.id, Institucion.nombre)
-      .order_by(Institucion.id.asc())
-      .distinct()
-      .all()
-    )
-
-  instituciones_catalogo = [
-    {'id': inst_id, 'nombre': sanitize_text(nombre)}
-    for inst_id, nombre in instituciones_disponibles
-  ]
-  instituciones_catalogo.sort(key=lambda i: i['id'])
-
-  categorias_list = list(categorias.values())
-  total_herramientas = sum(
-      len(categoria_data['herramientas']) for categoria_data in categorias_list
-  )
-
-  return render_template(
-    'geoportal/subcatalogo.html',
-    slug=slug,
-    tipos_servicios=tipos_catalogo.lista,
-    tipo_nombre=tipo_nombre,
-    tipo_titulo=tipo_titulo,
-    tipo_descripcion=tipo_descripcion,
-    categorias=categorias_list,
-    instituciones=instituciones_catalogo,
-    id_institucion=id_institucion,
-    filter_terms=filter_terms,
-    total_herramientas=total_herramientas,
-  )
+  contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
+  return render_template('geoportal/catalogo.html', **contexto)
