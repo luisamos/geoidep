@@ -278,6 +278,7 @@ def inicio():
     instituciones_disponibles=instituciones_disponibles,
     institucion_usuario=usuario.institucion if usuario else None,
     puede_editar_institucion=puede_editar_institucion,
+    usuario_actual=usuario,
   )
 
 

@@ -1,5 +1,4 @@
 import re
-import unicodedata
 import hmac
 import secrets
 from collections import OrderedDict
@@ -16,7 +15,7 @@ from flask import (
   session,
 )
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_
 from markupsafe import escape
 from pathlib import Path
 from urllib.parse import urlparse
@@ -35,6 +34,19 @@ CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
 EXCLUDED_PARENT_IDS = tuple(range(10))
 
 SEARCH_TOKEN_SESSION_KEY = 'catalog_search_token'
+
+SERVICIO_SIGLAS = {
+  11: 'WMS',
+  12: 'WFS',
+  14: 'WMTS',
+  17: 'REST',
+  20: 'KML',
+}
+
+CAPABILITIES_SUFFIXES = {
+  11: '?SERVICES=WMS&REQUEST=GetCapabilities',
+  12: '?SERVICES=WFS&REQUEST=GetCapabilities',
+}
 
 def sanitize_text(value):
   if value is None:
@@ -95,6 +107,79 @@ def obtener_imagen_herramienta_url(herramienta_id):
 
   return url_for('static', filename='imagenes/imagen_no_disponible.jpg')
 
+
+def obtener_imagen_capa_url(capa_id):
+  if not capa_id:
+    return url_for('static', filename='imagenes/imagen_no_disponible.png')
+
+  static_folder = Path(current_app.static_folder)
+  candidate_paths = []
+  for extension in ('webp', 'jpg', 'jpeg', 'png'):
+    candidate_paths.append(Path('imagenes/capas_geograficas') / f"{capa_id}.{extension}")
+
+  for relative_path in candidate_paths:
+    if (static_folder / relative_path).is_file():
+      return url_for('static', filename=relative_path.as_posix())
+
+  fallback = Path('imagenes') / 'imagen_no_disponible.png'
+  if (static_folder / fallback).is_file():
+    return url_for('static', filename=fallback.as_posix())
+
+  return url_for('static', filename='imagenes/imagen_no_disponible.jpg')
+
+
+def build_capabilities_url(base_url, fragment):
+  if not base_url or not fragment:
+    return base_url
+
+  base_url = base_url.strip()
+  if not base_url:
+    return None
+
+  fragment = fragment.strip()
+  if not fragment:
+    return base_url
+
+  if fragment.startswith('?'):
+    if '?' in base_url:
+      if base_url.endswith('?') or base_url.endswith('&'):
+        return f"{base_url}{fragment.lstrip('?')}"
+      return f"{base_url}&{fragment.lstrip('?')}"
+    return f"{base_url}{fragment}"
+
+  if fragment.startswith('&'):
+    if '?' in base_url:
+      return f"{base_url}{fragment}"
+    return f"{base_url}?{fragment.lstrip('&')}"
+
+  if '?' in base_url:
+    separator = '&' if not base_url.endswith('&') else ''
+    return f"{base_url}{separator}{fragment}"
+
+  return f"{base_url}?{fragment}"
+
+
+def obtener_sigla_servicio(tipo_servicio, servicio_id):
+  if not tipo_servicio and servicio_id not in SERVICIO_SIGLAS:
+    return None
+
+  sigla = None
+  if tipo_servicio is not None:
+    sigla = getattr(tipo_servicio, 'siglas', None)
+    if not sigla:
+      sigla = getattr(tipo_servicio, 'sigla', None)
+    if not sigla and getattr(tipo_servicio, 'tag', None):
+      partes = [segment for segment in tipo_servicio.tag.split('_') if segment]
+      if partes:
+        posible_sigla = partes[-1].upper()
+        if posible_sigla and len(posible_sigla) <= 6:
+          sigla = posible_sigla
+
+  if not sigla:
+    sigla = SERVICIO_SIGLAS.get(servicio_id)
+
+  return sanitize_text(sigla) if sigla else None
+
 def obtener_tipos_servicios_catalogo():
   tipos = (
     TipoServicio.query.filter(
@@ -144,17 +229,13 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
       CapaGeografica.query.options(
         joinedload(CapaGeografica.categoria),
         joinedload(CapaGeografica.institucion),
-        joinedload(CapaGeografica.servicios),
+        joinedload(CapaGeografica.servicios).joinedload(
+          ServicioGeografico.tipo_servicio
+        ),
       )
       .filter(
         CapaGeografica.servicios.any(
-          and_(
-            ServicioGeografico.id_tipo_servicio == id_tipo,
-            or_(
-              ServicioGeografico.estado.is_(True),
-              ServicioGeografico.estado.is_(None),
-            ),
-          )
+          ServicioGeografico.id_tipo_servicio == id_tipo
         )
       )
     )
@@ -193,7 +274,6 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         servicio
         for servicio in capa.servicios
         if servicio.id_tipo_servicio == id_tipo
-        and (servicio.estado is True or servicio.estado is None)
       ]
 
       if not servicios_relacionados:
@@ -222,14 +302,41 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         ),
       ):
         etiqueta = servicio.titulo_capa or servicio.nombre_capa or capa.nombre
+        recurso = sanitize_external_url(servicio.direccion_web)
+        estado_activo = servicio.estado is True
+        sigla = obtener_sigla_servicio(
+          servicio.tipo_servicio,
+          servicio.id_tipo_servicio,
+        )
+        copy_url = None
+        if recurso and servicio.id_tipo_servicio in {11, 12, 14, 17}:
+          if servicio.id_tipo_servicio in CAPABILITIES_SUFFIXES:
+            copy_url = build_capabilities_url(
+              recurso,
+              CAPABILITIES_SUFFIXES[servicio.id_tipo_servicio],
+            )
+          else:
+            copy_url = recurso
+
         servicios_data.append(
           {
             'etiqueta': sanitize_text(etiqueta),
             'nombre': sanitize_text(servicio.nombre_capa),
             'titulo': sanitize_text(servicio.titulo_capa),
-            'url': servicio.direccion_web,
+            'recurso': recurso,
+            'sigla': sigla,
+            'estado': 1 if estado_activo else 0,
+            'estado_is_active': estado_activo,
+            'copy_url': copy_url,
+            'view_map_url': recurso if estado_activo and servicio.id_tipo_servicio == 11 else None,
+            'ir_servicio_url': recurso if estado_activo and servicio.id_tipo_servicio == 20 else None,
+            'id_tipo_servicio': servicio.id_tipo_servicio,
           }
         )
+
+      estado_general_activo = any(
+        item['estado_is_active'] for item in servicios_data
+      )
 
       categoria_data['herramientas'].append(
         {
@@ -238,12 +345,13 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
           'descripcion': sanitize_text(capa.descripcion),
           'institucion': institucion_info,
           'servicios': servicios_data,
-          'estado': 1,
-          'estado_label': 'Disponible',
-          'estado_is_active': True,
+          'estado': 1 if estado_general_activo else 0,
+          'estado_label': 'Disponible' if estado_general_activo else 'No disponible',
+          'estado_is_active': estado_general_activo,
           'recurso': None,
-          'imagen_url': obtener_imagen_herramienta_url(capa.id),
+          'imagen_url': obtener_imagen_capa_url(capa.id),
           'tipo_servicio': None,
+          'es_capa': True,
         }
       )
 
@@ -346,6 +454,8 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
           'tipo_servicio': sanitize_text(
             herramienta.tipo_servicio.nombre if herramienta.tipo_servicio else None
           ),
+          'servicios': [],
+          'es_capa': False,
         }
       )
 

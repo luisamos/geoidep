@@ -15,7 +15,11 @@ bp = Blueprint('categorias', __name__, url_prefix='/categorias')
 @bp.route('/')
 @jwt_required()
 def listar():
-  return render_template('gestion/categorias.html')
+  usuario = obtener_usuario_actual(requerido=True)
+  return render_template(
+    'gestion/categorias.html',
+    usuario_actual=usuario,
+  )
 
 
 @bp.route('/datos')
