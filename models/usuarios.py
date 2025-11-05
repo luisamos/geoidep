@@ -141,9 +141,12 @@ class Usuario(db.Model):
   def es_especialista(self) -> bool:
       return self.id_perfil == 3
 
-  @property
   def es_gestor(self) -> bool:
       return self.id_perfil == 4
+
+  @property
+  def tiene_perfil_gestion(self) -> bool:
+      return self.es_coordinador or self.es_especialista or self.es_gestor
 
   @property
   def puede_gestionar_multiples_instituciones(self) -> bool:
@@ -151,6 +154,8 @@ class Usuario(db.Model):
 
   @property
   def menus_permitidos(self) -> set[str]:
+      if not self.tiene_perfil_gestion:
+          return set()
       if self.es_coordinador:
           return {f"menu{indice:02d}" for indice in range(1, 11)}
       if self.es_especialista:

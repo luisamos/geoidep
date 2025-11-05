@@ -149,8 +149,10 @@ SELECT
     ELSE '0'
   END AS nombre_capa,
   CASE
-    WHEN wms IS NULL THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/wms?'
-    ELSE wms
+  	WHEN idfuente = 2 THEN url_fuente
+	WHEN idfuente= 3 AND id_subsitema = 0 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || hashcode || '/wms?'
+	ELSE 'https://espacialg.geoperu.gob.pe/geoserver/subsitema/' || hashcode || '/wms?'	  
+    
   END AS wms,
   wfs,
   wmts,

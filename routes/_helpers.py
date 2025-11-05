@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from typing import Optional
@@ -47,7 +46,12 @@ def obtener_usuario_actual(*, requerido: bool = False) -> Optional[Usuario]:
     .first()
   )
 
-  if not usuario or not usuario.estado or not usuario.geoidep:
+  if (
+    not usuario
+    or not usuario.estado
+    or not usuario.geoidep
+    or not usuario.tiene_perfil_gestion
+  ):
     g.usuario_actual = None
     return None
 

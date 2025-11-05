@@ -44,7 +44,7 @@ def ingreso():
       flash('Correo o contraseña inválidos', 'error')
     elif not usuario.estado:
       flash('La cuenta se encuentra deshabilitada. Contacta al administrador.', 'error')
-    elif not usuario.geoidep:
+    elif not usuario.geoidep or not usuario.tiene_perfil_gestion:
       flash('Tu usuario no cuenta con acceso a GEOIDEP.', 'error')
     else:
       access_token = create_access_token(
@@ -69,7 +69,7 @@ def principal():
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
     return redirect_to_login()
-  return render_template('gestion/principal.html')
+  return render_template('gestion/principal.html', usuario_actual=usuario)
 
 @bp.route('/salir', endpoint='logout')
 @jwt_required(optional=True)
