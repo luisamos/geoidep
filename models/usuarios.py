@@ -141,6 +141,7 @@ class Usuario(db.Model):
   def es_especialista(self) -> bool:
       return self.id_perfil == 3
 
+  @property
   def es_gestor(self) -> bool:
       return self.id_perfil == 4
 

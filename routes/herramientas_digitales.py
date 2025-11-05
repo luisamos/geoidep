@@ -77,6 +77,7 @@ def inicio():
     institucion_usuario=institucion_usuario,
     instituciones_disponibles=instituciones_disponibles,
     puede_editar_institucion=puede_editar_institucion,
+    usuario_actual=usuario,
   )
 
 @bp.route('/listar')

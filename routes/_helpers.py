@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from models.usuarios import Usuario
 
 
-def _obtener_id_desde_identidad(identity):
+def obtener_id_desde_identidad(identity):
   if isinstance(identity, dict):
     return identity.get('id_usuario')
 
@@ -32,7 +32,7 @@ def obtener_usuario_actual(*, requerido: bool = False) -> Optional[Usuario]:
     return None
 
   identidad = get_jwt_identity()
-  id_usuario = _obtener_id_desde_identidad(identidad)
+  id_usuario = obtener_id_desde_identidad(identidad)
   if not id_usuario:
     g.usuario_actual = None
     return None

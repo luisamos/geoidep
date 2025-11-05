@@ -24,7 +24,12 @@ bp = Blueprint('personal', __name__, url_prefix='/personal')
 @bp.route('/')
 @jwt_required()
 def listar():
-  return render_template('gestion/personal.html', tipos_documento=TIPOS_DOCUMENTO)
+  usuario = obtener_usuario_actual(requerido=True)
+  return render_template(
+    'gestion/personal.html',
+    tipos_documento=TIPOS_DOCUMENTO,
+    usuario_actual=usuario,
+  )
 
 
 @bp.route('/catalogo')
