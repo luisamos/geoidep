@@ -182,64 +182,51 @@
                   {% if herramienta.es_capa %}
                   <div class="space-y-4">
                     {% if herramienta.servicios %}
-                    <div class="flex flex-wrap gap-2">
-                      {% for servicio in herramienta.servicios %}
-                      {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
-                      <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if servicio.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
-                        {{ sigla_servicio }}
-                      </span>
-                      {% endfor %}
-                    </div>
-                    <div class="space-y-4">
-                      {% for servicio in herramienta.servicios %}
-                      {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
-                      <div class="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
-                        <div class="flex flex-col gap-1">
-                          <p class="text-sm font-semibold text-[#0B1221]">{{ servicio.etiqueta or 'Recurso disponible' }}</p>
-                          {% if servicio.recurso %}
-                          <p class="text-xs text-gray-600 break-words">{{ servicio.recurso }}</p>
-                          {% endif %}
-                        </div>
-                        {% if servicio.estado_is_active %}
-                        <div class="flex flex-wrap gap-3">
-                          {% if servicio.view_map_url %}
-                          <a href="{{ servicio.view_map_url }}" target="_blank" rel="noopener noreferrer"
-                            class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition">
-                            <i class="fa-solid fa-map-location-dot text-sm"></i>
-                            <span>Ver mapa</span>
-                          </a>
-                          {% endif %}
-                          {% if servicio.copy_url %}
-                          <button type="button"
-                            class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
-                            data-copy-url="{{ servicio.copy_url }}" data-copy-label="{{ sigla_servicio }}">
-                            <i class="fa-solid fa-link text-sm"></i>
-                            <span class="js-copy-button-text">Copiar URL {{ sigla_servicio }}</span>
-                          </button>
-                          {% endif %}
-                          {% if servicio.ir_servicio_url %}
-                          <a href="{{ servicio.ir_servicio_url }}" target="_blank" rel="noopener noreferrer"
-                            class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0B7A75] text-[#0B7A75] font-semibold px-4 py-2 hover:bg-[#0B7A75] hover:text-white transition">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
-                            <span>Ir al servicio</span>
-                          </a>
-                          {% endif %}
-                        </div>
-                        {% else %}
-                        <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
-                        {% endif %}
+                    <div class="space-y-2">
+                      <p class="text-sm font-semibold text-[#0B1221]">Tipos de servicios:</p>
+                      <div class="flex flex-wrap gap-2">
+                        {% for servicio in herramienta.servicios %}
+                        {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
+                        <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if servicio.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
+                          {{ sigla_servicio }}
+                        </span>
+                        {% endfor %}
                       </div>
+                    </div>
+                    {% endif %}
+
+                    {% if herramienta.acciones %}
+                    <div class="flex flex-wrap gap-3">
+                      {% for accion in herramienta.acciones %}
+                      {% if accion.tipo == 'view_map' %}
+                      <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition">
+                        <i class="fa-solid fa-map-location-dot text-sm"></i>
+                        <span>Ver mapa</span>
+                      </a>
+                      {% elif accion.tipo == 'copy' %}
+                      <button type="button"
+                        class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                        data-copy-url="{{ accion.url }}" data-copy-label="{{ accion.sigla }}">
+                        <i class="fa-solid fa-link text-sm"></i>
+                        <span class="js-copy-button-text">Copiar URL {{ accion.sigla }}</span>
+                      </button>
+                      {% endif %}
                       {% endfor %}
                     </div>
+                    {% elif herramienta.servicios %}
+                    <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
                     {% else %}
                     <p class="text-sm text-gray-600">No se registraron servicios geográficos para esta capa.</p>
                     {% endif %}
                   </div>
                   {% else %}
                   <div class="space-y-2 text-[14px] text-black">
-                    <p>
-                      <span class="font-semibold">Tipo de servicios:</span>
-                      {{ (herramienta.tipo_servicio or 'Sin registro')|upper }}
+                    <p class="flex flex-wrap items-center gap-2">
+                      <span class="font-semibold">Tipo de servicio:</span>
+                      <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
+                        {{ (herramienta.tipo_servicio or 'Sin registro') }}
+                      </span>
                     </p>
                     {% if herramienta.institucion %}
                     <p>

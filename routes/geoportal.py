@@ -1,6 +1,7 @@
 import re
 import hmac
 import secrets
+import unicodedata
 from collections import OrderedDict
 from copy import deepcopy
 from types import SimpleNamespace
@@ -18,7 +19,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, or_
 from markupsafe import escape
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from models.herramientas_digitales import HerramientaDigital
 from models.categorias import Categoria
@@ -31,20 +32,10 @@ bp = Blueprint('geoportal', __name__)
 
 SEARCH_TOKEN_SESSION_KEY = 'catalog_search_token'
 
-CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
 EXCLUDED_PARENT_IDS = tuple(range(10))
-SERVICIO_SIGLAS = {
-  11: 'WMS',
-  12: 'WFS',
-  14: 'WMTS',
-  17: 'REST',
-  20: 'KML',
-}
 
-CAPABILITIES_SUFFIXES = {
-  11: '?SERVICES=WMS&REQUEST=GetCapabilities',
-  12: '?SERVICES=WFS&REQUEST=GetCapabilities',
-}
+DEFAULT_CAPA_PARENT_IDS = frozenset({2, 3})
+DEFAULT_CAPA_TIPO_IDS = frozenset({11, 12, 14, 17, 20})
 
 def sanitize_text(value):
   if value is None:
@@ -56,6 +47,14 @@ def sanitize_query_text(value):
     return ''
   return re.sub(r"[<>\"'`]", '', value).strip()
 
+def slugify_text(value):
+  if not value:
+    return ''
+
+  normalized = unicodedata.normalize('NFKD', str(value))
+  ascii_text = normalized.encode('ascii', 'ignore').decode('ascii')
+  slug = re.sub(r'[^a-z0-9]+', '-', ascii_text.lower()).strip('-')
+  return slug
 
 def ensure_search_token():
   token = session.get(SEARCH_TOKEN_SESSION_KEY)
@@ -63,7 +62,6 @@ def ensure_search_token():
     token = secrets.token_urlsafe(32)
     session[SEARCH_TOKEN_SESSION_KEY] = token
   return token
-
 
 def is_search_token_valid(provided_token):
   expected_token = session.get(SEARCH_TOKEN_SESSION_KEY)
@@ -125,36 +123,78 @@ def obtener_imagen_capa_url(capa_id):
 
   return url_for('static', filename='imagenes/imagen_no_disponible.jpg')
 
+@cache.memoize(timeout=300)
+def obtener_configuracion_servicios():
+  tipos = (
+    TipoServicio.query.filter(
+      TipoServicio.estado.is_(True),
+      TipoServicio.id_padre.in_(DEFAULT_CAPA_PARENT_IDS),
+    )
+    .order_by(TipoServicio.orden.asc(), TipoServicio.nombre.asc())
+    .all()
+  )
+
+  tipos_por_id = {}
+  capa_tipo_ids = set()
+
+  for tipo in tipos:
+    sigla = (tipo.sigla or '').strip()
+    nombre = (tipo.nombre or '').strip()
+    tag = (tipo.tag or '').strip()
+    recurso = (tipo.recurso or '').strip() if getattr(tipo, 'recurso', None) else None
+
+    tipos_por_id[tipo.id] = {
+      'id': tipo.id,
+      'sigla': sigla or None,
+      'nombre': nombre or None,
+      'recurso': recurso or None,
+      'tag': tag or None,
+      'id_padre': tipo.id_padre,
+    }
+
+    capa_tipo_ids.add(tipo.id)
+
+  if not capa_tipo_ids:
+    capa_tipo_ids = set(DEFAULT_CAPA_TIPO_IDS)
+
+  return {
+    'por_id': tipos_por_id,
+    'ids_capa': frozenset(capa_tipo_ids),
+  }
+
 
 def build_capabilities_url(base_url, fragment):
-  if not base_url or not fragment:
-    return base_url
+  if not base_url:
+    return None
 
   base_url = base_url.strip()
   if not base_url:
     return None
 
-  fragment = fragment.strip()
+  fragment = (fragment or '').strip()
   if not fragment:
     return base_url
 
-  if fragment.startswith('?'):
-    if '?' in base_url:
-      if base_url.endswith('?') or base_url.endswith('&'):
-        return f"{base_url}{fragment.lstrip('?')}"
-      return f"{base_url}&{fragment.lstrip('?')}"
-    return f"{base_url}{fragment}"
+  if fragment.startswith('?') or fragment.startswith('&'):
+    fragment = fragment[1:]
 
-  if fragment.startswith('&'):
-    if '?' in base_url:
-      return f"{base_url}{fragment}"
-    return f"{base_url}?{fragment.lstrip('&')}"
+  if not fragment:
+    return base_url
 
-  if '?' in base_url:
-    separator = '&' if not base_url.endswith('&') else ''
-    return f"{base_url}{separator}{fragment}"
+  parsed_base = urlparse(base_url)
+  base_pairs = parse_qsl(parsed_base.query, keep_blank_values=True)
+  existing_keys = {key.lower() for key, _ in base_pairs}
 
-  return f"{base_url}?{fragment}"
+  fragment_pairs = parse_qsl(fragment, keep_blank_values=True)
+  for key, value in fragment_pairs:
+    lower_key = key.lower()
+    if lower_key not in existing_keys:
+      base_pairs.append((key, value))
+      existing_keys.add(lower_key)
+
+  new_query = urlencode(base_pairs, doseq=True)
+  updated = parsed_base._replace(query=new_query)
+  return urlunparse(updated)
 
 
 def obtener_sigla_servicio(tipo_servicio, servicio_id):
@@ -162,9 +202,27 @@ def obtener_sigla_servicio(tipo_servicio, servicio_id):
     sigla = getattr(tipo_servicio, 'sigla', None)
     if sigla:
       return sanitize_text(sigla)
+    nombre = getattr(tipo_servicio, 'nombre', None)
+    if nombre:
+      return sanitize_text(nombre)
 
-  sigla_constante = SERVICIO_SIGLAS.get(servicio_id)
-  return sanitize_text(sigla_constante) if sigla_constante else None
+  configuracion = obtener_configuracion_servicios()
+  datos_tipo = configuracion['por_id'].get(servicio_id, {})
+  sigla = datos_tipo.get('sigla') or datos_tipo.get('nombre')
+  return sanitize_text(sigla) if sigla else None
+
+def obtener_recurso_tipo_servicio(tipo_servicio, servicio_id):
+  if tipo_servicio is not None:
+    recurso = getattr(tipo_servicio, 'recurso', None)
+    if recurso:
+      recurso = recurso.strip()
+      if recurso:
+        return recurso
+
+  configuracion = obtener_configuracion_servicios()
+  datos_tipo = configuracion['por_id'].get(servicio_id, {})
+  recurso = datos_tipo.get('recurso')
+  return recurso.strip() if recurso else None
 
 def obtener_tipos_servicios_catalogo():
   tipos = (
@@ -180,7 +238,7 @@ def obtener_tipos_servicios_catalogo():
   tipos_por_slug = {}
 
   for tipo in tipos:
-    slug_base = (tipo.tag or '').strip() or slugify(tipo.nombre)
+    slug_base = (tipo.tag or '').strip() or slugify_text(tipo.nombre)
     if not slug_base:
       slug_base = f"tipo-{tipo.id}"
 
@@ -208,7 +266,8 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
   id_institucion = id_institucion or None
 
   categorias = OrderedDict()
-  es_tipo_capa = id_tipo in CATALOGO_CAPA_TIPO_IDS
+  configuracion_servicios = obtener_configuracion_servicios()
+  es_tipo_capa = id_tipo in configuracion_servicios['ids_capa']
 
   if es_tipo_capa:
     query = (
@@ -281,13 +340,15 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         institucion_info = sanitize_text(institucion.nombre)
 
       servicios_data = []
+      acciones = []
+      acciones_vistas = set()
+      acciones_copia = set()
       for servicio in sorted(
         servicios_relacionados,
         key=lambda item: (
           (item.titulo_capa or item.nombre_capa or '').lower(),
         ),
       ):
-        etiqueta = servicio.titulo_capa or servicio.nombre_capa or capa.nombre
         recurso = sanitize_external_url(servicio.direccion_web)
         estado_activo = servicio.estado is True
         sigla = obtener_sigla_servicio(
@@ -295,27 +356,49 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
           servicio.id_tipo_servicio,
         )
         copy_url = None
-        if recurso and servicio.id_tipo_servicio in {11, 12, 14, 17}:
-          if servicio.id_tipo_servicio in CAPABILITIES_SUFFIXES:
-            copy_url = build_capabilities_url(
-              recurso,
-              CAPABILITIES_SUFFIXES[servicio.id_tipo_servicio],
-            )
+        recurso_tipo = obtener_recurso_tipo_servicio(
+          servicio.tipo_servicio,
+          servicio.id_tipo_servicio,
+        )
+        if recurso:
+          if recurso_tipo:
+            copy_url = build_capabilities_url(recurso, recurso_tipo)
           else:
             copy_url = recurso
 
+        sigla_display = sigla or 'SERVICIO'
+        view_map_url = None
+        if estado_activo and sigla_display and 'WMS' in sigla_display.upper():
+          view_map_url = f"https://visor.geoperu.gob.pe/?capa={servicio.id}"
+
+        if estado_activo and view_map_url and view_map_url not in acciones_vistas:
+          acciones.append(
+            {
+              'tipo': 'view_map',
+              'url': view_map_url,
+            }
+          )
+          acciones_vistas.add(view_map_url)
+
+        if estado_activo and copy_url:
+          copy_key = (sigla_display, copy_url)
+          if copy_key not in acciones_copia:
+            acciones.append(
+              {
+                'tipo': 'copy',
+                'url': copy_url,
+                'sigla': sigla_display,
+              }
+            )
+            acciones_copia.add(copy_key)
+
         servicios_data.append(
           {
-            'etiqueta': sanitize_text(etiqueta),
-            'nombre': sanitize_text(servicio.nombre_capa),
-            'titulo': sanitize_text(servicio.titulo_capa),
-            'recurso': recurso,
             'sigla': sigla,
             'estado': 1 if estado_activo else 0,
             'estado_is_active': estado_activo,
-            'copy_url': copy_url,
-            'view_map_url': recurso if estado_activo and servicio.id_tipo_servicio == 11 else None,
-            'ir_servicio_url': recurso if estado_activo and servicio.id_tipo_servicio == 20 else None,
+            'copy_url': copy_url if estado_activo else None,
+            'view_map_url': view_map_url,
             'id_tipo_servicio': servicio.id_tipo_servicio,
           }
         )
@@ -324,22 +407,21 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         item['estado_is_active'] for item in servicios_data
       )
 
-      categoria_data['herramientas'].append(
-        {
-          'id': capa.id,
-          'nombre': sanitize_text(capa.nombre),
-          'descripcion': sanitize_text(capa.descripcion),
-          'institucion': institucion_info,
-          'servicios': servicios_data,
-          'estado': 1 if estado_general_activo else 0,
-          'estado_label': 'Disponible' if estado_general_activo else 'No disponible',
-          'estado_is_active': estado_general_activo,
-          'recurso': None,
-          'imagen_url': obtener_imagen_capa_url(capa.id),
-          'tipo_servicio': None,
-          'es_capa': True,
+      {
+        'id': capa.id,
+        'nombre': sanitize_text(capa.nombre),
+        'descripcion': sanitize_text(capa.descripcion),
+        'institucion': institucion_info,
+        'servicios': servicios_data,
+        'acciones': acciones,
+        'estado': 1 if estado_general_activo else 0,
+        'estado_label': 'Disponible' if estado_general_activo else 'No disponible',
+        'estado_is_active': estado_general_activo,
+        'recurso': None,
+        'imagen_url': obtener_imagen_capa_url(capa.id),
+        'tipo_servicio': None,
+        'es_capa': True,
         }
-      )
 
     instituciones_disponibles = (
       Institucion.query.join(Institucion.capas)
@@ -441,6 +523,7 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
             herramienta.tipo_servicio.nombre if herramienta.tipo_servicio else None
           ),
           'servicios': [],
+          'acciones': [],
           'es_capa': False,
         }
       )
