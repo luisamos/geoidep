@@ -23,7 +23,7 @@ def obtener_admin_actual():
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
     return None, redirect_to_login()
-  if not usuario.es_administrador:
+  if not usuario.es_coordinador:
     flash('No cuentas con permisos para acceder a esta sección.', 'error')
     return None, redirect(url_for('gestion.principal'))
   return usuario, None

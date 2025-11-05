@@ -134,27 +134,27 @@ class Usuario(db.Model):
       return self.perfil.nombre if self.perfil else ''
 
   @property
-  def es_administrador(self) -> bool:
-      return self.id_perfil == 1
-
-  @property
-  def es_especialista(self) -> bool:
+  def es_coordinador(self) -> bool:
       return self.id_perfil == 2
 
   @property
-  def es_gestor(self) -> bool:
+  def es_especialista(self) -> bool:
       return self.id_perfil == 3
 
   @property
+  def es_gestor(self) -> bool:
+      return self.id_perfil == 4
+
+  @property
   def puede_gestionar_multiples_instituciones(self) -> bool:
-      return self.es_administrador or self.es_especialista
+      return self.es_coordinador or self.es_especialista
 
   @property
   def menus_permitidos(self) -> set[str]:
-      if self.es_administrador:
+      if self.es_coordinador:
           return {f"menu{indice:02d}" for indice in range(1, 11)}
       if self.es_especialista:
-          return {f"menu{indice:02d}" for indice in (1, 2, 3, 4, 5, 6, 7, 10)}
+          return {f"menu{indice:02d}" for indice in (1, 2, 3, 4, 5, 6, 10)}
       if self.es_gestor:
           return {f"menu{indice:02d}" for indice in (1, 2, 3, 10)}
       return set()
