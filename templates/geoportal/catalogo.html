@@ -66,7 +66,7 @@
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
               <option value="" disabled {% if not selected_tipo %}selected{% endif %}>[Elegir]</option>
               {% for tipo in tipos_servicios %}
-              <option value="{{ tipo.slug|lower }}" {% if selected_tipo and tipo.id == selected_tipo.id %}selected{% endif %}>{{ tipo.nombre|upper }}</option>
+              <option value="{{ tipo.slug|lower }}" {% if selected_tipo and tipo.id == selected_tipo.id %}selected{% endif %}>{{ tipo.nombre }}</option>
               {% endfor %}
             </select>
             <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
@@ -83,7 +83,7 @@
               {% if not selected_tipo %}disabled{% endif %}>
               <option value="" disabled {% if not selected_categoria_id %}selected{% endif %}>[Elegir]</option>
               {% for categoria in categorias_opciones %}
-              <option value="{{ categoria.id }}" {% if selected_categoria_id == categoria.id %}selected{% endif %}>{{ categoria.nombre|upper }}</option>
+              <option value="{{ categoria.id }}" {% if selected_categoria_id == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
               {% endfor %}
             </select>
             <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
@@ -100,7 +100,7 @@
               {% if not selected_tipo %}disabled{% endif %}>
               <option value="" disabled {% if not selected_institucion_id %}selected{% endif %}>[Elegir]</option>
               {% for institucion in instituciones_opciones %}
-              <option value="{{ institucion.id }}" {% if selected_institucion_id == institucion.id %}selected{% endif %}>{{ institucion.nombre|upper }}</option>
+              <option value="{{ institucion.id }}" {% if selected_institucion_id == institucion.id %}selected{% endif %}>{{ institucion.nombre }}</option>
               {% endfor %}
             </select>
             <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
@@ -152,7 +152,7 @@
         {% for categoria in categorias %}
         <div class="space-y-6">
           <div>
-            <h4 class="text-[20px] font-semibold text-[#0B1221]">{{ categoria.nombre|upper }}</h4>
+            <h4 class="text-[20px] font-semibold text-[#0B1221]">{{ categoria.nombre }}</h4>
           </div>
           <div class="space-y-8">
             {% for herramienta in categoria.herramientas %}
@@ -162,12 +162,12 @@
                   <img src="{{ herramienta.imagen_url }}" alt="Vista previa" class="w-[140px] h-[220px] object-cover rounded-xl md:rounded-none md:absolute md:inset-0 md:w-full md:h-full" />
                 </div>
                 <div class="flex flex-col p-6 md:p-8 gap-5">
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
-                      {{ herramienta.estado_label|upper }}
-                    </span>
+                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] border border-[#BFCBDE] bg-[#F6F6FF] text-[12px] leading-[20px] font-bold text-[#331980]">
                       {{ (herramienta.institucion or 'Institución no disponible')|upper }}
+                    </span>
+                    <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
+                      {{ herramienta.estado_label|upper }}
                     </span>
                   </div>
 

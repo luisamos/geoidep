@@ -29,12 +29,10 @@ from extensions import cache
 
 bp = Blueprint('geoportal', __name__)
 
-CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
-
-EXCLUDED_PARENT_IDS = tuple(range(10))
-
 SEARCH_TOKEN_SESSION_KEY = 'catalog_search_token'
 
+CATALOGO_CAPA_TIPO_IDS = (11, 12, 14, 17, 20)
+EXCLUDED_PARENT_IDS = tuple(range(10))
 SERVICIO_SIGLAS = {
   11: 'WMS',
   12: 'WFS',
@@ -160,25 +158,13 @@ def build_capabilities_url(base_url, fragment):
 
 
 def obtener_sigla_servicio(tipo_servicio, servicio_id):
-  if not tipo_servicio and servicio_id not in SERVICIO_SIGLAS:
-    return None
-
-  sigla = None
   if tipo_servicio is not None:
-    sigla = getattr(tipo_servicio, 'siglas', None)
-    if not sigla:
-      sigla = getattr(tipo_servicio, 'sigla', None)
-    if not sigla and getattr(tipo_servicio, 'tag', None):
-      partes = [segment for segment in tipo_servicio.tag.split('_') if segment]
-      if partes:
-        posible_sigla = partes[-1].upper()
-        if posible_sigla and len(posible_sigla) <= 6:
-          sigla = posible_sigla
+    sigla = getattr(tipo_servicio, 'sigla', None)
+    if sigla:
+      return sanitize_text(sigla)
 
-  if not sigla:
-    sigla = SERVICIO_SIGLAS.get(servicio_id)
-
-  return sanitize_text(sigla) if sigla else None
+  sigla_constante = SERVICIO_SIGLAS.get(servicio_id)
+  return sanitize_text(sigla_constante) if sigla_constante else None
 
 def obtener_tipos_servicios_catalogo():
   tipos = (
