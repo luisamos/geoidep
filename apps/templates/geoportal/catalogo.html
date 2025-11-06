@@ -161,26 +161,27 @@
 </form>
 
 <section class="bg-white">
-  {% if selected_tipo or total_herramientas or applied_filters %}
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <p class="text-[16px] leading-[24px] font-semibold text-black">
-        <span id="resCount">{{ total_herramientas }}</span> Resultados encontrados
-      </p>
-      <div class="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-3 w-full md:w-auto">
-        <label for="ordenar2" class="text-sm text-black font-medium">Ordenar por:</label>
+  <div class="max-w-screen-xl mx-auto px-6 py-12">
+    {% if selected_tipo or total_herramientas or applied_filters %}
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <p class="text-[16px] leading-[24px] font-semibold text-black">
+          <span id="resCount">{{ total_herramientas }}</span> Resultados encontrados
+        </p>
+        <div class="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-3 w-full md:w-auto">
+          <label for="ordenar2" class="text-sm text-black font-medium">Ordenar por:</label>
 
-        <div class="relative w-full md:w-[280px]">
-          <select name="ordenar" id="ordenar" class="h-11 md:h-10 w-full pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
-            <option value="" {% if selected_estado is none %}selected{% endif %}>[Todos]</option>
-            <option value="1" {% if selected_estado == 1 %}selected{% endif %}>Disponible</option>
-            <option value="0" {% if selected_estado == 0 %}selected{% endif %}>En mantenimiento</option>
-          </select>
-          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-              <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
-          </span>
+          <div class="relative w-full md:w-[280px]">
+            <select name="ordenar" id="ordenar" class="h-11 md:h-10 w-full pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
+              <option value="" {% if selected_estado is none %}selected{% endif %}>[Todos]</option>
+              <option value="1" {% if selected_estado == 1 %}selected{% endif %}>Disponible</option>
+              <option value="0" {% if selected_estado == 0 %}selected{% endif %}>En mantenimiento</option>
+            </select>
+            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
+            </span>
+          </div>
         </div>
-    </div>
-    </div>
+      </div>
     {% endif %}
 
     <div class="mt-8 space-y-12">
