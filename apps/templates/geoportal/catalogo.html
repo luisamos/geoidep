@@ -64,7 +64,7 @@
           <div class="relative">
             <select name="tipos_servicios" id="tipos_servicios"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
-              <option value="" disabled {% if not selected_tipo %}selected{% endif %}>[Todos]</option>
+              <option value="" {% if not selected_tipo %}selected{% endif %}>[Todos]</option>
               {% for tipo in tipos_servicios %}
               <option value="{{ tipo.slug|lower }}" {% if selected_tipo and tipo.id == selected_tipo.id %}selected{% endif %}>{{ tipo.nombre }}</option>
               {% endfor %}
@@ -81,7 +81,7 @@
             <select name="id_categoria" id="categoria"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
               {% if not selected_tipo %}disabled{% endif %}>
-              <option value="" disabled {% if not selected_id_categoria %}selected{% endif %}>[Todos]</option>
+              <option value="" {% if not selected_id_categoria %}selected{% endif %}>[Todos]</option>
               {% for categoria in categorias_opciones %}
               <option value="{{ categoria.id }}" {% if selected_id_categoria == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
               {% endfor %}
@@ -98,7 +98,7 @@
             <select name="id_institucion" id="entidad"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
               {% if not selected_tipo %}disabled{% endif %}>
-              <option value="" disabled {% if not selected_id_institucion %}selected{% endif %}>[Todos]</option>
+              <option value="" {% if not selected_id_institucion %}selected{% endif %}>[Todos]</option>
               {% for institucion in instituciones_opciones %}
               <option value="{{ institucion.id }}" {% if selected_id_institucion == institucion.id %}selected{% endif %}>{{ institucion.nombre }}</option>
               {% endfor %}
