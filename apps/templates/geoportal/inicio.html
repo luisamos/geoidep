@@ -68,24 +68,31 @@
             <form
               name="frm_buscar_catalogo"
               id="frm_buscar_catalogo"
-              method="post"
+              method="get"
+              action="{{ catalogo_url }}"
               class="mt-6 max-w-[560px]"
             >
+              <input
+                type="hidden"
+                name="search_token"
+                value="{{ search_token }}"
+              />
               <div
                 class="flex items-center border-2 border-[#26292E] rounded-[8px] bg-white px-2"
               >
                 <input
                   type="text"
-                  name="texto_busqueda"
+                  name="filter_terms"
                   placeholder="Buscar Geoportales, Visores, Metadatos, Servicios de mapas"
                   class="flex-1 h-12 px-2 text-gray-700 placeholder-gray-400 bg-transparent focus:outline-none focus:ring-0 focus:border-transparent"
                 />
-                <a
-                  href=""
+                <button
+                  type="submit"
                   class="flex items-center justify-center p-2 bg-[#26292E] rounded-[6px] hover:bg-black transition cursor-pointer"
+                  aria-label="Buscar en el catálogo"
                 >
                   <i class="fas fa-search text-white text-base"></i>
-                </a>
+                </button>
               </div>
             </form>
           </div>

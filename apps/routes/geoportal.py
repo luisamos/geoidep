@@ -275,9 +275,17 @@ def obtener_tipos_servicios_catalogo():
   return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
 
 @cache.memoize(timeout=300)
-def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filter_terms):
+def obtener_datos_catalogo_cacheados(
+  id_tipo,
+  id_categoria,
+  id_institucion,
+  filter_terms,
+  estado_filter=None,
+):
   id_categoria = id_categoria or None
   id_institucion = id_institucion or None
+  if estado_filter not in (0, 1, None):
+    estado_filter = None
 
   categorias = OrderedDict()
   configuracion_servicios = obtener_configuracion_servicios()
@@ -296,7 +304,11 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         CapaGeografica.servicios.any(
           and_(
             ServicioGeografico.id_tipo_servicio == id_tipo,
-            ServicioGeografico.estado.is_(True),
+            *(
+              [ServicioGeografico.estado.is_(bool(estado_filter))]
+              if estado_filter is not None
+              else []
+            ),
           )
         )
       )
@@ -332,12 +344,18 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
       if not categoria:
         continue
 
-      servicios_relacionados = [
-        servicio
-        for servicio in capa.servicios
-        if servicio.estado is True
-        and servicio.id_tipo_servicio in configuracion_servicios['ids_capa']
-      ]
+      servicios_relacionados = []
+      for servicio in capa.servicios:
+        if servicio.id_tipo_servicio not in configuracion_servicios['ids_capa']:
+          continue
+
+        estado_activo = servicio.estado is True
+        if estado_filter == 1 and not estado_activo:
+          continue
+        if estado_filter == 0 and estado_activo:
+          continue
+
+        servicios_relacionados.append(servicio)
 
       if not any(
         servicio.id_tipo_servicio == id_tipo
@@ -466,18 +484,35 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         CapaGeografica.id_categoria == id_categoria
       )
 
+    if estado_filter is not None:
+      instituciones_disponibles = instituciones_disponibles.filter(
+        ServicioGeografico.estado.is_(bool(estado_filter))
+      )
+
     instituciones_disponibles = (
-      instituciones_disponibles.with_entities(Institucion.id, Institucion.nombre)
+      instituciones_disponibles.with_entities(
+        Institucion.id,
+        Institucion.nombre,
+        Institucion.sigla,
+      )
       .order_by(Institucion.id.asc())
       .distinct()
       .all()
     )
 
-    categorias_disponibles = (
+    categorias_disponibles_query = (
       Categoria.query.join(Categoria.capas)
       .join(CapaGeografica.servicios)
       .filter(ServicioGeografico.id_tipo_servicio == id_tipo)
-      .with_entities(Categoria.id, Categoria.nombre)
+    )
+
+    if estado_filter is not None:
+      categorias_disponibles_query = categorias_disponibles_query.filter(
+        ServicioGeografico.estado.is_(bool(estado_filter))
+      )
+
+    categorias_disponibles = (
+      categorias_disponibles_query.with_entities(Categoria.id, Categoria.nombre)
       .order_by(Categoria.nombre.asc())
       .distinct()
       .all()
@@ -498,6 +533,9 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
 
     if id_institucion:
       query = query.filter(HerramientaDigital.id_institucion == id_institucion)
+
+    if estado_filter is not None:
+      query = query.filter(HerramientaDigital.estado == bool(estado_filter))
 
     if filter_terms:
       pattern = f"%{filter_terms}%"
@@ -570,17 +608,34 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
         HerramientaDigital.id_categoria == id_categoria
       )
 
+    if estado_filter is not None:
+      instituciones_disponibles = instituciones_disponibles.filter(
+        HerramientaDigital.estado == bool(estado_filter)
+      )
+
     instituciones_disponibles = (
-      instituciones_disponibles.with_entities(Institucion.id, Institucion.nombre)
+      instituciones_disponibles.with_entities(
+        Institucion.id,
+        Institucion.nombre,
+        Institucion.sigla,
+      )
       .order_by(Institucion.nombre.asc())
       .distinct()
       .all()
     )
 
-    categorias_disponibles = (
+    categorias_disponibles_query = (
       Categoria.query.join(Categoria.herramientas)
       .filter(HerramientaDigital.id_tipo_servicio == id_tipo)
-      .with_entities(Categoria.id, Categoria.nombre)
+    )
+
+    if estado_filter is not None:
+      categorias_disponibles_query = categorias_disponibles_query.filter(
+        HerramientaDigital.estado == bool(estado_filter)
+      )
+
+    categorias_disponibles = (
+      categorias_disponibles_query.with_entities(Categoria.id, Categoria.nombre)
       .order_by(Categoria.nombre.asc())
       .distinct()
       .all()
@@ -592,13 +647,17 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
   )
 
   categorias_opciones = [
-    {'id': cat_id, 'nombre': sanitize_text(nombre)}
-    for cat_id, nombre in categorias_disponibles
+    {'id': id_cat, 'nombre': sanitize_text(nombre)}
+    for id_cat, nombre in categorias_disponibles
   ]
 
   instituciones_opciones = [
-    {'id': inst_id, 'nombre': sanitize_text(nombre)}
-    for inst_id, nombre in instituciones_disponibles
+    {
+      'id': id_inst,
+      'nombre': sanitize_text(nombre),
+      'sigla': sanitize_text(sigla) if sigla else None,
+    }
+    for id_inst, nombre, sigla in instituciones_disponibles
   ]
 
   categorias_opciones.sort(key=lambda item: (item['nombre'] or '').lower())
@@ -615,9 +674,16 @@ def obtener_datos_catalogo_cacheados(id_tipo, id_categoria, id_institucion, filt
 def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
   id_institucion = request.args.get('id_institucion', type=int)
   id_categoria = request.args.get('id_categoria', type=int)
-  filter_terms_raw = request.args.get('filter_terms', default='', type=str)
+  estado_param = request.args.get('ordenar', type=str)
   provided_token = request.args.get('search_token', type=str)
+  filter_terms_raw = request.args.get('filter_terms', default='', type=str)
   search_token = ensure_search_token()
+
+  estado_filter = None
+  if estado_param in {'0', '1'}:
+    estado_filter = int(estado_param)
+  else:
+    estado_param = ''
 
   filter_terms = ''
   if filter_terms_raw:
@@ -633,8 +699,10 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
   categorias_list = []
   total_herramientas = 0
   selected_tipo = None
-  applied_filters = []
   selected_tipo_slug = None
+  applied_filters = []
+
+  estado_cache_key = estado_filter if estado_filter is not None else -1
 
   if tipo_config:
     selected_tipo = {
@@ -643,30 +711,116 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       'descripcion': tipo_config.get('descripcion'),
       'slug': tipo_config.get('slug') or tipo_config.get('tag'),
     }
-    if selected_tipo['nombre']:
-      applied_filters.append(selected_tipo['nombre'])
 
     id_tipo = tipo_config['id']
     selected_tipo_slug = (tipo_config.get('slug') or tipo_config.get('tag') or '').lower()
 
-    cache_key = (
+    cache_args = (
       id_tipo,
       id_categoria or 0,
       id_institucion or 0,
       filter_terms.lower() if filter_terms else '',
+      estado_cache_key,
     )
-    datos_cacheados = deepcopy(obtener_datos_catalogo_cacheados(*cache_key))
+    datos_cacheados = deepcopy(obtener_datos_catalogo_cacheados(*cache_args))
 
     categorias_list = datos_cacheados['categorias']
     categorias_opciones = datos_cacheados['categorias_opciones']
     instituciones_opciones = datos_cacheados['instituciones_opciones']
     total_herramientas = datos_cacheados['total_herramientas']
 
-    if selected_tipo and selected_tipo['nombre']:
+    if selected_tipo['nombre']:
+      applied_filters.append(
+        {
+          'label': selected_tipo['nombre'],
+          'type': 'tipo',
+        }
+      )
       for categoria in categorias_list:
         for herramienta in categoria.get('herramientas', []):
           if not herramienta.get('tipo_servicio'):
             herramienta['tipo_servicio'] = selected_tipo['nombre']
+  else:
+    aggregated_request = any(
+      [
+        filter_terms,
+        id_categoria,
+        id_institucion,
+        estado_filter is not None,
+      ]
+    )
+
+    if aggregated_request:
+      categorias_agregadas = OrderedDict()
+      categorias_opciones_map = {}
+      instituciones_opciones_map = {}
+
+      for tipo in tipos_catalogo.lista:
+        id_tipo = tipo.get('id')
+        if not id_tipo:
+          continue
+
+        cache_args = (
+          id_tipo,
+          id_categoria or 0,
+          id_institucion or 0,
+          filter_terms.lower() if filter_terms else '',
+          estado_cache_key,
+        )
+        datos_tipo = deepcopy(obtener_datos_catalogo_cacheados(*cache_args))
+
+        if not datos_tipo['total_herramientas']:
+          continue
+
+        for categoria in datos_tipo['categorias']:
+          categoria_acumulada = categorias_agregadas.setdefault(
+            categoria['id'],
+            {
+              'id': categoria['id'],
+              'nombre': categoria.get('nombre'),
+              'descripcion': categoria.get('descripcion'),
+              'herramientas': [],
+            },
+          )
+
+          for herramienta in categoria.get('herramientas', []):
+            if not herramienta.get('tipo_servicio'):
+              herramienta['tipo_servicio'] = tipo.get('nombre')
+            categoria_acumulada['herramientas'].append(herramienta)
+
+        for opcion in datos_tipo['categorias_opciones']:
+          categorias_opciones_map[opcion['id']] = opcion
+
+        for opcion in datos_tipo['instituciones_opciones']:
+          existente = instituciones_opciones_map.get(opcion['id'])
+          if not existente or (opcion.get('sigla') and not existente.get('sigla')):
+            instituciones_opciones_map[opcion['id']] = opcion
+
+      categorias_list = [
+        datos
+        for _, datos in sorted(
+          categorias_agregadas.items(),
+          key=lambda item: (item[1]['nombre'] or '').lower(),
+        )
+      ]
+
+      for categoria in categorias_list:
+        categoria['herramientas'].sort(
+          key=lambda item: (item.get('nombre') or '').lower()
+        )
+
+      categorias_opciones = sorted(
+        categorias_opciones_map.values(),
+        key=lambda item: (item['nombre'] or '').lower(),
+      )
+      instituciones_opciones = sorted(
+        instituciones_opciones_map.values(),
+        key=lambda item: (item['nombre'] or '').lower(),
+      )
+
+      total_herramientas = sum(
+        len(categoria.get('herramientas', [])) for categoria in categorias_list
+      )
 
   if id_categoria:
     selected_categoria_nombre = next(
@@ -674,18 +828,44 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       None,
     )
     if selected_categoria_nombre:
-      applied_filters.append(selected_categoria_nombre)
+      applied_filters.append(
+        {
+          'label': selected_categoria_nombre,
+          'type': 'categoria',
+        }
+      )
 
   if id_institucion:
-    selected_institucion_nombre = next(
-      (inst['nombre'] for inst in instituciones_opciones if inst['id'] == id_institucion),
+    selected_institucion = next(
+      (inst for inst in instituciones_opciones if inst['id'] == id_institucion),
       None,
     )
-    if selected_institucion_nombre:
-      applied_filters.append(selected_institucion_nombre)
+    if selected_institucion:
+      label = selected_institucion['nombre']
+      if selected_institucion.get('sigla'):
+        label = f"{label} ({selected_institucion['sigla']})"
+      applied_filters.append(
+        {
+          'label': label,
+          'type': 'entidad',
+        }
+      )
 
   if filter_terms:
-    applied_filters.append(f"Contiene: {sanitize_text(filter_terms)}")
+    applied_filters.append(
+      {
+        'label': f"Contiene: {sanitize_text(filter_terms)}",
+        'type': 'search',
+      }
+    )
+
+  if estado_filter is not None:
+    applied_filters.append(
+      {
+        'label': 'Disponible' if estado_filter == 1 else 'En mantenimiento',
+        'type': 'estado',
+      }
+    )
 
   clear_filters_enabled = bool(applied_filters)
 
@@ -699,6 +879,7 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
     'selected_id_categoria': id_categoria,
     'selected_id_institucion': id_institucion,
     'filter_terms': filter_terms,
+    'selected_estado': estado_filter,
     'applied_filters': applied_filters,
     'clear_filters_enabled': clear_filters_enabled,
     'total_herramientas': total_herramientas,
@@ -746,6 +927,8 @@ def principal():
       'geoportal/inicio.html',
       tipos_servicios=tipos_catalogo.lista,
       estadisticas=estadisticas,
+      catalogo_url=url_for('geoportal.catalogo'),
+      search_token=ensure_search_token(),
   )
 
 @bp.route('/catalogo')

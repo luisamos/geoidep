@@ -79,8 +79,7 @@
           <label class="block text-sm font-medium mb-2" for="categoria">Categoría</label>
           <div class="relative">
             <select name="id_categoria" id="categoria"
-              class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
-              {% if not selected_tipo %}disabled{% endif %}>
+              class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
               <option value="" {% if not selected_id_categoria %}selected{% endif %}>[Todos]</option>
               {% for categoria in categorias_opciones %}
               <option value="{{ categoria.id }}" {% if selected_id_categoria == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
@@ -94,18 +93,34 @@
 
         <div>
           <label class="block text-sm font-medium mb-2" for="entidad">Entidad</label>
-          <div class="relative">
-            <select name="id_institucion" id="entidad"
-              class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
-              {% if not selected_tipo %}disabled{% endif %}>
-              <option value="" {% if not selected_id_institucion %}selected{% endif %}>[Todos]</option>
-              {% for institucion in instituciones_opciones %}
-              <option value="{{ institucion.id }}" {% if selected_id_institucion == institucion.id %}selected{% endif %}>{{ institucion.nombre }}</option>
-              {% endfor %}
-            </select>
-            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-              <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
-            </span>
+          <div class="space-y-2">
+            <div class="relative">
+              <input
+                type="text"
+                id="entidadSearch"
+                placeholder="Buscar entidad o sigla"
+                class="w-full h-12 pl-10 pr-3 bg-white border-2 border-[#26292E] rounded-[8px] outline-none focus:ring-0 focus:border-[#184397]"
+                autocomplete="off"
+                aria-label="Buscar entidad"
+              />
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
+            </div>
+            <div class="relative">
+              <select name="id_institucion" id="entidad"
+                class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
+                <option value="" {% if not selected_id_institucion %}selected{% endif %}>[Todos]</option>
+                {% for institucion in instituciones_opciones %}
+                <option value="{{ institucion.id }}" data-sigla="{{ institucion.sigla or '' }}" {% if selected_id_institucion == institucion.id %}selected{% endif %}>
+                  {{ institucion.nombre }}{% if institucion.sigla %} ({{ institucion.sigla }}){% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -116,7 +131,15 @@
               <div class="flex flex-wrap items-center gap-2" aria-live="polite">
                 {% if applied_filters %}
                   {% for filtro in applied_filters %}
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-[#BFCBDE] bg-white text-xs font-semibold text-[#184397]">{{ filtro|upper }}</span>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#BFCBDE] bg-white text-xs font-semibold text-[#184397] hover:bg-[#184397]/10 transition js-remove-filter"
+                      data-filter-type="{{ filtro.type }}"
+                      aria-label="Quitar filtro {{ filtro.label }}"
+                    >
+                      <span>{{ filtro.label }}</span>
+                      <span aria-hidden="true">&times;</span>
+                    </button>
                   {% endfor %}
                 {% else %}
                   <span class="text-sm text-gray-500">Sin filtros aplicados</span>
@@ -138,8 +161,7 @@
 </form>
 
 <section class="bg-white">
-  <div class="max-w-screen-xl mx-auto px-6 mt-[42px] pb-16">
-    {% if selected_tipo %}
+  {% if selected_tipo or total_herramientas or applied_filters %}
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <p class="text-[16px] leading-[24px] font-semibold text-black">
         <span id="resCount">{{ total_herramientas }}</span> Resultados encontrados
@@ -149,8 +171,9 @@
 
         <div class="relative w-full md:w-[280px]">
           <select name="ordenar" id="ordenar" class="h-11 md:h-10 w-full pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
-            <option value="1">Disponible</option>
-            <option value="0">En mantenimiento</option>
+            <option value="" {% if selected_estado is none %}selected{% endif %}>[Todos]</option>
+            <option value="1" {% if selected_estado == 1 %}selected{% endif %}>Disponible</option>
+            <option value="0" {% if selected_estado == 0 %}selected{% endif %}>En mantenimiento</option>
           </select>
           <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
               <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
@@ -254,12 +277,12 @@
                     <a href="{{ herramienta.recurso }}" target="_blank" rel="noopener noreferrer"
                       class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition">
                       <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
-                      <span>Acceso al recurso</span>
+                      <span>Ir al recurso</span>
                     </a>
                     {% else %}
                     <span class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#9CA3AF] text-[#9CA3AF] font-semibold px-8 py-[14px] cursor-not-allowed">
                       <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
-                      <span>Acceso al recurso</span>
+                      <span>Ir al recurso</span>
                     </span>
                     {% endif %}
                   </div>
@@ -271,15 +294,16 @@
           </div>
         </div>
         {% endfor %}
-      {% elif selected_tipo %}
-        <div class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl">
-          <p class="text-[16px] text-gray-600">No se encontraron resultados para los filtros seleccionados.</p>
-        </div>
-      {% else %}
-        <div class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl">
-          <p class="text-[16px] text-gray-600">Selecciona un tipo de servicio para ver los resultados disponibles.</p>
-        </div>
-      {% endif %}
+
+        {% elif selected_tipo or applied_filters %}
+          <div class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl">
+            <p class="text-[16px] text-gray-600">No se encontraron resultados para los filtros seleccionados.</p>
+          </div>
+        {% else %}
+          <div class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl">
+            <p class="text-[16px] text-gray-600">Selecciona un tipo de servicio para ver los resultados disponibles.</p>
+          </div>
+        {% endif %}
     </div>
   </div>
 </section>
@@ -293,28 +317,48 @@
     const categorySelect = document.getElementById('categoria');
     const institutionSelect = document.getElementById('entidad');
     const searchInput = document.getElementById('texto_busqueda');
+    const orderSelect = document.getElementById('ordenar');
+    const entitySearchInput = document.getElementById('entidadSearch');
     const clearButton = document.getElementById('clear-filters');
     const searchTokenInput = document.querySelector('input[name="search_token"]');
+    const filterButtons = document.querySelectorAll('.js-remove-filter');
+
+    let institutionOptions = [];
+    if (institutionSelect) {
+      institutionOptions = Array.from(institutionSelect.options);
+      institutionOptions.forEach((option) => {
+        if (!option || !option.value) {
+          option.hidden = false;
+          return;
+        }
+        const sigla = option.dataset.sigla || '';
+        option.dataset.searchTerm = `${option.textContent} ${sigla}`.toLowerCase();
+      });
+    }
 
     function buildUrl() {
-      const slug = serviceSelect.value;
+      const slug = serviceSelect ? serviceSelect.value : '';
       const params = new URLSearchParams();
 
-      if (categorySelect.value) {
+      if (categorySelect && categorySelect.value) {
         params.set('id_categoria', categorySelect.value);
       }
 
-      if (institutionSelect.value) {
+      if (institutionSelect && institutionSelect.value) {
         params.set('id_institucion', institutionSelect.value);
       }
 
-      const searchValue = searchInput.value.trim();
+      const searchValue = searchInput ? searchInput.value.trim() : '';
       if (searchValue) {
         params.set('filter_terms', searchValue);
       }
 
       if (searchTokenInput && searchTokenInput.value && searchValue) {
         params.set('search_token', searchTokenInput.value);
+      }
+
+      if (orderSelect && orderSelect.value) {
+        params.set('ordenar', orderSelect.value);
       }
 
       let url = baseCatalogUrl;
@@ -331,11 +375,87 @@
     }
 
     function navigateWithFilters(event) {
-      if (event) {
+      if (event && event.preventDefault) {
         event.preventDefault();
       }
       const destination = buildUrl();
       window.location.href = destination;
+    }
+
+    function applyEntityFilter(resetSelection = false) {
+      if (!institutionSelect || !institutionOptions.length) {
+        return;
+      }
+
+      if (resetSelection) {
+        institutionSelect.value = '';
+      }
+
+      const query = entitySearchInput ? entitySearchInput.value.trim().toLowerCase() : '';
+      const selectedValue = institutionSelect.value;
+
+      if (!query) {
+        let visible = 0;
+        institutionOptions.forEach((option) => {
+          if (!option.value) {
+            option.hidden = false;
+            return;
+          }
+          if (option.value === selectedValue) {
+            option.hidden = false;
+            return;
+          }
+          if (visible < 10) {
+            option.hidden = false;
+            visible += 1;
+          } else {
+            option.hidden = true;
+          }
+        });
+        return;
+      }
+
+      let visibleMatches = 0;
+      let hasExactMatch = false;
+
+      institutionOptions.forEach((option) => {
+        if (!option.value) {
+          option.hidden = false;
+          return;
+        }
+
+        const searchTerm = option.dataset.searchTerm || option.textContent.toLowerCase();
+        const matches = searchTerm.includes(query);
+
+        if (option.value === selectedValue) {
+          option.hidden = false;
+          if (matches) {
+            hasExactMatch = true;
+          }
+          return;
+        }
+
+        if (matches && visibleMatches < 10) {
+          option.hidden = false;
+          visibleMatches += 1;
+          hasExactMatch = true;
+        } else {
+          option.hidden = true;
+        }
+      });
+
+      if (!hasExactMatch) {
+        let fallbackVisible = visibleMatches;
+        institutionOptions.forEach((option) => {
+          if (!option.value || option.value === selectedValue) {
+            return;
+          }
+          if (fallbackVisible < 10) {
+            option.hidden = false;
+            fallbackVisible += 1;
+          }
+        });
+      }
     }
 
     if (serviceSelect) {
@@ -347,7 +467,20 @@
     }
 
     if (institutionSelect) {
-      institutionSelect.addEventListener('change', navigateWithFilters);
+      institutionSelect.addEventListener('change', (event) => {
+        applyEntityFilter();
+        navigateWithFilters(event);
+      });
+    }
+
+    if (orderSelect) {
+      orderSelect.addEventListener('change', navigateWithFilters);
+    }
+
+    if (entitySearchInput) {
+      entitySearchInput.addEventListener('input', () => {
+        applyEntityFilter();
+      });
     }
 
     const form = document.getElementById('frm_buscar_catalogo');
@@ -360,14 +493,78 @@
         if (clearButton.hasAttribute('disabled')) {
           return;
         }
-        window.location.href = baseCatalogUrl;
+        if (serviceSelect) {
+          serviceSelect.value = '';
+        }
+        if (categorySelect) {
+          categorySelect.value = '';
+        }
+        if (institutionSelect) {
+          institutionSelect.value = '';
+        }
+        if (searchInput) {
+          searchInput.value = '';
+        }
+        if (orderSelect) {
+          orderSelect.value = '';
+        }
+        if (entitySearchInput) {
+          entitySearchInput.value = '';
+        }
+        applyEntityFilter(true);
+        navigateWithFilters();
       });
     }
+
+    if (filterButtons.length) {
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const filterType = button.getAttribute('data-filter-type');
+          switch (filterType) {
+            case 'tipo':
+              if (serviceSelect) {
+                serviceSelect.value = '';
+              }
+              break;
+            case 'categoria':
+              if (categorySelect) {
+                categorySelect.value = '';
+              }
+              break;
+            case 'entidad':
+              if (institutionSelect) {
+                institutionSelect.value = '';
+              }
+              if (entitySearchInput) {
+                entitySearchInput.value = '';
+              }
+              applyEntityFilter(true);
+              break;
+            case 'search':
+              if (searchInput) {
+                searchInput.value = '';
+              }
+              break;
+            case 'estado':
+              if (orderSelect) {
+                orderSelect.value = '';
+              }
+              break;
+            default:
+              break;
+          }
+          navigateWithFilters();
+        });
+      });
+    }
+
+    applyEntityFilter();
 
     function setCopyFeedback(button, successText) {
       if (!button) {
         return;
       }
+
       const textContainer = button.querySelector('.js-copy-button-text');
       if (!textContainer) {
         return;
