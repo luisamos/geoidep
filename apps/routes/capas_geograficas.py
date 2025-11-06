@@ -17,7 +17,7 @@ from apps.models import CapaGeografica, ServicioGeografico
 from apps.models import Categoria
 from apps.models import Institucion
 from apps.models import TipoServicio
-from apps.routes import obtener_usuario_actual
+from .helpers import obtener_usuario_actual
 
 bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 

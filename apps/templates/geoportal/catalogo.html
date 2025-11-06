@@ -64,7 +64,7 @@
           <div class="relative">
             <select name="tipos_servicios" id="tipos_servicios"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
-              <option value="" disabled {% if not selected_tipo %}selected{% endif %}>[Elegir]</option>
+              <option value="" disabled {% if not selected_tipo %}selected{% endif %}>[Todos]</option>
               {% for tipo in tipos_servicios %}
               <option value="{{ tipo.slug|lower }}" {% if selected_tipo and tipo.id == selected_tipo.id %}selected{% endif %}>{{ tipo.nombre }}</option>
               {% endfor %}
@@ -81,7 +81,7 @@
             <select name="id_categoria" id="categoria"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
               {% if not selected_tipo %}disabled{% endif %}>
-              <option value="" disabled {% if not selected_id_categoria %}selected{% endif %}>[Elegir]</option>
+              <option value="" disabled {% if not selected_id_categoria %}selected{% endif %}>[Todos]</option>
               {% for categoria in categorias_opciones %}
               <option value="{{ categoria.id }}" {% if selected_id_categoria == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
               {% endfor %}
@@ -98,7 +98,7 @@
             <select name="id_institucion" id="entidad"
               class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 {% if not selected_tipo %}bg-gray-100 cursor-not-allowed{% endif %}"
               {% if not selected_tipo %}disabled{% endif %}>
-              <option value="" disabled {% if not selected_id_institucion %}selected{% endif %}>[Elegir]</option>
+              <option value="" disabled {% if not selected_id_institucion %}selected{% endif %}>[Todos]</option>
               {% for institucion in instituciones_opciones %}
               <option value="{{ institucion.id }}" {% if selected_id_institucion == institucion.id %}selected{% endif %}>{{ institucion.nombre }}</option>
               {% endfor %}
@@ -144,6 +144,19 @@
       <p class="text-[16px] leading-[24px] font-semibold text-black">
         <span id="resCount">{{ total_herramientas }}</span> Resultados encontrados
       </p>
+      <div class="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-3 w-full md:w-auto">
+        <label for="ordenar2" class="text-sm text-black font-medium">Ordenar por:</label>
+
+        <div class="relative w-full md:w-[280px]">
+          <select name="ordenar" id="ordenar" class="h-11 md:h-10 w-full pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0">
+            <option value="1">Disponible</option>
+            <option value="0">En mantenimiento</option>
+          </select>
+          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+              <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
+          </span>
+        </div>
+    </div>
     </div>
     {% endif %}
 
@@ -183,8 +196,9 @@
                   <div class="space-y-4">
                     {% if herramienta.servicios %}
                     <div class="space-y-2">
-                      <p class="text-sm font-semibold text-[#0B1221]">Servicios geográficos:</p>
+                      
                       <div class="flex flex-wrap gap-2">
+                        <p class="text-sm font-semibold text-[#0B1221]">Servicios:</p>
                         {% for servicio in herramienta.servicios %}
                         {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
                         <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if servicio.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">

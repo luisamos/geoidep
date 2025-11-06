@@ -8,7 +8,7 @@ from apps.forms import BuscarUsuarioForm, DeleteUsuarioForm, UsuarioForm
 from apps.models import Institucion
 from apps.models import Perfil
 from apps.models import Persona, Usuario
-from apps.routes import obtener_usuario_actual
+from .helpers import obtener_usuario_actual
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 

@@ -8,5 +8,5 @@ git branch -M main
 git remote add origin https://github.com/luisamos/geoidep.git
 git push -u origin main
 
-git branch -M prueba
-git push -u origin prueba
+git branch -M prueba2
+git push -u origin prueba2

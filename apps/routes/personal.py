@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from apps.extensions import db
 from apps.models import Categoria
 from apps.models import Persona
-from apps.routes import obtener_usuario_actual
+from .helpers import obtener_usuario_actual
 
 TIPOS_DOCUMENTO = [
   {'id': 1, 'nombre': 'Documento Nacional de Identidad'},

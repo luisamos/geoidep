@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from apps.extensions import db
 from apps.models import Categoria
-from apps.routes import obtener_usuario_actual
+from .helpers import obtener_usuario_actual
 
 bp = Blueprint('categorias', __name__, url_prefix='/categorias')
 

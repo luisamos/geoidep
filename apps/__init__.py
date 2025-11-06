@@ -2,7 +2,7 @@ from __future__ import annotations
 from flask import Flask
 
 import apps.config as config
-from .extensions import db, migrate, jwt, mail, cache
+from .extensions import cache, db, jwt, mail, migrate
 from .routes import register_routes
 
 def create_app() -> Flask:
@@ -16,8 +16,6 @@ def create_app() -> Flask:
   cache.init_app(app)
 
   register_routes(app)
-
-  return app
 
   @app.after_request
   def aplicar_cabeceras_seguridad(response):

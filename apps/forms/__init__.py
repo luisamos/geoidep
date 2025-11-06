@@ -1,4 +1,4 @@
-from autenticacion import LoginForm, UsuarioForm, BuscarUsuarioForm, DeleteUsuarioForm
+from .autenticacion import LoginForm, UsuarioForm, BuscarUsuarioForm, DeleteUsuarioForm
 
 __all__ = [
   'LoginForm',

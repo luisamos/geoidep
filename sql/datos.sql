@@ -66,7 +66,7 @@ UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 --
 INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
-SELECT id_tipo, capa, descripcion, 1, url_pub, id_institucion, id_categoria FROM tmp.datos
+SELECT id_tipo, capa, descripcion, True, url_pub, id_institucion, id_categoria FROM tmp.datos
 WHERE id_tipo IN (5,6,9,10) AND url_pub IS NOT NULL
 GROUP BY 1,2,3,4,5,6,7;
 
@@ -93,15 +93,14 @@ SELECT * FROM public.def_layer;
 -- CONSULTA PRINCIPAL
 --
 -- 
-DROP TABLE IF EXISTS tmp.resultado_servicios;
-
+-- DROP TABLE tmp.resultado_servicios;
 CREATE TABLE tmp.resultado_servicios AS
 WITH base AS (
   SELECT
       id_institucion,
       id_categoria,
       capa,
-      BOOL_OR(geo = 'SI') AS publicar_geoperu,          -- <- unifica por geo
+      CASE WHEN geo = 'SI' THEN TRUE ELSE FALSE END AS publicar_geoperu,
       MAX(url_pub) FILTER (WHERE id_tipo = 11) AS wms,
       MAX(url_pub) FILTER (WHERE id_tipo = 12) AS wfs,
       MAX(url_pub) FILTER (WHERE id_tipo = 14) AS wmts,
@@ -109,15 +108,24 @@ WITH base AS (
       MAX(url_pub) FILTER (WHERE id_tipo = 20) AS kml
   FROM tmp.datos
   WHERE id_tipo IN (11,12,14,17,20)
-  GROUP BY id_institucion, id_categoria, capa
+  GROUP BY id_institucion, id_categoria, capa, geo
 ),
 enriquecida AS (
   SELECT
     b.*,
-    dl.nombre_capa AS nombre_capa_def
+	dl.nombre_capa AS nombre_capa_def,
+	dl.idfuente AS idfuente_def,
+	dl.idsubsistema AS idsubsistema_def,
+	dl.hashcode AS hashcode_def,
+	dl.url_fuente AS url_fuente_def
   FROM base b
   LEFT JOIN LATERAL (
-    SELECT d.nombre_capa
+    SELECT
+      d.nombre_capa,
+      d.idfuente,
+      d.idsubsistema,
+      d.hashcode,
+      d.url_fuente
     FROM public.def_layer d
     WHERE d.capa = b.capa
       AND d.idestado = 1
@@ -125,18 +133,6 @@ enriquecida AS (
       AND LENGTH(d.nombre_capa) > 0
     LIMIT 1
   ) dl ON TRUE
-),
-ranked AS (
-  SELECT
-    e.*,
-    ROW_NUMBER() OVER (
-      PARTITION BY e.id_institucion, e.id_categoria, e.capa
-      ORDER BY (e.wms IS NOT NULL) DESC,
-               e.publicar_geoperu DESC,
-               (e.nombre_capa_def IS NOT NULL) DESC
-    ) AS rn
-  FROM enriquecida e
-  WHERE (e.wms IS NOT NULL OR e.nombre_capa_def IS NOT NULL)
 )
 SELECT
   ROW_NUMBER() OVER (ORDER BY id_institucion ASC, capa ASC) AS numero,
@@ -149,22 +145,29 @@ SELECT
     ELSE '0'
   END AS nombre_capa,
   CASE
-  	WHEN idfuente = 2 THEN url_fuente
-	WHEN idfuente= 3 AND id_subsitema = 0 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || hashcode || '/wms?'
-	ELSE 'https://espacialg.geoperu.gob.pe/geoserver/subsitema/' || hashcode || '/wms?'	  
-    
+    WHEN wms IS NULL THEN
+      CASE
+	    WHEN idfuente_def = 1 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(nombre_capa_def, '') || '/wms?'
+        WHEN idfuente_def = 2 THEN COALESCE(url_fuente_def, '')
+        WHEN idfuente_def = 3 AND COALESCE(idsubsistema_def, 0) = 0
+          THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(hashcode_def, '') || '/wms?'
+        ELSE 'https://espacialg.geoperu.gob.pe/geoserver/subsistema/' || COALESCE(hashcode_def, '') || '/wms?'
+      END
+    ELSE wms
   END AS wms,
   wfs,
   wmts,
   arcgis,
   kml
-FROM ranked
-WHERE rn = 1
+FROM enriquecida
+WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
 ORDER BY id_institucion ASC, layer ASC;
 
 CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
 
 SELECT * FROM tmp.resultado_servicios ORDER BY numero;
+
+SELECT * FROM public.def_layer WHERE capa LIKE ('%MAC Express TAMBOS%') ;
 
 -- CAPAS GEOGRAFICAS
 INSERT INTO ide.def_capas_geograficas
