@@ -220,7 +220,7 @@
                   <div class="space-y-4">
                     {% if herramienta.servicios %}
                     <div class="space-y-2">
-                      
+
                       <div class="flex flex-wrap gap-2">
                         <p class="text-sm font-semibold text-[#0B1221]">Servicios:</p>
                         {% for servicio in herramienta.servicios %}
@@ -274,12 +274,27 @@
                     {% endif %}
                   </div>
                   <div class="pt-2">
-                    {% if herramienta.estado_is_active and herramienta.recurso %}
-                    <a href="{{ herramienta.recurso }}" target="_blank" rel="noopener noreferrer"
-                      class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition">
-                      <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
-                      <span>Ir al recurso</span>
-                    </a>
+                    {% if herramienta.recurso %}
+                    <div class="flex flex-wrap items-center gap-3">
+                      <button type="button"
+                        class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-8 py-[14px] hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                        data-copy-url="{{ herramienta.recurso }}" data-copy-label="Recurso">
+                        <i class="fa-solid fa-link text-sm"></i>
+                        <span class="js-copy-button-text">Copiar recurso</span>
+                      </button>
+                      {% if herramienta.estado_is_active %}
+                      <a href="{{ herramienta.recurso }}" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
+                        <span>Ir al recurso</span>
+                      </a>
+                      {% else %}
+                      <span class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#9CA3AF] text-[#9CA3AF] font-semibold px-8 py-[14px] cursor-not-allowed">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
+                        <span>Ir al recurso</span>
+                      </span>
+                      {% endif %}
+                    </div>
                     {% else %}
                     <span class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#9CA3AF] text-[#9CA3AF] font-semibold px-8 py-[14px] cursor-not-allowed">
                       <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
