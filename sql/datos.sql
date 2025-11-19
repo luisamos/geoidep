@@ -48,16 +48,25 @@ CREATE TABLE IF NOT EXISTS tmp.datos(
 	id_tipo INTEGER
 );
 
---\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_check, estado_servicio, estado_actu, id_categoria, id_institucion) FROM 'C:\apps\python\flask\geoidep\sql\datos.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8';
+--\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_check, estado_servicio, estado_actu, id_institucion, id_categoria) FROM 'C:\apps\python\flask\geoidep\sql\datos.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8';
 
 SELECT tipo_pub FROM tmp.datos
 GROUP BY 1
 ORDER BY 1;
 
+SELECT * FROM tmp.datos 
+WHERE tipo_pub IN ('Infografía', 'Mapas web', 'Otros tipos de servicios')
+ORDER BY tipo_pub;
+
+SELECT * FROM tmp.datos 
+WHERE id_categoria = 77
+ORDER BY tipo_pub;
+
 SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 1 ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geoportal';
-UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Geovisor';
+UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Geovisor' OR tipo_pub = 'Mapas web';
+UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Infografía' OR tipo_pub = 'Otros tipos de servicios';
 UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
 UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 
@@ -67,7 +76,7 @@ UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
 SELECT id_tipo, capa, descripcion, True, url_pub, id_institucion, id_categoria FROM tmp.datos
-WHERE id_tipo IN (5,6,9,10) AND url_pub IS NOT NULL
+WHERE id_tipo IN (5,6,8, 9,10) AND url_pub IS NOT NULL
 GROUP BY 1,2,3,4,5,6,7;
 
 -- 
@@ -76,7 +85,7 @@ GROUP BY 1,2,3,4,5,6,7;
 SELECT * FROM ide.def_tipos_servicios WHERE id_padre IN (2,3) ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Servicio WMS';
-UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WFS';
+UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WFS' OR tipo_pub= 'WFS';
 UPDATE tmp.datos SET id_tipo = 14 WHERE tipo_pub = 'Servicio WMTS';
 UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
 UPDATE tmp.datos SET id_tipo = 20 WHERE tipo_pub = 'KML';
@@ -163,11 +172,11 @@ FROM enriquecida
 WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
 ORDER BY id_institucion ASC, layer ASC;
 
-CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
+--CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
 
 SELECT * FROM tmp.resultado_servicios ORDER BY numero;
 
-SELECT * FROM public.def_layer WHERE capa LIKE ('%MAC Express TAMBOS%') ;
+SELECT * FROM public.def_layer WHERE capa LIKE ('%Mapa de sacudimiento teórico%') ;
 
 -- CAPAS GEOGRAFICAS
 INSERT INTO ide.def_capas_geograficas
@@ -181,8 +190,8 @@ INSERT INTO ide.def_servicios_geograficos(id_capa, id_tipo_servicio, direccion_w
 SELECT numero, 11, wms AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wms IS NOT NULL UNION
 SELECT numero, 12, wfs AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wfs IS NOT NULL UNION
 SELECT numero, 14, wmts AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wmts IS NOT NULL UNION
-SELECT numero, 17, arcgis AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE arcgis IS NOT NULL UNION
-SELECT numero, 20, kml AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE kml IS NOT NULL;
+SELECT numero, 17, arcgis AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE arcgis IS NOT NULL;
+--SELECT numero, 20, kml AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE kml IS NOT NULL;
 
 
 

@@ -18,7 +18,7 @@ INSERT INTO ide.def_tipos_servicios (tag, sigla, nombre, descripcion, estado, id
 ('servicios_rest_arcgis_mapserver', 'REST:ArcGIS MapServer', 'Servicio REST:ArcGIS MapServer', 'Es un conjunto de especificaciones de API que permiten a las aplicaciones comunicarse con los servicios de ubicación de ArcGIS a través de solicitudes HTTPS.', True, 3, 6,  1,'01-08-2025', 'map_search'),
 ('servicios_rest_arcgis_feature', 'REST:ArcGIS FeatureServer', 'Servicio REST:ArcGIS FeatureServer', 'Servicio Rest de acceso a mapas', False, 3, 12,  1, '01-08-2025', null),
 ('servicios_rest_arcgis_image', 'REST:ArcGIS ImageServer', 'Servicio REST:ArcGIS ImageServer', 'Servicio Rest de imagenes', False, 3, 13,  1, '01-08-2025', null),
-('servicios_rest_arcgis_kml', 'REST:ArcGIS KML','Servicio REST:ArcGIS KML', 'Servicio Rest de ArcGIS que permite la exportación de datos en formato KML.', True, 3, 14,  1, '01-08-2025', 'file_json'),
+('servicios_rest_arcgis_kml', 'REST:ArcGIS KML','Servicio REST:ArcGIS KML', 'Servicio Rest de ArcGIS que permite la exportación de datos en formato KML.', False, 3, 14,  1, '01-08-2025', 'file_json'),
 ('servicios_rest_arcgis_processing', 'REST:ArcGIS Geoprocessing', 'Servicio REST:ArcGIS Geoprocessing', 'Servicio Rest de ArcGIS de geoprocesamiento es una interfaz de servicios web que permite acceder y ejecutar herramientas de geoprocesamiento a través de una URL. Se basa en un modelo de recursos jerárquico.', False, 3, 15,  1, '01-08-2025', null),
 ('servicios_rest_api', 'REST:Api', 'Servicio REST:Api', 'Servicios Rest:Api es una interfaz de programación de aplicaciones (API) que se basa en el estilo arquitectónico REST (Transferencia de Estado Representacional) para permitir la comunicación entre sistemas a través de Internet.', True, 4, 16,  1, '01-08-2025', null);
 
@@ -26,5 +26,3 @@ SELECT id AS id_tipo_servicio, tag, sigla, nombre, descripcion, logotipo, orden,
 FROM ide.def_tipos_servicios WHERE id_padre IN (2, 3)
 AND estado = True
 ORDER BY orden ASC;
-
-
