@@ -218,12 +218,11 @@
 
                   {% if herramienta.es_capa %}
                   <div class="space-y-4">
-                    {% set opciones_descarga = [] %}
+                    {% set opciones_descarga = namespace(items=[]) %}
                     {% if selected_tipo_slug == 'servicios_ogc_wfs' %}
                       {% for servicio in herramienta.servicios %}
-                        {% if servicio.download_options %}
-                          {% set opciones_descarga = servicio.download_options %}
-                          {% break %}
+                        {% if servicio.download_options and not opciones_descarga.items %}
+                          {% set opciones_descarga.items = servicio.download_options %}
                         {% endif %}
                       {% endfor %}
                     {% endif %}
@@ -260,13 +259,13 @@
                       </button>
                       {% endif %}
                       {% endfor %}
-                      {% if opciones_descarga %}
+                      {% if opciones_descarga.items %}
                       <div class="flex flex-wrap gap-2 items-center js-wfs-download">
                         <span class="text-sm font-semibold text-[#0B1221]">Descargar:</span>
                         <div class="relative">
                           <select class="h-11 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 js-wfs-download-select">
                             <option value="">Seleccione formato</option>
-                            {% for opcion in opciones_descarga %}
+                            {% for opcion in opciones_descarga.items %}
                             <option value="{{ opcion.url }}">{{ opcion.label }}</option>
                             {% endfor %}
                           </select>
