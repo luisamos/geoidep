@@ -234,7 +234,13 @@
                     {% endif %}
 
                     {% if herramienta.acciones %}
-                    <div class="flex flex-wrap gap-3">
+                    {% set descarga_opciones = namespace(lista=[]) %}
+                    {% for servicio in herramienta.servicios %}
+                    {% if servicio.download_options and not descarga_opciones.lista %}
+                    {% set descarga_opciones.lista = servicio.download_options %}
+                    {% endif %}
+                    {% endfor %}
+                    <div class="flex flex-wrap gap-3 items-center">
                       {% for accion in herramienta.acciones %}
                       {% if accion.tipo == 'view_map' %}
                       <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
@@ -251,6 +257,16 @@
                       </button>
                       {% endif %}
                       {% endfor %}
+                      {% if descarga_opciones.lista %}
+                      <label class="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
+                        <select class="js-descarga-select rounded-[8px] border-2 border-[#0F172A] px-6 py-2 text-[#0F172A] font-semibold hover:border-[#184397] focus:outline-none">
+                          <option value="" selected disabled>[ Descargar elegir formato ]</option>
+                          {% for opcion in descarga_opciones.lista %}
+                          <option value="{{ opcion.url }}">{{ opcion.label }}</option>
+                          {% endfor %}
+                        </select>
+                      </label>
+                      {% endif %}
                     </div>
                     {% elif herramienta.servicios %}
                     <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
@@ -636,7 +652,19 @@
           }
         } catch (error) {
           console.error('Error al copiar la URL.', error);
+                }
+      });
+    });
+
+    const downloadSelects = document.querySelectorAll('.js-descarga-select');
+    downloadSelects.forEach((select) => {
+      select.addEventListener('change', (event) => {
+        const selectedUrl = event.target.value;
+        if (!selectedUrl) {
+          return;
         }
+        window.open(selectedUrl, '_blank', 'noopener,noreferrer');
+        select.value = '';
       });
     });
   });
