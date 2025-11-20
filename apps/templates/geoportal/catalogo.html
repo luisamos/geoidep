@@ -218,6 +218,15 @@
 
                   {% if herramienta.es_capa %}
                   <div class="space-y-4">
+                    {% set opciones_descarga = [] %}
+                    {% if selected_tipo_slug == 'servicios_ogc_wfs' %}
+                      {% for servicio in herramienta.servicios %}
+                        {% if servicio.download_options %}
+                          {% set opciones_descarga = servicio.download_options %}
+                          {% break %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
                     {% if herramienta.servicios %}
                     <div class="space-y-2">
 
@@ -234,7 +243,7 @@
                     {% endif %}
 
                     {% if herramienta.acciones %}
-                    <div class="flex flex-wrap gap-3">
+                    <div class="flex flex-wrap gap-3 items-center">
                       {% for accion in herramienta.acciones %}
                       {% if accion.tipo == 'view_map' %}
                       <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
@@ -251,6 +260,27 @@
                       </button>
                       {% endif %}
                       {% endfor %}
+                      {% if opciones_descarga %}
+                      <div class="flex flex-wrap gap-2 items-center js-wfs-download">
+                        <span class="text-sm font-semibold text-[#0B1221]">Descargar:</span>
+                        <div class="relative">
+                          <select class="h-11 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 js-wfs-download-select">
+                            <option value="">Seleccione formato</option>
+                            {% for opcion in opciones_descarga %}
+                            <option value="{{ opcion.url }}">{{ opcion.label }}</option>
+                            {% endfor %}
+                          </select>
+                          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                            <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
+                          </span>
+                        </div>
+                        <button type="button"
+                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition js-wfs-download-button">
+                          <i class="fa-solid fa-download text-sm"></i>
+                          <span>Descargar</span>
+                        </button>
+                      </div>
+                      {% endif %}
                     </div>
                     {% elif herramienta.servicios %}
                     <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
@@ -575,6 +605,51 @@
     }
 
     applyEntityFilter();
+
+    const downloadSections = document.querySelectorAll('.js-wfs-download');
+    downloadSections.forEach((section) => {
+      const select = section.querySelector('.js-wfs-download-select');
+      const button = section.querySelector('.js-wfs-download-button');
+
+      const getSelectedUrl = () => (select ? select.value.trim() : '');
+
+      const clearErrorState = () => {
+        if (select) {
+          select.classList.remove('border-red-500');
+          select.removeAttribute('aria-invalid');
+        }
+      };
+
+      const showErrorState = () => {
+        if (select) {
+          select.classList.add('border-red-500');
+          select.setAttribute('aria-invalid', 'true');
+          select.focus();
+        }
+      };
+
+      const descargar = () => {
+        const url = getSelectedUrl();
+        if (!url) {
+          showErrorState();
+          return;
+        }
+        clearErrorState();
+        window.open(url, '_blank', 'noopener');
+      };
+
+      if (select) {
+        select.addEventListener('change', () => {
+          if (getSelectedUrl()) {
+            clearErrorState();
+          }
+        });
+      }
+
+      if (button) {
+        button.addEventListener('click', descargar);
+      }
+    });
 
     function setCopyFeedback(button, successText) {
       if (!button) {

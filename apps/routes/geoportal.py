@@ -19,7 +19,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, or_, and_
 from markupsafe import escape
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse, quote
 
 from apps.models import HerramientaDigital
 from apps.models import Categoria
@@ -36,6 +36,22 @@ EXCLUDED_PARENT_IDS = tuple(range(10))
 
 DEFAULT_CAPA_PARENT_IDS = frozenset({2, 3})
 DEFAULT_CAPA_TIPO_IDS = frozenset({11, 12, 14, 17, 20})
+
+WFS_FORMATOS_ARCGIS = (
+  ('GEOJSON', 'GEOJSON'),
+  ('KML', 'KML'),
+  ('SHAPE+ZIP', 'SHAPE+ZIP'),
+  ('CSV', 'CSV'),
+  ('Geopackage', 'GEOPACKAGE'),
+)
+
+WFS_FORMATOS_GEOSERVER = (
+  ('GEOJSON', 'application/json'),
+  ('KML', 'application/vnd.google-earth.kml+xml'),
+  ('SHAPE+ZIP', 'shape-zip'),
+  ('CSV', 'csv'),
+  ('Geopackage', 'application/geopackage+sqlite3'),
+)
 
 def sanitize_text(value):
   if value is None:
@@ -210,6 +226,62 @@ def build_capabilities_url(base_url, fragment):
   new_query = urlencode(list(merged_pairs.values()), doseq=True)
   updated = parsed_base._replace(query=new_query)
   return urlunparse(updated)
+
+def es_servicio_wfs_arcgis(base_url):
+  if not base_url:
+    return False
+
+  return 'mapserver/wfsserver' in base_url.lower()
+
+def obtener_opciones_formato_wfs(base_url):
+  if es_servicio_wfs_arcgis(base_url):
+    return WFS_FORMATOS_ARCGIS
+  return WFS_FORMATOS_GEOSERVER
+
+def construir_url_descarga_wfs(base_url, nombre_capa, formato_salida):
+  if not base_url or not nombre_capa or not formato_salida:
+    return None
+
+  parsed_base = urlparse(base_url)
+  base_pairs = parse_qsl(parsed_base.query, keep_blank_values=True)
+  base_pairs = [
+    (key, value)
+    for key, value in base_pairs
+    if key.lower() not in {'service', 'request', 'typename', 'outputformat'}
+  ]
+
+  base_pairs.extend(
+    [
+      ('service', 'WFS'),
+      ('request', 'GetFeature'),
+      ('typeName', nombre_capa),
+      ('outputFormat', formato_salida),
+    ]
+  )
+
+  new_query = urlencode(base_pairs, doseq=True, quote_via=quote)
+  updated = parsed_base._replace(query=new_query)
+  return urlunparse(updated)
+
+def construir_opciones_descarga_wfs(base_url, nombre_capa):
+  base_url = sanitize_external_url(base_url)
+  nombre_capa = (nombre_capa or '').strip()
+
+  if not base_url or not nombre_capa:
+    return []
+
+  opciones = []
+  for etiqueta, formato in obtener_opciones_formato_wfs(base_url):
+    url_descarga = construir_url_descarga_wfs(base_url, nombre_capa, formato)
+    if url_descarga:
+      opciones.append(
+        {
+          'label': etiqueta,
+          'url': url_descarga,
+        }
+      )
+
+  return opciones
 
 def obtener_sigla_servicio(tipo_servicio, id_servicio):
   if tipo_servicio is not None:
@@ -401,6 +473,14 @@ def obtener_datos_catalogo_cacheados(
           servicio.id_tipo_servicio,
         )
         copy_url = None
+        download_options = []
+        layer_name = None
+        if servicio.nombre_capa and servicio.nombre_capa.strip():
+          layer_name = servicio.nombre_capa.strip()
+        elif servicio.titulo_capa and servicio.titulo_capa.strip():
+          layer_name = servicio.titulo_capa.strip()
+        elif capa and capa.nombre:
+          layer_name = capa.nombre.strip()
         recurso_tipo = obtener_recurso_tipo_servicio(
           servicio.tipo_servicio,
           servicio.id_tipo_servicio,
@@ -414,7 +494,16 @@ def obtener_datos_catalogo_cacheados(
         sigla_display = sigla or 'SERVICIO'
         view_map_url = None
         if estado_activo and sigla_display and 'WMS' in sigla_display.upper():
-          view_map_url = f"https://visor.geoperu.gob.pe/?capa={servicio.id}"
+          view_map_url = f"https://visor.geoperu.gob.pe/?idcapa={servicio.id}"
+
+        if (
+          estado_activo
+          and recurso
+          and layer_name
+          and sigla_display
+          and 'WFS' in sigla_display.upper()
+        ):
+          download_options = construir_opciones_descarga_wfs(recurso, layer_name)
 
         if estado_activo and view_map_url and view_map_url not in acciones_vistas:
           acciones.append(
@@ -439,12 +528,12 @@ def obtener_datos_catalogo_cacheados(
 
         servicios_data.append(
           {
-            'sigla': sigla,
             'estado': 1 if estado_activo else 0,
             'estado_is_active': estado_activo,
             'copy_url': copy_url if estado_activo else None,
             'view_map_url': view_map_url,
             'id_tipo_servicio': servicio.id_tipo_servicio,
+            'download_options': download_options,
           }
         )
 
