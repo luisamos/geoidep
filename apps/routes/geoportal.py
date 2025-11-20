@@ -532,6 +532,7 @@ def obtener_datos_catalogo_cacheados(
             'estado_is_active': estado_activo,
             'copy_url': copy_url if estado_activo else None,
             'view_map_url': view_map_url,
+            'sigla': sigla_display,
             'id_tipo_servicio': servicio.id_tipo_servicio,
             'download_options': download_options,
           }

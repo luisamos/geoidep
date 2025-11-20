@@ -229,7 +229,7 @@
                     {% if herramienta.servicios %}
                     <div class="space-y-2">
 
-                      <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <p class="text-sm font-semibold text-[#0B1221]">Servicios:</p>
                         {% for servicio in herramienta.servicios %}
                         {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
@@ -242,7 +242,6 @@
                     {% endif %}
 
                     {% if herramienta.acciones %}
-                    <div class="flex flex-wrap gap-3 items-center">
                       {% for accion in herramienta.acciones %}
                       {% if accion.tipo == 'view_map' %}
                       <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
@@ -260,11 +259,13 @@
                       {% endif %}
                       {% endfor %}
                       {% if opciones_descarga.items %}
-                      <div class="flex flex-wrap gap-2 items-center js-wfs-download">
-                        <span class="text-sm font-semibold text-[#0B1221]">Descargar:</span>
+                      <div class="flex items-center gap-2 js-wfs-download">
                         <div class="relative">
-                          <select class="h-11 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 js-wfs-download-select">
-                            <option value="">Seleccione formato</option>
+                          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#26292E]">
+                            <i class="fa-solid fa-download text-sm"></i>
+                          </span>
+                          <select class="h-11 pr-10 pl-10 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 js-wfs-download-select">
+                            <option value="" disabled selected>[ Descargar ]</option>
                             {% for opcion in opciones_descarga.items %}
                             <option value="{{ opcion.url }}">{{ opcion.label }}</option>
                             {% endfor %}
@@ -273,11 +274,6 @@
                             <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
                           </span>
                         </div>
-                        <button type="button"
-                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition js-wfs-download-button">
-                          <i class="fa-solid fa-download text-sm"></i>
-                          <span>Descargar</span>
-                        </button>
                       </div>
                       {% endif %}
                     </div>
@@ -608,7 +604,6 @@
     const downloadSections = document.querySelectorAll('.js-wfs-download');
     downloadSections.forEach((section) => {
       const select = section.querySelector('.js-wfs-download-select');
-      const button = section.querySelector('.js-wfs-download-button');
 
       const getSelectedUrl = () => (select ? select.value.trim() : '');
 
@@ -619,34 +614,14 @@
         }
       };
 
-      const showErrorState = () => {
-        if (select) {
-          select.classList.add('border-red-500');
-          select.setAttribute('aria-invalid', 'true');
-          select.focus();
-        }
-      };
-
-      const descargar = () => {
-        const url = getSelectedUrl();
-        if (!url) {
-          showErrorState();
-          return;
-        }
-        clearErrorState();
-        window.open(url, '_blank', 'noopener');
-      };
-
       if (select) {
         select.addEventListener('change', () => {
-          if (getSelectedUrl()) {
+          const url = getSelectedUrl();
+          if (url) {
             clearErrorState();
+            window.open(url, '_blank', 'noopener');
           }
         });
-      }
-
-      if (button) {
-        button.addEventListener('click', descargar);
       }
     });
 
