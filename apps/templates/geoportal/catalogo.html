@@ -195,12 +195,8 @@
             {% for herramienta in categoria.herramientas %}
             <article class="rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] overflow-hidden">
               <div class="grid md:grid-cols-[220px_1fr]">
-                <div class="relative flex justify-center items-center bg-gray-50 p-4 md:p-0 md:self-start">
-                  <img
-                    src="{{ herramienta.imagen_url }}"
-                    alt="Vista previa"
-                    class="w-[140px] max-w-full h-auto max-h-[180px] object-contain rounded-xl md:rounded-none md:w-full md:max-w-[220px] md:max-h-[200px]"
-                  />
+                <div class="relative flex justify-center items-center bg-gray-50 p-4 md:p-0 md:block">
+                  <img src="{{ herramienta.imagen_url }}" alt="Vista previa" class="w-[140px] h-[220px] object-cover rounded-xl md:rounded-none md:absolute md:inset-0 md:w-full md:h-full" />
                 </div>
                 <div class="flex flex-col p-6 md:p-8 gap-5">
                    <div class="flex flex-wrap items-center justify-between gap-2">
@@ -210,7 +206,7 @@
                     <span class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}">
                       {{ herramienta.estado_label|upper }}
                     </span>
-                    </div>
+                  </div>
 
                   <h4 class="text-[18px] font-semibold text-[#184397] underline decoration-transparent hover:decoration-current transition">
                     {{ herramienta.nombre }}
@@ -222,18 +218,10 @@
 
                   {% if herramienta.es_capa %}
                   <div class="space-y-4">
-                    {% set opciones_descarga = namespace(items=[]) %}
-                    {% if selected_tipo_slug == 'servicios_ogc_wfs' %}
-                      {% for servicio in herramienta.servicios %}
-                        {% if servicio.download_options and not opciones_descarga.items %}
-                          {% set opciones_descarga.items = servicio.download_options %}
-                        {% endif %}
-                      {% endfor %}
-                    {% endif %}
                     {% if herramienta.servicios %}
                     <div class="space-y-2">
 
-                    <div class="flex flex-wrap gap-2">
+                      <div class="flex flex-wrap gap-2">
                         <p class="text-sm font-semibold text-[#0B1221]">Servicios:</p>
                         {% for servicio in herramienta.servicios %}
                         {% set sigla_servicio = servicio.sigla or 'SERVICIO' %}
@@ -246,44 +234,29 @@
                     {% endif %}
 
                     {% if herramienta.acciones %}
-                      <div class="flex flex-wrap items-center gap-2">
-                        {% for accion in herramienta.acciones %}
-                        {% if accion.tipo == 'view_map' %}
-                        <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
-                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition">
-                          <i class="fa-solid fa-map-location-dot text-sm"></i>
-                          <span>Ver mapa</span>
-                        </a>
-                        {% elif accion.tipo == 'copy' %}
-                        <button type="button"
-                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
-                          data-copy-url="{{ accion.url }}" data-copy-label="{{ accion.sigla }}">
-                          <i class="fa-solid fa-link text-sm"></i>
-                          <span class="js-copy-button-text">Copiar URL {{ accion.sigla }}</span>
-                        </button>
-                        {% endif %}
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                    {% if opciones_descarga.items %}
-                    <div class="flex items-center gap-2 js-wfs-download">
-                      <div class="relative">
-                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#26292E]">
-                          <i class="fa-solid fa-download text-sm"></i>
-                        </span>
-                        <select class="h-11 pr-10 pl-10 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0 cursor-pointer js-wfs-download-select">
-                          <option value="" disabled selected>[ Elegir formato ]</option>
-                          {% for opcion in opciones_descarga.items %}
-                          <option value="{{ opcion.url }}">{{ opcion.label }}</option>
-                          {% endfor %}
-                        </select>
-                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                          <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
-                        </span>
-                      </div>
+                    <div class="flex flex-wrap gap-3">
+                      {% for accion in herramienta.acciones %}
+                      {% if accion.tipo == 'view_map' %}
+                      <a href="{{ accion.url }}" target="_blank" rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition">
+                        <i class="fa-solid fa-map-location-dot text-sm"></i>
+                        <span>Ver mapa</span>
+                      </a>
+                      {% elif accion.tipo == 'copy' %}
+                      <button type="button"
+                        class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                        data-copy-url="{{ accion.url }}" data-copy-label="{{ accion.sigla }}">
+                        <i class="fa-solid fa-link text-sm"></i>
+                        <span class="js-copy-button-text">Copiar URL {{ accion.sigla }}</span>
+                      </button>
+                      {% endif %}
+                      {% endfor %}
                     </div>
+                    {% elif herramienta.servicios %}
+                    <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
+                    {% else %}
+                    <p class="text-sm text-gray-600">No se registraron servicios geográficos para esta capa.</p>
                     {% endif %}
-                    </div>
                   </div>
                   {% else %}
                   <div class="space-y-2 text-[14px] text-black">
@@ -603,30 +576,6 @@
 
     applyEntityFilter();
 
-    const downloadSections = document.querySelectorAll('.js-wfs-download');
-    downloadSections.forEach((section) => {
-      const select = section.querySelector('.js-wfs-download-select');
-
-      const getSelectedUrl = () => (select ? select.value.trim() : '');
-
-      const clearErrorState = () => {
-        if (select) {
-          select.classList.remove('border-red-500');
-          select.removeAttribute('aria-invalid');
-        }
-      };
-
-      if (select) {
-        select.addEventListener('change', () => {
-          const url = getSelectedUrl();
-          if (url) {
-            clearErrorState();
-            window.open(url, '_blank', 'noopener');
-          }
-        });
-      }
-    });
-
     function setCopyFeedback(button, successText) {
       if (!button) {
         return;
@@ -656,12 +605,8 @@
       temporal.type = 'text';
       temporal.value = url;
       temporal.setAttribute('aria-hidden', 'true');
-      temporal.setAttribute('tabindex', '-1');
-      temporal.setAttribute('readonly', '');
-      temporal.style.position = 'fixed';
+      temporal.style.position = 'absolute';
       temporal.style.opacity = '0';
-      temporal.style.left = '-9999px';
-      temporal.style.top = '0';
       document.body.appendChild(temporal);
       temporal.select();
       let exito = false;
