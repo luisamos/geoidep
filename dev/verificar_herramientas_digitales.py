@@ -1,11 +1,17 @@
 import os
+import sys
 import time
 from datetime import datetime, UTC
 from contextlib import contextmanager
+from pathlib import Path
 
 import requests
 from PIL import Image
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeoutError
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 from apps import create_app, db
 from apps.models import HerramientaDigital
