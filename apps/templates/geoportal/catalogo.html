@@ -259,7 +259,7 @@
                       {% endfor %}
                       {% if descarga_opciones.lista %}
                       <label class="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
-                        <select class="js-descarga-select rounded-[8px] border-2 border-[#0F172A] px-6 py-2 text-[#0F172A] font-semibold hover:border-[#184397] focus:outline-none">
+                        <select class="js-descarga-select h-[44px] rounded-[8px] border-2 border-[#0F172A] px-6 text-[#0F172A] font-semibold hover:border-[#184397] focus:outline-none">
                           <option value="" selected disabled>[ Descargar elegir formato ]</option>
                           {% for opcion in descarga_opciones.lista %}
                           <option value="{{ opcion.url }}">{{ opcion.label }}</option>
