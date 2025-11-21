@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="keywords"
-      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú."
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
     />
     <meta
       name="description"
-      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú."
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
     />
     <meta
       name="author"
@@ -62,7 +62,7 @@
               class="mt-3 max-w-[560px] text-justify leading-relaxed text-gray-700"
             >
               Acceso a los recursos geoespaciales de la Infraestructura de Datos
-              Espaciales del Perú.
+              Espaciales del Perú (IDEP).
             </p>
 
             <form
@@ -205,6 +205,34 @@
     </section>
 
     <section class="bg-white">
+        <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+            <div class="flex flex-col md:flex-row md:items-center gap-6">
+                <div class="w-full md:w-1/2">
+                    <h3 class="text-[22px] md:text-[24px] font-semibold text-black text-center md:text-left">Sobre la IDEP
+                    </h3>
+                    <p class="mt-3 text-gray-700 leading-relaxed text-center md:text-left">
+                    La IDEP es una red que organiza y comparte la información geográfica del país. Reúne normas, instituciones y tecnología para que los datos del territorio estén disponibles de forma rápida, segura y confiable.
+                    <br>
+                    Las instituciones públicas y privadas que producen mapas y datos geográficos los publican en internet usando formatos y protocolos comunes, lo que permite que todos accedan a información actualizada y oficial.
+                    <br>
+                    Gracias a la IDEP, es más fácil encontrar y usar información del territorio para planificar, tomar decisiones y apoyar el desarrollo del país.
+                    </p>
+                    <div class="mt-8 flex">
+                      <a
+                        href="{{ url_for('geoportal.que_es_la_idep') }}"
+                        class="inline-flex items-center justify-center px-5 py-2.5 rounded-md border-2 border-[#184397] text-[#184397] font-medium hover:bg-[#184397]/5"
+                        >Mas información<span class="text-2xl"> →</span>
+                      </a>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 md:flex md:justify-end">
+                    <img src="{{ url_for('static', filename='imagenes/que_es_idep.png') }}" alt="Sobre la IDEP" class="max-w-screen-xl md:max-w-[549px] md:h-[398px] object-cover rounded-2xl shadow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-[#EEF3FB]">
       <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
         <h2
           class="text-black text-center font-bold text-[30px] leading-[36px] [font-feature-settings:'liga'_off,'clig'_off]"

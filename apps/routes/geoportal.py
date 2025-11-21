@@ -1036,3 +1036,7 @@ def catalogo_por_tipo(slug):
     abort(404)
   contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
   return render_template('geoportal/catalogo.html', **contexto)
+
+@bp.route('/que_es_la_idep')
+def que_es_la_idep():
+  return "Hola"
