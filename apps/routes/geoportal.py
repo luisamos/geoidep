@@ -84,7 +84,7 @@ def obtener_secciones_idep():
       ),
       'subsecciones': [
         {
-                    'titulo': '¿Qué es la IDEP?',
+          'titulo': '¿Qué es la IDEP?',
           'descripcion_corta': (
             'La IDEP articula datos, servicios y estándares geoespaciales del '
             'Estado para facilitar su búsqueda, uso y reutilización segura.'
@@ -111,7 +111,7 @@ def obtener_secciones_idep():
             """
           ),
           'imagen': 'imagenes/que_es_idep.png',
-          'icono': 'info',
+          'icono': 'public',
           'enlace': '#',
         },
         {
@@ -156,14 +156,24 @@ def obtener_secciones_idep():
             'gobernanza que alinean a las entidades participantes.'
           ),
           'descripcion_larga': (
-            'La organización de la IDEP define roles, responsabilidades y '
-            'mecanismos de coordinación entre las instituciones. A través de '
-            'comités y grupos técnicos se alinean prioridades, se monitorea el '
-            'avance de los nodos y se impulsan proyectos conjuntos de datos '
-            'abiertos y servicios interoperables.'
+            """<strong>Entidades Productoras de Información Georreferenciada</strong><br />
+            Son funciones de las entidades productoras de información georreferenciada:
+            <br />
+            <li>Producir la información geográfica adecuándose a estándares nacionales aprobados por las entidades rectoras en cada caso y generar sus metadatos.</li>
+            <li>Remitir a la entidad rectora (cuando exista) la información producida con el objeto de integrar y centralizar la información geográfica.</li>
+            <li>Implementar y registrar en el Portal de Datos Espaciales del Perú (www.geoidep.gob.pe) los servicios web de información geográfica de las capas de información cuya administración es de su competencia.</li>
+            <li>Promover la implementación de sus Infraestructuras de Datos Espaciales como medio para compartir información y ser nodo activo de la IDEP.</li>
+            <li>Proporcionar información en atención a los requerimientos de las entidades públicas de acuerdo a la normatividad de la materia y los estándares y procedimientos de la -Infraestructura de Datos Espaciales del Perú - IDEP.</li>
+            <li>Proporcionar conjuntamente con los datos espaciales, los metadatos actualizados de dicha información conforme el Perfil Básico de Metadatos aprobado por el CCIDEP.</li>
+            <br />
+            <strong>Entidades Usuarias de Información Georreferenciada</strong>
+            Son funciones de las entidades usuarias de información georreferenciada:
+            <br />
+            <li>Citar la fuente de origen de la información proporcionada cuando ésta sea utilizada como insumo para producir otra información, mejorarla y/o actualizarla.</li>
+            <li>Abstenerse de distribuir la información geográfica, salvo que sirva para acompañar como base a sus mapas temáticos y solo en el marco de sus competencias y funciones.</li>"""
           ),
-          'imagen': 'imagenes/detalles.png',
-          'icono': 'group_work',
+          'imagen': 'imagenes/organizacion_idep.jpg',
+          'icono': 'group',
           'enlace': '#',
         },
         {
@@ -173,13 +183,18 @@ def obtener_secciones_idep():
             'que aporte al ecosistema nacional.'
           ),
           'descripcion_larga': (
-            'El proceso de implementación sugiere fases de diagnóstico, '
-            'planificación, despliegue tecnológico y evaluación continua. '
-            'Cada etapa considera estándares, seguridad y sostenibilidad para '
-            'que los servicios geoespaciales permanezcan disponibles y '
-            'actualizados.'
+            """<strong>Esquema General de Cómo Constituirse en un Nodo IDEP</strong><br />
+            Compartir y brindar acceso estandarizado a la información geográfica es una obligación para todas las entidades de la administración pública, según lo establece la normatividad vigente (D.S. 069-2011-PCM y D.S. 133-2013-PCM).
+            <br /><br />
+            <strong>Recomendaciones para la implementación de un Nodo IDEP:</strong><br />
+            <li>Estandarizar la información para que sea integrable con datos del mismo tipo y escala.</li>
+            <li>Validar y clasificar la información.</li>
+            <li>Generar los metadatos de toda la información y ofrecer un servicio de búsqueda por metadatos.</li>
+            <li>Coordinar con otras entidades la publicación de la información cuando existan competencias compartidas.</li>
+            <li>Defina los roles de sus dependencias respecto a la producción, centralización, validación y clasificación de la información.</li>
+            """
           ),
-          'imagen': 'imagenes/banner_idep.png',
+          'imagen': 'imagenes/proceso_implementacion_ide.png',
           'icono': 'sync_alt',
           'enlace': '#',
         },
@@ -200,14 +215,45 @@ def obtener_secciones_idep():
             'de manera uniforme entre plataformas y organizaciones.'
           ),
           'descripcion_larga': (
-            'Los estándares geográficos establecen formatos, protocolos y '
-            'esquemas de metadatos que facilitan el intercambio de información '
-            'espacial. Gracias a ellos, las instituciones pueden integrar y '
-            'reutilizar datos georreferenciados sin perder precisión ni '
-            'calidad.'
+            """Una Infraestructura de Datos Espaciales (IDE) está enfocada en la necesidad de intercambiar y compartir información georreferenciada, sobre todo cuando esta información está distribuida en diferentes bases de datos de entidades públicas y privadas.
+          <br />
+          En la práctica existe una complejidad inherente al intercambio de este tipo de información, pues debido a su componente georreferenciado, pueden tener diferentes escalas, diferentes precisiones, diferentes formatos o ser elaborados considerando diferentes métodos y criterios.
+          <br />
+          Esta situación puede generar que dos capas de información o dos bases de datos geográficas del mismo tema, centros poblados por ejemplo, no sean integrables pese a ser parte del mismo ámbito geográfico.
+          <br />
+          Los estándares son especificaciones acerca de cómo debe desarrollarse una tarea o función determinada y están basados en acuerdos entre una o más entidades o un determinado grupo de personas.
+          <br />
+          En un ambiente como el nuestro, donde la producción de datos geográficos se da de manera descentralizada (muchas entidades produciendo información geográfica), el uso de estándares se convierte en un factor crítico para integrar los datos que provienen de diferentes entidades productoras de información y así evitar la duplicidad de presupuestos y efuerzos en la construcción de estos datos."""
           ),
-          'imagen': 'imagenes/detalles.png',
-          'icono': 'public',
+          'imagen': 'imagenes/estandares_idep.png',
+          'icono': 'rubric',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Estándares para producción datos geográficos',
+          'descripcion_corta': (
+            'Son normas que garantizan que los datos se produzcan de forma ordenada, uniforme y compatible, facilitando su integración y uso.'
+          ),
+          'descripcion_larga': (
+          """Los estándares de producción de datos son especificaciones técnicas contenidas en documentos que describen detalladamente las características mínimas que debe cumplir un producto geográfico con el fin de crearlo de manera estandarizada.
+          <br />
+          El uso de estas especificaciones o estándares de producción permite la integración de los datos geográficos cuando existen varios productores de información.
+          <br />
+          La definición de estándares de producción de datos se desarrolla sobre la base de las competencias institucionales y las rectoría de algunas entidades públicas respecto a la producción de datos.
+          <br /><br />
+          <strong>NORMAS TÉCNICAS SOBRE CARTOGRAFÍA BÁSICA</strong><br />
+          <strong>El Instituto Geográfico Nacional - IGN</strong>, es el ente encargado de elaborar y actualizar la cartografía oficial del Perú, para tal efecto, planea, dirige y ejecuta las actividades relacionados con la geomática, que las entidades públicas y privadas requieren para los fines de desarrollo y la defensa nacional. Es así que dentro de sus capacidades administrativas y como ente rector tiene desarrollado las especificaciones técnicas para la generación de Mapas a diferentes escalas, las cuales deben ser consideradas al momento de generar cartografía.
+          <br />
+          <li>IGN. Especificaciones Técnicas para la Producción de Mapas Topográficos a escalas 1:100,000, 1:50,000, 1:25,000, 1:1,000, 1:5,000</li>
+          <li>Especificaciones técnicas para levantamientos geodésicos verticales</li>
+          <li>Catálogo de Objetos y Símbolos para Producción de Cartografía Básica a escala 1:1000</li>
+          <br />
+          <strong>El Sistema Nacional Integrado de Información Catastral Predial - SNCP</strong>
+          Es el ente rector encargado de regular la integración y unificación de los estándares, nomenclaturas y procesos técnicos de las diferentes entidades generadoras de catastro en el país. Basado en este principio la SNCP tiene desarrollada varias normativas, políticas y procedimientos para la implementación y el desarrollo de un Catastro, incluyendo los modelos y llenado de las fichas catastrales a usarse en esta materia.
+          """
+          ),
+          'imagen': 'imagenes/estandares_datos.jpg',
+          'icono': 'data_table',
           'enlace': '#',
         },
         {
@@ -224,7 +270,7 @@ def obtener_secciones_idep():
             'sin ajustes adicionales.'
           ),
           'imagen': 'imagenes/image_general.png',
-          'icono': 'tune',
+          'icono': 'rule_settings',
           'enlace': '#',
         },
         {
@@ -242,22 +288,6 @@ def obtener_secciones_idep():
           ),
           'imagen': 'imagenes/documentos.svg',
           'icono': 'description',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Servicios geográficos',
-          'descripcion_corta': (
-            'Capacidades en línea para visualizar, consultar o descargar capas '
-            'y modelos espaciales actualizados.'
-          ),
-          'descripcion_larga': (
-            'Los servicios geográficos permiten acceder en línea a mapas '
-            'raster, capas vectoriales y modelos analíticos. Se publican bajo '
-            'protocolos estandarizados que habilitan la visualización, '
-            'consulta o descarga desde múltiples plataformas.'
-          ),
-          'imagen': 'imagenes/enlace.png',
-          'icono': 'layers',
           'enlace': '#',
         },
         {
