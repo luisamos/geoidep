@@ -1038,7 +1038,7 @@ def catalogo_por_tipo(slug):
   return render_template('geoportal/catalogo.html', **contexto)
 
 @bp.route('/idep')
-def que_es_la_idep():
+def idep():
   secciones = [
     {
       'id': 'institucional',
@@ -1160,4 +1160,4 @@ def que_es_la_idep():
     },
   ]
 
-  return render_template('geoportal/que_es_la_idep.html', secciones=secciones)
+  return render_template('geoportal/idep.html', secciones=secciones)
