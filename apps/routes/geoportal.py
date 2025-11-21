@@ -72,6 +72,244 @@ def slugify_text(value):
   slug = re.sub(r'[^a-z0-9]+', '-', ascii_text.lower()).strip('-')
   return slug
 
+
+def obtener_secciones_idep():
+  secciones = [
+    {
+      'id': 'institucional',
+      'titulo': 'Institucional',
+      'descripcion': (
+        'Comprende la base conceptual, los actores y las etapas que permiten '
+        'gestionar la Infraestructura de Datos Espaciales del Perú.'
+      ),
+      'subsecciones': [
+        {
+          'titulo': '¿Qué es la IDEP?',
+          'descripcion_corta': (
+            'La IDEP articula datos, servicios y estándares geoespaciales del '
+            'Estado para facilitar su búsqueda, uso y reutilización segura.'
+          ),
+          'descripcion_larga': (
+            'Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socio-económico y favorecer la oportuna toma de decisiones (Resolución Ministerial 325-2007-PCM).'
+            ''
+            'La IDEP es una estructura virtual en red, mantenida por las mismas entidades públicas y privadas productoras de información geográfica, que brindan esta información vía internet con un mínimo de protocolos y especificaciones normalizadas.'
+            'La IDEP asegura la cooperación entre entidades públicas y privadas con el proposito de hacer accesible la información geográfica de nuestro territorio.'
+            'La IDEP permite acceder a información geográfica oficial y actualizada de una manera eficaz y a bajo costo por internet.'
+            'Esta iniciativa integra a todos los productores de datos geográficos del Estado y está articulada con la Política Nacional de Transformación digital.'
+          ),
+          'imagen': 'imagenes/que_es_idep.png',
+          'icono': 'info',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Componentes de la IDEP',
+          'descripcion_corta': (
+            'Marco institucional, normativa, tecnología, datos, estándares y '
+            'talento que hacen posible la operación de la plataforma.'
+          ),
+          'descripcion_larga': (
+            'La IDEP se sostiene en componentes complementarios: gobernanza '
+            'institucional, normativa clara, infraestructura tecnológica, '
+            'catálogos de datos y estándares comunes. Estos elementos '
+            'permiten que los nodos participantes operen de forma articulada '
+            'y mantengan la calidad de los servicios publicados.'
+          ),
+          'imagen': 'imagenes/componentes_idep.png',
+          'icono': 'widgets',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Organización de la IDEP',
+          'descripcion_corta': (
+            'Describe la estructura de coordinación, roles y espacios de '
+            'gobernanza que alinean a las entidades participantes.'
+          ),
+          'descripcion_larga': (
+            'La organización de la IDEP define roles, responsabilidades y '
+            'mecanismos de coordinación entre las instituciones. A través de '
+            'comités y grupos técnicos se alinean prioridades, se monitorea el '
+            'avance de los nodos y se impulsan proyectos conjuntos de datos '
+            'abiertos y servicios interoperables.'
+          ),
+          'imagen': 'imagenes/detalles.png',
+          'icono': 'group_work',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Proceso de implementación IDE',
+          'descripcion_corta': (
+            'Etapas sugeridas para planificar, ejecutar y monitorear un nodo '
+            'que aporte al ecosistema nacional.'
+          ),
+          'descripcion_larga': (
+            'El proceso de implementación sugiere fases de diagnóstico, '
+            'planificación, despliegue tecnológico y evaluación continua. '
+            'Cada etapa considera estándares, seguridad y sostenibilidad para '
+            'que los servicios geoespaciales permanezcan disponibles y '
+            'actualizados.'
+          ),
+          'imagen': 'imagenes/banner_idep.png',
+          'icono': 'sync_alt',
+          'enlace': '#',
+        },
+      ],
+    },
+    {
+      'id': 'estandares',
+      'titulo': 'Estándares',
+      'descripcion': (
+        'Lineamientos técnicos que aseguran interoperabilidad, calidad y '
+        'aprovechamiento de los servicios y datos geoespaciales.'
+      ),
+      'subsecciones': [
+        {
+          'titulo': '¿Qué son los estándares geográficos?',
+          'descripcion_corta': (
+            'Principios y normas que permiten compartir información espacial '
+            'de manera uniforme entre plataformas y organizaciones.'
+          ),
+          'descripcion_larga': (
+            'Los estándares geográficos establecen formatos, protocolos y '
+            'esquemas de metadatos que facilitan el intercambio de información '
+            'espacial. Gracias a ellos, las instituciones pueden integrar y '
+            'reutilizar datos georreferenciados sin perder precisión ni '
+            'calidad.'
+          ),
+          'imagen': 'imagenes/detalles.png',
+          'icono': 'public',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Estándares sobre los servicios geográficos',
+          'descripcion_corta': (
+            'Buenas prácticas como OGC WMS, WFS y WMTS que definen cómo '
+            'exponer y consumir servicios desde distintos clientes.'
+          ),
+          'descripcion_larga': (
+            'Las especificaciones como WMS, WFS o WMTS permiten describir la '
+            'forma en que los servidores publican mapas, capas vectoriales o '
+            'teselas. Adoptarlos garantiza que diversos clientes, desde '
+            'aplicaciones web hasta SIG de escritorio, consuman los servicios '
+            'sin ajustes adicionales.'
+          ),
+          'imagen': 'imagenes/image_general.png',
+          'icono': 'tune',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Metadatos geográficos',
+          'descripcion_corta': (
+            'Documentación estructurada que describe datasets, servicios y '
+            'recursos para facilitar su hallazgo y evaluación.'
+          ),
+          'descripcion_larga': (
+            'Los metadatos geográficos permiten documentar la procedencia, '
+            'calidad, restricciones y condiciones de uso de los recursos '
+            'espaciales. Contar con metadatos completos mejora la búsqueda en '
+            'catálogos y ayuda a los usuarios a evaluar la idoneidad de la '
+            'información.'
+          ),
+          'imagen': 'imagenes/documentos.svg',
+          'icono': 'description',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Servicios geográficos',
+          'descripcion_corta': (
+            'Capacidades en línea para visualizar, consultar o descargar capas '
+            'y modelos espaciales actualizados.'
+          ),
+          'descripcion_larga': (
+            'Los servicios geográficos permiten acceder en línea a mapas '
+            'raster, capas vectoriales y modelos analíticos. Se publican bajo '
+            'protocolos estandarizados que habilitan la visualización, '
+            'consulta o descarga desde múltiples plataformas.'
+          ),
+          'imagen': 'imagenes/enlace.png',
+          'icono': 'layers',
+          'enlace': '#',
+        },
+        {
+          'titulo': 'Manuales de despliegue de servicios',
+          'descripcion_corta': (
+            'Guías prácticas para configurar servidores, asegurar la calidad '
+            'de los servicios y monitorear su desempeño.'
+          ),
+          'descripcion_larga': (
+            'Los manuales de despliegue condensan pasos técnicos y buenas '
+            'prácticas para instalar, configurar y asegurar servidores de '
+            'mapas. Incluyen recomendaciones de monitoreo y optimización para '
+            'mantener servicios disponibles y con buen rendimiento.'
+          ),
+          'imagen': 'imagenes/informes.svg',
+          'icono': 'menu_book',
+          'enlace': '#',
+        },
+      ],
+    },
+    {
+      'id': 'normatividad',
+      'titulo': 'Normatividad',
+      'descripcion': (
+        'Marco legal y normativo que respalda la publicación, intercambio y '
+        'uso responsable de la información geoespacial.'
+      ),
+      'subsecciones': [
+        {
+          'titulo': 'Normas vigentes',
+          'descripcion_corta': (
+            'Decretos, resoluciones y lineamientos que sustentan la '
+            'implementación y operación de la IDEP en el sector público.'
+          ),
+          'descripcion_larga': (
+            'Conoce las normas vigentes que respaldan la IDEP, incluyendo '
+            'decretos supremos, resoluciones y lineamientos emitidos para '
+            'garantizar la publicación y el intercambio responsable de '
+            'información geoespacial.'
+          ),
+          'icono': 'gavel',
+          'enlace': 'https://www.gob.pe/institucion/pcm/colecciones/3445-marco-normativo-de-la-infraestructura-de-datos-espaciales-del-peru-idep',
+        },
+        {
+          'titulo': 'Normas Técnicas Peruanas',
+          'descripcion_corta': (
+            'Estándares nacionales que alinean terminología, formatos y '
+            'procedimientos para asegurar la calidad de la información.'
+          ),
+          'descripcion_larga': (
+            'Las Normas Técnicas Peruanas relacionadas con información '
+            'geoespacial ayudan a unificar criterios de calidad, formatos y '
+            'procesos. Revisarlas facilita que los nodos de la IDEP cumplan '
+            'estándares reconocidos a nivel nacional.'
+          ),
+          'imagen': 'imagenes/informes.svg',
+          'icono': 'rule',
+          'enlace': '',
+        },
+      ],
+    },
+  ]
+
+  for seccion in secciones:
+    for item in seccion['subsecciones']:
+      if not item.get('descripcion_corta') and item.get('descripcion'):
+        item['descripcion_corta'] = item['descripcion']
+
+      if not item.get('descripcion_larga'):
+        item['descripcion_larga'] = item.get('descripcion') or item.get('descripcion_corta') or ''
+
+      if not item.get('imagen'):
+        item['imagen'] = 'imagenes/image_general.png'
+
+      tag = item.get('tag') or slugify_text(item.get('titulo'))
+      item['tag'] = tag
+
+      enlace = item.get('enlace')
+      if enlace == '#' or enlace is None or enlace == '':
+        item['enlace'] = url_for('geoportal.idep_por', tag=tag)
+
+  return secciones
+
 def ensure_search_token():
   token = session.get(SEARCH_TOKEN_SESSION_KEY)
   if not token:
@@ -1039,160 +1277,32 @@ def catalogo_por_tipo(slug):
 
 @bp.route('/idep')
 def idep():
-  secciones = [
-    {
-      'id': 'institucional',
-      'titulo': 'Institucional',
-      'descripcion': (
-        'Comprende la base conceptual, los actores y las etapas que permiten '
-        'gestionar la Infraestructura de Datos Espaciales del Perú.'
-      ),
-      'subsecciones': [
-        {
-          'titulo': '¿Qué es la IDEP?',
-          'descripcion': (
-            'La IDEP articula datos, servicios y estándares geoespaciales del '
-            'Estado para facilitar su búsqueda, uso y reutilización segura.'
-          ),
-          'imagen': 'imagenes/que_es_idep.png',
-          'icono': 'info',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Componentes de la IDEP',
-          'descripcion_corta': (
-            'Marco institucional, normativa, tecnología, datos, estándares y '
-            'talento que hacen posible la operación de la plataforma.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/image_general.png',
-          'icono': 'widgets',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Organización de la IDEP',
-          'descripcion_corta': (
-            'Describe la estructura de coordinación, roles y espacios de '
-            'gobernanza que alinean a las entidades participantes.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/detalles.png',
-          'icono': 'group_work',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Proceso de implementación IDE',
-          'descripcion_corta': (
-            'Etapas sugeridas para planificar, ejecutar y monitorear un nodo '
-            'que aporte al ecosistema nacional.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/banner_idep.png',
-          'icono': 'sync_alt',
-          'enlace': '#',
-        },
-      ],
-    },
-    {
-      'id': 'estandares',
-      'titulo': 'Estándares',
-      'descripcion': (
-        'Lineamientos técnicos que aseguran interoperabilidad, calidad y '
-        'aprovechamiento de los servicios y datos geoespaciales.'
-      ),
-      'subsecciones': [
-        {
-          'titulo': '¿Qué son los estándares geográficos?',
-          'descripcion_corta': (
-            'Principios y normas que permiten compartir información espacial '
-            'de manera uniforme entre plataformas y organizaciones.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/detalles.png',
-          'icono': 'public',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Estándares sobre los servicios geográficos',
-          'descripcion_corta': (
-            'Buenas prácticas como OGC WMS, WFS y WMTS que definen cómo '
-            'exponer y consumir servicios desde distintos clientes.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/image_general.png',
-          'icono': 'tune',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Metadatos geográficos',
-          'descripcion_corta': (
-            'Documentación estructurada que describe datasets, servicios y '
-            'recursos para facilitar su hallazgo y evaluación.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/documentos.svg',
-          'icono': 'description',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Servicios geográficos',
-          'descripcion_corta': (
-            'Capacidades en línea para visualizar, consultar o descargar capas '
-            'y modelos espaciales actualizados.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/enlace.png',
-          'icono': 'layers',
-          'enlace': '#',
-        },
-        {
-          'titulo': 'Manuales de despliegue de servicios',
-          'descripcion_corta': (
-            'Guías prácticas para configurar servidores, asegurar la calidad '
-            'de los servicios y monitorear su desempeño.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/informes.svg',
-          'icono': 'menu_book',
-          'enlace': '#',
-        },
-      ],
-    },
-    {
-      'id': 'normatividad',
-      'titulo': 'Normatividad',
-      'descripcion': (
-        'Marco legal y normativo que respalda la publicación, intercambio y '
-        'uso responsable de la información geoespacial.'
-      ),
-      'subsecciones': [
-        {
-          'titulo': 'Normas vigentes',
-          'descripcion_corta': (
-            'Decretos, resoluciones y lineamientos que sustentan la '
-            'implementación y operación de la IDEP en el sector público.'
-          ),
-          'descripcion_larga':'',
-          'icono': 'gavel',
-          'enlace': 'https://www.gob.pe/institucion/pcm/colecciones/3445-marco-normativo-de-la-infraestructura-de-datos-espaciales-del-peru-idep',
-        },
-        {
-          'titulo': 'Normas Técnicas Peruanas',
-          'descripcion_corta': (
-            'Estándares nacionales que alinean terminología, formatos y '
-            'procedimientos para asegurar la calidad de la información.'
-          ),
-          'descripcion_larga':'',
-          'imagen': 'imagenes/informes.svg',
-          'icono': 'rule',
-          'enlace': "",
-        },
-      ],
-    },
-  ]
-
+  secciones = obtener_secciones_idep()
   return render_template('geoportal/idep.html', secciones=secciones)
 
 @bp.route('/idep/<tag>')
 def idep_por(tag):
-  return render_template('geoportal/descripcion.html', tag)
+  secciones = obtener_secciones_idep()
+  tag_normalizado = slugify_text(tag)
+  detalle = None
+  seccion_origen = None
+
+  for seccion in secciones:
+    for item in seccion['subsecciones']:
+      if slugify_text(item.get('tag')) == tag_normalizado:
+        detalle = item
+        seccion_origen = seccion
+        break
+    if detalle:
+      break
+
+  if not detalle:
+    abort(404)
+
+  return render_template(
+      'geoportal/descripcion.html',
+      titulo=detalle.get('titulo'),
+      descripcion_larga=detalle.get('descripcion_larga'),
+      imagen=url_for('static', filename=detalle.get('imagen')),
+      seccion=seccion_origen,
+  )
