@@ -63,7 +63,7 @@
                 {{ titulo }}
               </h1>
               <p class="text-gray-700 leading-relaxed">
-                {{ descripcion_larga }}
+                {{ descripcion_larga | safe}}
               </p>
               <div class="flex flex-wrap gap-3 pt-2">
                 <a
@@ -87,7 +87,7 @@
               <img
                 src="{{ imagen }}"
                 alt="{{ titulo }}"
-                class="w-full max-w-[460px] h-[300px] object-contain rounded-2xl shadow"
+                class="w-full max-w-[660px] h-[490px] object-contain rounded-2xl shadow"
               />
             </div>
           </div>

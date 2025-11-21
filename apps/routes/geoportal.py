@@ -84,18 +84,31 @@ def obtener_secciones_idep():
       ),
       'subsecciones': [
         {
-          'titulo': '¿Qué es la IDEP?',
+                    'titulo': '¿Qué es la IDEP?',
           'descripcion_corta': (
             'La IDEP articula datos, servicios y estándares geoespaciales del '
             'Estado para facilitar su búsqueda, uso y reutilización segura.'
           ),
           'descripcion_larga': (
-            'Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socio-económico y favorecer la oportuna toma de decisiones (Resolución Ministerial 325-2007-PCM).'
-            ''
-            'La IDEP es una estructura virtual en red, mantenida por las mismas entidades públicas y privadas productoras de información geográfica, que brindan esta información vía internet con un mínimo de protocolos y especificaciones normalizadas.'
-            'La IDEP asegura la cooperación entre entidades públicas y privadas con el proposito de hacer accesible la información geográfica de nuestro territorio.'
-            'La IDEP permite acceder a información geográfica oficial y actualizada de una manera eficaz y a bajo costo por internet.'
-            'Esta iniciativa integra a todos los productores de datos geográficos del Estado y está articulada con la Política Nacional de Transformación digital.'
+            """
+            <strong>¿Qué es la IDEP?</strong><br />
+            Es el conjunto articulado de políticas, estándares, organizaciones, recursos humanos y tecnológicos destinados a
+            facilitar la producción, uso y acceso a la información geográfica del Estado a fin apoyar el desarrollo socioeconómico
+            y favorecer la oportuna toma de decisiones (Resolución Ministerial 325-2007-PCM).
+
+            <br /><br />
+            <strong>Estructura colaborativa</strong><br />
+            La IDEP es una estructura virtual en red, mantenida por las mismas entidades públicas y privadas productoras de
+            información geográfica, que brindan esta información vía internet con un mínimo de protocolos y especificaciones
+            normalizadas. Asegura la cooperación entre entidades públicas y privadas con el propósito de hacer accesible la
+            información geográfica de nuestro territorio.
+
+            <br /><br />
+            <strong>Acceso y beneficios</strong><br />
+            La IDEP permite acceder a información geográfica oficial y actualizada de una manera eficaz y a bajo costo por
+            internet. Esta iniciativa integra a todos los productores de datos geográficos del Estado y está articulada con la
+            Política Nacional de Transformación Digital.
+            """
           ),
           'imagen': 'imagenes/que_es_idep.png',
           'icono': 'info',
@@ -108,11 +121,29 @@ def obtener_secciones_idep():
             'talento que hacen posible la operación de la plataforma.'
           ),
           'descripcion_larga': (
-            'La IDEP se sostiene en componentes complementarios: gobernanza '
-            'institucional, normativa clara, infraestructura tecnológica, '
-            'catálogos de datos y estándares comunes. Estos elementos '
-            'permiten que los nodos participantes operen de forma articulada '
-            'y mantengan la calidad de los servicios publicados.'
+          """
+          <strong>Políticas y Acuerdos inter-institucionales</strong><br />
+          Está conformado por el marco normativo - institucional de la infraestructura, los lineamientos del Plan Nacional de Datos Espaciales del Perú aprobado por el CCIDEP y los diferentes acuerdos entre productores y usuarios de información georreferenciada.
+          <br /><br />
+          <strong>Datos</strong><br />
+          Conformado por los diferentes datos georreferenciados que son producidos y administrados por las entidades públicas que son propiedad del Estado Peruano.
+          <br /><br />
+          <strong>Metadatos</strong><br />
+          Los metadatos son los registros que describen las características de los datos o recursos de información georreferenciada.
+          <br /><br />
+          Solo a través de los Metadatos es posible conocer las características de los datos georreferenciados existentes, buscarlos y seleccionar los datos que se necesitan en las diferentes bases de datos de las entidades públicas y privadas, independientemente de su ubicación geográfica y la tecnología que usan.
+          <br /><br />
+          <strong>Estándares</strong><br />
+          Son los diferentes estándares aprobados para la producción, uso e intercambio de datos georreferenciados entre entidades públicas y privadas.
+          <br /><br />
+          <strong>Servicios IDE</strong><br />
+          Los servicios IDE ofrecen funcionalidades de uso y acceso a datos. Estos deben estar disponibles vía Internet y ser accesibles con un simple navegador o browser.
+          <br /><br />
+          <strong>Usuarios</strong><br />
+          Son todos los ciudadanos del País,  los funcionarios públicos, los procesos y los sistemas de información (públicos o privados), que requieran disponer de información georreferenciada en línea para resolver problemas en diferentes esferas de la sociedad.
+          <br /><br />
+          Estos usuarios pueden ser tomadores de decisión de diferentes niveles (públicos o privados), técnicos o ciudadanos sin conocimientos especializados en el tema.
+          """
           ),
           'imagen': 'imagenes/componentes_idep.png',
           'icono': 'widgets',
