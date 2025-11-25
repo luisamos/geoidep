@@ -132,7 +132,7 @@
         <h2
           class="text-center text-[22px] md:text-[24px] font-semibold text-black"
         >
-          Catálogo de Servicios Georreferenciados
+          Catálogo Nacional de Servicios Georreferenciados
         </h2>
 
         <div class="mt-8 flex items-stretch gap-6">
@@ -196,7 +196,7 @@
 
         <div class="mt-8 flex justify-center">
           <a
-            href="{{ url_for('geoportal.principal') }}"
+            href="{{ url_for('geoportal.catalogo') }}"
             class="inline-flex items-center justify-center px-5 py-2.5 rounded-md border-2 border-[#184397] text-[#184397] font-medium hover:bg-[#184397]/5"
             >Ir al catálogo de servicios
           </a>
@@ -250,7 +250,7 @@
               class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
             >
               <a
-                href="#"
+                href="{{ url_for('geoportal.nodos_institucionales') }}"
                 class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
               >
                 Nodos institucionales
@@ -270,19 +270,19 @@
               class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
             >
               <a
-                href="#"
+                href="{{ url_for('geoportal.nodos_regionales_locales') }}"
                 class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
               >
-                Nodos Regionales y Locales
+                Nodos regionales y locales
               </a>
 
               <p
                 class="text-gray-700 text-sm leading-6 flex-1 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]"
               >
-                Son instancias descentralizadas (como gobiernos regionales,
-                municipalidades u otras entidades locales) que participan
+                Son instancias descentralizadas como gobiernos regionales,
+                municipalidades u otras entidades locales que participan
                 activamente en la generación, gestión y difusión de información
-                geoespacial en su ámbito territorial.
+                geoespacial en su ámbito de su territorio.
               </p>
             </article>
 
@@ -290,17 +290,17 @@
               class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
             >
               <a
-                href="#"
+                href="{{ url_for('geoportal.nodos_no_gubernamentales') }}"
                 class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
               >
-                Nodos Gubernamentales
+                Nodos no gubernamentales e privados
               </a>
 
               <p
                 class="text-gray-700 text-sm leading-6 flex-1 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]"
               >
-                Son organizaciones de la sociedad civil, universidades, centros
-                de investigación, ONGs o empresas privadas que participan en la
+                Son organizaciones de la sociedad civil, centros
+                de investigación, organismos internacionales, ONGs o empresas privadas que participan en la
                 producción, gestión o uso de información geoespacial.
               </p>
             </article>

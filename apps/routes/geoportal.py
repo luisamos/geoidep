@@ -1611,3 +1611,15 @@ def idep_por(tag):
       imagen=url_for('static', filename=detalle.get('imagen')),
       seccion=seccion_origen,
   )
+
+@bp.route('/nodos_institucionales')
+def nodos_institucionales():
+  return ""
+
+@bp.route('/nodos_regionales_locales')
+def nodos_regionales_locales():
+  return ""
+
+@bp.route('/nodos_regionales_locales')
+def nodos_no_gubernamentales():
+  return ""
