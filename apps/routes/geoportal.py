@@ -1649,10 +1649,7 @@ def renderizar_nodos(titulo, descripcion, filtro_id_padre):
   nodos = obtener_nodos_por_filtro(filtro_id_padre)
 
   nodos_por_sector = OrderedDict()
-  for nodo in sorted(
-      nodos,
-      key=lambda n: ((n.get('sector') or '').lower(), n['nombre'].lower()),
-  ):
+  for nodo in nodos:
     sector_nombre = nodo.get('sector') or 'Sin sector asignado'
     nodos_por_sector.setdefault(sector_nombre, []).append(nodo)
 

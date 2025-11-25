@@ -35,7 +35,17 @@
         <p class="mt-4 text-center text-gray-700 max-w-3xl mx-auto leading-relaxed">
           {{ descripcion }}
         </p>
-        
+
+        <div class="mt-6 flex justify-center">
+          <a
+            href="{{ url_for('geoportal.principal') }}"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#184397] text-white font-semibold shadow hover:bg-[#133574] transition"
+          >
+            <i class="fa-solid fa-house"></i>
+            <span>Ir al inicio</span>
+          </a>
+        </div>
+
       </div>
     </section>
 
@@ -46,7 +56,6 @@
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <h2 class="text-2xl font-semibold text-[#000000]">{{ sector }}</h2>
-
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,11 +66,11 @@
             >
               <div class="p-6 flex flex-col gap-3 h-full">
                 <div class="flex items-start gap-3">
-                  <div class="h-10 w-10 rounded-full bg-[#EEF3FB] text-[#184397] grid place-items-center">
+                  <div class="h-10 w-10 rounded-full bg-[#EEF3FB] text-gray-700 grid place-items-center">
                     <i class="fa-solid fa-building"></i>
                   </div>
                   <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-[#000000] leading-tight">
+                    <h3 class="text-lg font-semibold text-gray-700 leading-tight">
                       {{ nodo.nombre }}{% if nodo.sigla %} ({{ nodo.sigla }}){% endif %}
                     </h3>
                   </div>
