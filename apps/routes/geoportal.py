@@ -21,6 +21,7 @@ from markupsafe import escape
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse, quote
 
+from apps import db
 from apps.models import HerramientaDigital
 from apps.models import Categoria
 from apps.models import Institucion
@@ -1612,14 +1613,78 @@ def idep_por(tag):
       seccion=seccion_origen,
   )
 
+def obtener_nodos_por_filtro(filtro_id_padre):
+  herramientas_exists = db.session.query(HerramientaDigital.id).filter(
+      HerramientaDigital.id_institucion == Institucion.id
+  ).exists()
+
+  capas_exists = db.session.query(CapaGeografica.id).filter(
+      CapaGeografica.id_institucion == Institucion.id
+  ).exists()
+
+  instituciones = (
+    Institucion.query
+    .options(joinedload(Institucion.sector))
+    .filter(
+      Institucion.estado.is_(True),
+      filtro_id_padre,
+      or_(herramientas_exists, capas_exists),
+    )
+    .order_by(Institucion.id)
+    .all()
+  )
+
+  return [
+    {
+      'id': institucion.id,
+      'nombre': institucion.nombre,
+      'sigla': institucion.sigla,
+      'sector': institucion.nombre_sector,
+    }
+    for institucion in instituciones
+  ]
+
+
+def renderizar_nodos(titulo, descripcion, filtro_id_padre):
+  nodos = obtener_nodos_por_filtro(filtro_id_padre)
+
+  nodos_por_sector = OrderedDict()
+  for nodo in sorted(
+      nodos,
+      key=lambda n: ((n.get('sector') or '').lower(), n['nombre'].lower()),
+  ):
+    sector_nombre = nodo.get('sector') or 'Sin sector asignado'
+    nodos_por_sector.setdefault(sector_nombre, []).append(nodo)
+
+  return render_template(
+    'geoportal/nodos.html',
+    titulo=titulo,
+    descripcion=descripcion,
+    nodos_por_sector=nodos_por_sector,
+    catalogo_url=url_for('geoportal.catalogo'),
+    search_token=ensure_search_token(),
+  )
+
 @bp.route('/nodos_institucionales')
 def nodos_institucionales():
-  return ""
+  return renderizar_nodos(
+    'Nodos institucionales',
+    'Son las entidades responsables de producir, administrar y compartir datos espaciales dentro de la IDE, actuando como puntos clave de articulación y colaboración entre diferentes niveles de gobierno y academia.',
+    and_(Institucion.id_padre >= 10, Institucion.id_padre <= 39),
+  )
 
 @bp.route('/nodos_regionales_locales')
 def nodos_regionales_locales():
-  return ""
+  return renderizar_nodos(
+    'Nodos regionales y locales',
+    'Son instancias descentralizadas como gobiernos regionales, municipalidades u otras entidades locales que participan activamente en la generación, gestión y difusión de información geoespacial en su ámbito de su territorio.',
+    Institucion.id_padre.in_([40, 41]),
+  )
 
-@bp.route('/nodos_regionales_locales')
+@bp.route('/nodos_no_gubernamentales')
 def nodos_no_gubernamentales():
-  return ""
+  return renderizar_nodos(
+    'Nodos no gubernamentales',
+    'Son organizaciones de la sociedad civil, centros de investigación, organismos internacionales, ONGs o empresas privadas que participan en la producción, gestión o uso de información geoespacial.',
+    Institucion.id_padre.in_([42, 43, 44]),
+  )
