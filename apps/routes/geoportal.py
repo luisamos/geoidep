@@ -544,10 +544,7 @@ def obtener_secciones_idep():
             'procedimientos para asegurar la calidad de la información.'
           ),
           'descripcion_larga': (
-            """Las Normas Técnicas Peruanas relacionadas con información '
-            'geoespacial ayudan a unificar criterios de calidad, formatos y '
-            'procesos. Revisarlas facilita que los nodos de la IDEP cumplan '
-            'estándares reconocidos a nivel nacional:
+            """Las Normas Técnicas Peruanas relacionadas con información geoespacial ayudan a unificar criterios de calidad, formatos y procesos. Revisarlas facilita que los nodos de la IDEP cumplan estándares reconocidos a nivel nacional:
             <br /><br />
             <strong>NTP ISO 19115-1:2021 – Metadatos geográficos (Parte 1)</strong><br />
             Permite describir datos y servicios geográficos de forma estandarizada. Facilita la búsqueda, evaluación y uso de información espacial mediante metadatos claros y compatibles entre instituciones.
@@ -561,7 +558,7 @@ def obtener_secciones_idep():
             <strong>NTP ISO 19128:2014 (revisada el 2019) – Servicios web de mapas (WMS)</strong><br />
             Establece cómo deben funcionar los servidores de mapas en internet. Gracias a esta norma, podemos visualizar mapas desde distintas fuentes en tiempo real, asegurando compatibilidad entre plataformas.
             <br /><br /><br />
-            <strong>Otras Normas técnicas peruanas relevantes</strong><br />
+            <strong>Otras Normas técnicas relevantes</strong><br />
             <strong>NTP ISO 19119 – Información Geográfica: Servicios (Interoperabilidad)</strong><br />
             Proporciona un marco para la especificación y clasificación de servicios geográficos, ampliando el modelo de referencia de arquitectura definido en ISO 19101 para abarcar servicios web de información geográfica
             Esta norma es útil para lograr la interoperabilidad entre diferentes plataformas, al definir categorías de servicios (por ejemplo, de obtención de datos, de visualización, de catálogo) y pautas para describir sus interfaces de manera independiente de la plataforma tecnológica.
