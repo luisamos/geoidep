@@ -402,8 +402,8 @@ def obtener_secciones_idep():
           <li>¿Cuánto cuesta?</li>
           <li>¿Con que persona se puede contactar para obtener una copia?, etc.</li>
           <br />
-          <strong>Rol y función de los Metadatos</strong>
-          Las funciones principales de los metadatos según los autores Gayatri y Ramachandran (2007) y Kate Beard (1996) son:
+          <strong>Rol y función de los Metadatos</strong><br />
+          Las funciones principales de los metadatos según los autores Gayatri y Ramachandran (2007) y Kate Beard (1996) son:<br />
           <strong>Búsqueda:</strong> Los metadatos deben proporcionar suficiente información, bien para descubrir si existen datos de interés dentro de la colección de datos disponibles, o simplemente, para saber que existen.
           <br />
           <strong>Recuperación:</strong> Los metadatos deben proporcionar información a los usuarios para que puedan adquirir la información que sea de su interés. La analogía con una biblioteca consistiría en el procedimiento a seguir para sacar un libro.

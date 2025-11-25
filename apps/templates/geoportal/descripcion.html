@@ -43,6 +43,29 @@
       body {
         font-family: "Roboto", sans-serif;
       }
+
+      .descripcion-larga {
+        color: #4b5563;
+        line-height: 1.75;
+        text-align: justify;
+      }
+
+      .descripcion-larga ul,
+      .descripcion-larga ol {
+        list-style-position: inside;
+        padding-left: 1rem;
+        margin: 0.5rem 0 0.5rem 0.5rem;
+        color: inherit;
+      }
+
+      .descripcion-larga li {
+        color: inherit;
+        margin-bottom: 0.35rem;
+      }
+
+      .descripcion-larga strong {
+        color: #111827;
+      }
     </style>
   </head>
 
@@ -62,10 +85,11 @@
               <h1 class="text-[28px] md:text-[32px] font-semibold text-black">
                 {{ titulo }}
               </h1>
-              <p class="text-gray-700 leading-relaxed">
+              <div class="descripcion-larga">
                 {{ descripcion_larga | safe}}
-              </p>
+              </div>
               <div class="flex flex-wrap gap-3 pt-2">
+                <a
                 <a
                   href="{{ url_for('geoportal.idep') }}"
                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#184397] text-[#184397] font-semibold hover:bg-[#184397]/5"
