@@ -117,9 +117,7 @@ def obtener_secciones_idep():
 
             <br /><br />
             <strong>Acceso y beneficios</strong><br />
-            La IDEP permite acceder a información geográfica oficial y actualizada de una manera eficaz y a bajo costo por
-            internet. Esta iniciativa integra a todos los productores de datos geográficos del Estado y está articulada con la
-            Política Nacional de Transformación Digital.
+            La IDEP permite acceder de manera eficaz, gratuita y en línea a información geográfica oficial y actualizada. Esta iniciativa integra a todas las entidades del Estado que producen datos geoespaciales y se encuentra alineada con la Política Nacional de Transformación Digital, fortaleciendo la gestión, el intercambio y el uso oportuno de la información para la toma de decisiones.
             """
           ),
           'imagen': 'imagenes/que_es_idep.png',
@@ -365,6 +363,17 @@ def obtener_secciones_idep():
           'icono': 'description',
           'enlace': '#',
         },
+        {
+          'titulo': 'Guía de Buenas Prácticas para la Implementación de Infraestructuras Espaciales',
+          'descripcion_corta': (
+            'Documento que recomienda a las instituciones pautas para publicar datos espaciales.'
+          ),
+          'descripcion_larga': (
+            ''
+          ),
+          'icono': 'description',
+          'enlace': 'https://www.gob.pe/institucion/pcm/informes-publicaciones/1999276-guia-de-buenas-practicas-para-la-implementacion-de-infraestructuras-espaciales',
+        },
       ],
     },
     {
@@ -537,6 +546,18 @@ def obtener_secciones_idep():
           ),
           'icono': 'gavel',
           'enlace': 'https://www.gob.pe/institucion/pcm/colecciones/3445-marco-normativo-de-la-infraestructura-de-datos-espaciales-del-peru-idep',
+        },
+        {
+          'titulo': 'Legislación vigente',
+          'descripcion_corta': (
+            'Esquema de la normatividad de la Infraestructura de Datos Espaciales del Perú - IDEP'
+          ),
+          'descripcion_larga': (
+            'Esquema de la normatividad de la Infraestructura de Datos Espaciales del Perú - IDEP'
+          ),
+          'imagen': 'imagenes/legislacion.png',
+          'icono': 'gavel',
+          'enlace': '#',
         },
         {
           'titulo': 'Normas Técnicas Peruanas',
