@@ -905,7 +905,6 @@ def obtener_tipos_servicios_catalogo():
       tipos_por_slug[slug_normalizado] = tipo_data
 
   return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
-  return SimpleNamespace(lista=tipos_catalogo, por_slug=tipos_por_slug)
 
 @cache.memoize(timeout=300)
 def obtener_datos_catalogo_cacheados(
@@ -1325,7 +1324,6 @@ def obtener_datos_catalogo_cacheados(
     'total_herramientas': total_herramientas,
   }
 
-
 def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
   id_institucion = request.args.get('id_institucion', type=int)
   id_categoria = request.args.get('id_categoria', type=int)
@@ -1586,13 +1584,15 @@ def principal():
       search_token=ensure_search_token(),
   )
 
-@bp.route('/catalogo')
+@bp.route('/servicios-idep')
+#@bp.route('/catalogo')
 def catalogo():
   tipos_catalogo = obtener_tipos_servicios_catalogo()
   contexto = construir_contexto_catalogo(tipos_catalogo)
   return render_template('geoportal/catalogo.html', **contexto)
 
-@bp.route('/catalogo/<slug>')
+@bp.route('/servicios-idep/<slug>')
+#@bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
   slug_normalizado = slug.lower()
   tipos_catalogo = obtener_tipos_servicios_catalogo()
