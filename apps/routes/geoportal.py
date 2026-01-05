@@ -1586,25 +1586,22 @@ def principal():
   )
 
 @bp.route('/servicios-idep')
-#@bp.route('/catalogo')
+@bp.route('/catalogo-nacional-de-servicios-web')
 def catalogo():
   tipos_catalogo = obtener_tipos_servicios_catalogo()
   contexto = construir_contexto_catalogo(tipos_catalogo)
   return render_template('geoportal/catalogo.html', **contexto)
 
 @bp.route('/servicios-idep/<slug>')
-#@bp.route('/catalogo/<slug>')
+@bp.route('/catalogo-nacional-de-servicios-web/<slug>')
 def catalogo_por_tipo(slug):
   slug_normalizado = slug.lower()
-  if slug_normalizado == 'catalogo-nacional-de-servicios-web':
-    return redirect(url_for('geoportal.catalogo'))
-  else:
-    tipos_catalogo = obtener_tipos_servicios_catalogo()
-    tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
-    if not tipo_config:
-      abort(404)
-    contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
-    return render_template('geoportal/catalogo.html', **contexto)
+  tipos_catalogo = obtener_tipos_servicios_catalogo()
+  tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
+  if not tipo_config:
+    abort(404)
+  contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
+  return render_template('geoportal/catalogo.html', **contexto)
 
 @bp.route('/idep')
 def idep():
