@@ -7,11 +7,12 @@ from copy import deepcopy
 from types import SimpleNamespace
 
 from flask import (
-  Blueprint,
+Blueprint,
   current_app,
   render_template,
   request,
   abort,
+  redirect,
   url_for,
   session,
 )
@@ -1595,12 +1596,15 @@ def catalogo():
 #@bp.route('/catalogo/<slug>')
 def catalogo_por_tipo(slug):
   slug_normalizado = slug.lower()
-  tipos_catalogo = obtener_tipos_servicios_catalogo()
-  tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
-  if not tipo_config:
-    abort(404)
-  contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
-  return render_template('geoportal/catalogo.html', **contexto)
+  if slug_normalizado == 'catalogo-nacional-de-servicios-web':
+    return redirect(url_for('geoportal.catalogo'))
+  else:
+    tipos_catalogo = obtener_tipos_servicios_catalogo()
+    tipo_config = tipos_catalogo.por_slug.get(slug_normalizado)
+    if not tipo_config:
+      abort(404)
+    contexto = construir_contexto_catalogo(tipos_catalogo, tipo_config)
+    return render_template('geoportal/catalogo.html', **contexto)
 
 @bp.route('/idep')
 def idep():
@@ -1632,6 +1636,29 @@ def idep_por(tag):
       descripcion_larga=detalle.get('descripcion_larga'),
       imagen=url_for('static', filename=detalle.get('imagen')),
       seccion=seccion_origen,
+  )
+
+
+@bp.route('/catalogos-de-metadatos')
+def catalogo_metadatos():
+  descripcion = (
+    """
+    Reúne descripciones estandarizadas de los datos y servicios geoespaciales
+    publicados por las entidades del Estado. Permite conocer el origen, la
+    calidad, la estructura y las condiciones de uso de cada recurso, para
+    facilitar su evaluación y reutilización.<br /><br />
+    A través de este catálogo, los usuarios pueden ubicar rápidamente datasets,
+    servicios de mapas y aplicaciones relacionadas, asegurando la
+    interoperabilidad y el intercambio eficiente de información geográfica.
+    """
+  )
+
+  return render_template(
+      'geoportal/descripcion2.html',
+      titulo='Catálogo Nacional de Metadatos',
+      descripcion_larga=descripcion,
+      imagen=url_for('static', filename='imagenes/catalogo_nacional.png'),
+      seccion={'titulo': 'Centro Nacional de Datos'},
   )
 
 def obtener_nodos_por_filtro(filtro_id_padre):
