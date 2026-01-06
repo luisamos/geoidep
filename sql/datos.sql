@@ -49,8 +49,13 @@ CREATE TABLE IF NOT EXISTS tmp.datos(
 );
 
 --\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_check, estado_servicio, estado_actu, id_institucion, id_categoria) FROM 'C:\apps\python\flask\geoidep\sql\datos.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8';
+--\copy tmp.datos(n, grupo_tema, sub_tema, cod_capa, ide, geo, capa, sector, institucion, entidad, sub_ent, resp_inst, correo_inst, nro_inst, frec_act, fecha_reg, fecha_prox, paginaweb, url_pub, tipo_pub, nro_documento_recp, fecha_recepcion, responsable_proc, estado_proc, fecha_proc, responsable_pub, estado_pub_geo, fecha_pub_geo, estado_ide_proc, fecha_proc_ide, estado_pub_ide, fecha_pub_ide, descripcion, observacion, origen, tipo_entidad, estado_check, estado_servicio, estado_actu, id_institucion, id_categoria) FROM 'C:\apps\python\flask\geoidep\sql\datos_final.csv' DELIMITER ';' CSV HEADER ENCODING 'UTF8';
 
 SELECT tipo_pub FROM tmp.datos
+GROUP BY 1
+ORDER BY 1;
+
+SELECT estado_actu FROM tmp.datos
 GROUP BY 1
 ORDER BY 1;
 
@@ -62,12 +67,14 @@ SELECT * FROM tmp.datos
 WHERE id_categoria = 77
 ORDER BY tipo_pub;
 
+SELECT * FROM ide.def_tipos_servicios;
+
 SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 1 ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geoportal';
-UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Geovisor' OR tipo_pub = 'Mapas web';
+UPDATE tmp.datos SET id_tipo = 6 WHERE tipo_pub = 'Geovisor';
 UPDATE tmp.datos SET id_tipo = 8 WHERE tipo_pub = 'Infografía' OR tipo_pub = 'Otros tipos de servicios';
-UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'CSW (Catálogo de Metadatos)';
+UPDATE tmp.datos SET id_tipo = 9 WHERE tipo_pub = 'Catálogo de Metadatos';
 UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 
 --
@@ -76,25 +83,28 @@ UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
 SELECT id_tipo, capa, descripcion, True, url_pub, id_institucion, id_categoria FROM tmp.datos
-WHERE id_tipo IN (5,6,8, 9,10) AND url_pub IS NOT NULL
+WHERE id_tipo IN (5,6,8, 9,10) AND url_pub IS NOT NULL AND estado_actu != 'hISTÓRICO' AND estado_actu != 'HISTÓRICO'
 GROUP BY 1,2,3,4,5,6,7;
 
 -- 
 -- SERVICIOS GEOGRAFICOS
 --
-SELECT * FROM ide.def_tipos_servicios WHERE id_padre IN (2,3) ORDER BY orden;
+SELECT * FROM ide.def_tipos_servicios WHERE id_padre IN (2,3,4) ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Servicio WMS';
-UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WFS' OR tipo_pub= 'WFS';
+UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WFS';
 UPDATE tmp.datos SET id_tipo = 14 WHERE tipo_pub = 'Servicio WMTS';
-UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'ArcGIS REST' OR tipo_pub = 'Arcgis REST';
-UPDATE tmp.datos SET id_tipo = 20 WHERE tipo_pub = 'KML';
+UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'ArcGIS REST';
+
 UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Geoprocesamiento';--GEOPERU
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Módulo de administración';
+UPDATE tmp.datos SET id_tipo = 22 WHERE tipo_pub = 'Servicio APPI';
 
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
-ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
+--ALTER TABLE tmp.datos ADD COLUMN nombre_layer TEXT;
 
 SELECT * FROM tmp.datos WHERE capa LIKE ('%Otros Usos%');
+SELECT * FROM tmp.datos WHERE capa LIKE ('%Red de vigilancia ambiental de la calidad del aire%');
 
 SELECT * FROM public.def_layer;
 
@@ -109,27 +119,31 @@ WITH base AS (
       id_institucion,
       id_categoria,
       capa,
-      CASE WHEN geo = 'SI' THEN TRUE ELSE FALSE END AS publicar_geoperu,
+      BOOL_OR(geo = 'SI') AS publicar_geoperu,
       MAX(url_pub) FILTER (WHERE id_tipo = 11) AS wms,
       MAX(url_pub) FILTER (WHERE id_tipo = 12) AS wfs,
       MAX(url_pub) FILTER (WHERE id_tipo = 14) AS wmts,
       MAX(url_pub) FILTER (WHERE id_tipo = 17) AS arcgis,
-      MAX(url_pub) FILTER (WHERE id_tipo = 20) AS kml
+      MAX(url_pub) FILTER (WHERE id_tipo = 22) AS api
   FROM tmp.datos
-  WHERE id_tipo IN (11,12,14,17,20)
-  GROUP BY id_institucion, id_categoria, capa, geo
+  --WHERE id_tipo IN (11,12,14,17,22) 
+  --WHERE geo = 'SI'
+    WHERE UPPER(estado_actu) <> 'HISTÓRICO'
+  GROUP BY id_institucion, id_categoria, capa
 ),
 enriquecida AS (
   SELECT
     b.*,
-	dl.nombre_capa AS nombre_capa_def,
-	dl.idfuente AS idfuente_def,
-	dl.idsubsistema AS idsubsistema_def,
-	dl.hashcode AS hashcode_def,
-	dl.url_fuente AS url_fuente_def
+    dl.id as id_layer_def,
+    dl.nombre_capa AS nombre_capa_def,
+    dl.idfuente AS idfuente_def,
+    dl.idsubsistema AS idsubsistema_def,
+    dl.hashcode AS hashcode_def,
+    dl.url_fuente AS url_fuente_def
   FROM base b
   LEFT JOIN LATERAL (
     SELECT
+      d.id,
       d.nombre_capa,
       d.idfuente,
       d.idsubsistema,
@@ -145,6 +159,7 @@ enriquecida AS (
 )
 SELECT
   ROW_NUMBER() OVER (ORDER BY id_institucion ASC, capa ASC) AS numero,
+  id_layer_def AS id_layer,
   id_institucion,
   id_categoria,
   publicar_geoperu,
@@ -156,7 +171,7 @@ SELECT
   CASE
     WHEN wms IS NULL THEN
       CASE
-	    WHEN idfuente_def = 1 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(nombre_capa_def, '') || '/wms?'
+        WHEN idfuente_def = 1 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(nombre_capa_def, '') || '/wms?'
         WHEN idfuente_def = 2 THEN COALESCE(url_fuente_def, '')
         WHEN idfuente_def = 3 AND COALESCE(idsubsistema_def, 0) = 0
           THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(hashcode_def, '') || '/wms?'
@@ -167,16 +182,16 @@ SELECT
   wfs,
   wmts,
   arcgis,
-  kml
+  api
 FROM enriquecida
 WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
 ORDER BY id_institucion ASC, layer ASC;
 
 --CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
 
-SELECT * FROM tmp.resultado_servicios ORDER BY numero;
+SELECT * FROM tmp.resultado_servicios WHERE layer LIKE ('%Red de vigilancia ambiental de la calidad del aire%') ORDER BY numero;
 
-SELECT * FROM public.def_layer WHERE capa LIKE ('%Mapa de sacudimiento teórico%') ;
+SELECT * FROM public.def_layer WHERE idestado = 1;
 
 -- CAPAS GEOGRAFICAS
 INSERT INTO ide.def_capas_geograficas

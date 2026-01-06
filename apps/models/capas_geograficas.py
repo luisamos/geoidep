@@ -10,6 +10,7 @@ class CapaGeografica(db.Model):
   descripcion = db.Column(db.String(500))
   tipo_capa = db.Column(db.Integer, nullable=False)
   publicar_geoperu = db.Column(db.Boolean, default=False)
+  id_layer = db.Column(db.Integer, nullable=False)
   fecha_registro = db.Column(db.Date, nullable=True)
   id_categoria = db.Column(
       'id_categoria',
