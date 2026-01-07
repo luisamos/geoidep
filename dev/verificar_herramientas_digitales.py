@@ -25,6 +25,7 @@ BATCH_SIZE = 50
 SLEEP_BETWEEN_BATCHES = 0.2
 RETRIES_HTTP = 2
 RETRIES_SCREENSHOT = 1
+ACCEPTED_STATUSES = {401, 403, 405}
 
 MOBILE_UA = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
@@ -64,13 +65,13 @@ def is_url_available_follow_redirects(url: str) -> tuple[bool, str | None]:
     for attempt in range(RETRIES_HTTP + 1):
         try:
             r = session.head(url, allow_redirects=True, timeout=REQ_TIMEOUT)
-            if 200 <= r.status_code < 400:
+            if 200 <= r.status_code < 400 or r.status_code in ACCEPTED_STATUSES:
                 return (True, r.url)
             # HEAD puede devolver 405 → intentar GET
             if r.status_code in (405, 403, 404) or r.is_redirect:
                 # GET con stream para no descargar todo el cuerpo
                 g = session.get(url, allow_redirects=True, timeout=REQ_TIMEOUT, stream=True)
-                if 200 <= g.status_code < 400:
+                if 200 <= g.status_code < 400 or g.status_code in ACCEPTED_STATUSES:
                     return (True, g.url)
                 else:
                     last_exc = f"GET status={g.status_code}"
@@ -178,10 +179,12 @@ def check_and_capture_all():
                         item.estado = 1
                         item.fecha_modifica = datetime.now(UTC)
                         db.session.add(item)
+                    ok_imgs += 1
                 else:
                     # Generar captura; si falla, estado 0
                     if try_capture(context, final_url or url, out_path):
                         item.estado = 1
+                        ok_imgs += 1
                     else:
                         item.estado = 0
                         set_zero += 1
