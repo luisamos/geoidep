@@ -1059,7 +1059,7 @@ def obtener_datos_catalogo_cacheados(
         sigla_display = sigla or 'SERVICIO'
         view_map_url = None
         if estado_activo and sigla_display and 'WMS' in sigla_display.upper():
-          view_map_url = f"https://visor.geoperu.gob.pe/?layers={servicio.id}"
+          view_map_url = f"https://visor.geoperu.gob.pe/?layers={servicio.id_layer}"
 
         if (
           estado_activo
@@ -1547,7 +1547,7 @@ def principal():
   geoportales_count = HerramientaDigital.query.filter(
       HerramientaDigital.id_tipo_servicio == 5
   ).count()
-  servicios_mapas_count = CapaGeografica.query.count()
+  servicios_mapas_count = ServicioGeografico.query.count()
   visores_count = HerramientaDigital.query.filter(
       HerramientaDigital.id_tipo_servicio == 6
   ).count()

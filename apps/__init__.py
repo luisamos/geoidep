@@ -1,5 +1,5 @@
 from __future__ import annotations
-from flask import Flask
+from flask import Flask, render_template
 
 import apps.config as config
 from .extensions import cache, db, jwt, mail, migrate
@@ -14,8 +14,12 @@ def create_app() -> Flask:
   jwt.init_app(app)
   mail.init_app(app)
   cache.init_app(app)
-
+  
   register_routes(app)
+
+  @app.errorhandler(404)
+  def pagina_no_encontrada(error):
+    return render_template('geoportal/404.html'), 404
 
   @app.after_request
   def aplicar_cabeceras_seguridad(response):

@@ -12,6 +12,5 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "javascript.suggest.paths": false,
-    
 	}
 }
