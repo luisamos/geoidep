@@ -10,7 +10,6 @@ class CapaGeografica(db.Model):
   descripcion = db.Column(db.String(500))
   tipo_capa = db.Column(db.Integer, nullable=False)
   publicar_geoperu = db.Column(db.Boolean, default=False)
-  id_layer = db.Column(db.Integer, nullable=False)
   fecha_registro = db.Column(db.Date, nullable=True)
   id_categoria = db.Column(
       'id_categoria',
@@ -53,6 +52,7 @@ class ServicioGeografico(db.Model):
   nombre_capa = db.Column(db.String(200))
   titulo_capa = db.Column(db.String(500))
   estado = db.Column(db.Boolean, default=True)
+  id_layer = db.Column(db.Integer, nullable=False)
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_crea = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)

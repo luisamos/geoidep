@@ -68,7 +68,6 @@ WHERE id_categoria = 77
 ORDER BY tipo_pub;
 
 SELECT * FROM ide.def_tipos_servicios;
-
 SELECT * FROM ide.def_tipos_servicios WHERE id_padre = 1 ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 5 WHERE tipo_pub = 'Geoportal';
@@ -83,7 +82,7 @@ UPDATE tmp.datos SET id_tipo = 10 WHERE tipo_pub = 'Descarga GIS';
 INSERT INTO ide.def_herramientas_digitales(
 	id_tipo_servicio, nombre, descripcion, estado, recurso, id_institucion, id_categoria)
 SELECT id_tipo, capa, descripcion, True, url_pub, id_institucion, id_categoria FROM tmp.datos
-WHERE id_tipo IN (5,6,8, 9,10) AND url_pub IS NOT NULL AND estado_actu != 'hISTÓRICO' AND estado_actu != 'HISTÓRICO'
+WHERE id_tipo IN (5,6,8,9,10) AND url_pub IS NOT NULL AND estado_actu != 'hISTÓRICO' AND estado_actu != 'HISTÓRICO'
 GROUP BY 1,2,3,4,5,6,7;
 
 -- 
@@ -92,12 +91,12 @@ GROUP BY 1,2,3,4,5,6,7;
 SELECT * FROM ide.def_tipos_servicios WHERE id_padre IN (2,3,4) ORDER BY orden;
 
 UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Servicio WMS';
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Geoprocesamiento';--GEOPERU
+UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Módulo de administración';
 UPDATE tmp.datos SET id_tipo = 12 WHERE tipo_pub = 'Servicio WFS';
 UPDATE tmp.datos SET id_tipo = 14 WHERE tipo_pub = 'Servicio WMTS';
 UPDATE tmp.datos SET id_tipo = 17 WHERE tipo_pub = 'ArcGIS REST';
-
-UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Geoprocesamiento';--GEOPERU
-UPDATE tmp.datos SET id_tipo = 11 WHERE tipo_pub = 'Módulo de administración';
+UPDATE tmp.datos SET id_tipo = 20 WHERE tipo_pub = 'KML';
 UPDATE tmp.datos SET id_tipo = 22 WHERE tipo_pub = 'Servicio APPI';
 
 UPDATE tmp.datos SET url_pub= NULL WHERE url_pub= 'Sin enlace' OR url_pub= '';
@@ -119,21 +118,21 @@ WITH base AS (
       id_institucion,
       id_categoria,
       capa,
-      BOOL_OR(geo = 'SI') AS publicar_geoperu,
       MAX(url_pub) FILTER (WHERE id_tipo = 11) AS wms,
       MAX(url_pub) FILTER (WHERE id_tipo = 12) AS wfs,
       MAX(url_pub) FILTER (WHERE id_tipo = 14) AS wmts,
       MAX(url_pub) FILTER (WHERE id_tipo = 17) AS arcgis,
+	  MAX(url_pub) FILTER (WHERE id_tipo = 20) AS kml,
       MAX(url_pub) FILTER (WHERE id_tipo = 22) AS api
   FROM tmp.datos
-  --WHERE id_tipo IN (11,12,14,17,22) 
-  --WHERE geo = 'SI'
-    WHERE UPPER(estado_actu) <> 'HISTÓRICO'
+  WHERE id_tipo IN (11,12,14,17,20,22)
+    AND UPPER(estado_actu) <> 'HISTÓRICO'
   GROUP BY id_institucion, id_categoria, capa
 ),
 enriquecida AS (
   SELECT
     b.*,
+    (dl.id IS NOT NULL) AS publicar_geoperu,
     dl.id as id_layer_def,
     dl.nombre_capa AS nombre_capa_def,
     dl.idfuente AS idfuente_def,
@@ -152,14 +151,17 @@ enriquecida AS (
     FROM public.def_layer d
     WHERE d.capa = b.capa
       AND d.idestado = 1
-      AND d.idsubsistema = 0
+      AND d.idsubsistema >= 0
       AND LENGTH(d.nombre_capa) > 0
     LIMIT 1
   ) dl ON TRUE
 )
 SELECT
   ROW_NUMBER() OVER (ORDER BY id_institucion ASC, capa ASC) AS numero,
-  id_layer_def AS id_layer,
+  CASE
+  	WHEN id_layer_def IS NULL THEN 0
+  	ELSE id_layer_def
+  END AS id_layer,
   id_institucion,
   id_categoria,
   publicar_geoperu,
@@ -168,24 +170,30 @@ SELECT
     WHEN wms IS NULL THEN COALESCE(nombre_capa_def, '')
     ELSE '0'
   END AS nombre_capa,
+
   CASE
     WHEN wms IS NULL THEN
       CASE
-        WHEN idfuente_def = 1 THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(nombre_capa_def, '') || '/wms?'
-        WHEN idfuente_def = 2 THEN COALESCE(url_fuente_def, '')
-        WHEN idfuente_def = 3 AND COALESCE(idsubsistema_def, 0) = 0
-          THEN 'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(hashcode_def, '') || '/wms?'
-        ELSE 'https://espacialg.geoperu.gob.pe/geoserver/subsistema/' || COALESCE(hashcode_def, '') || '/wms?'
+        WHEN idfuente_def = 1 THEN
+          'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(nombre_capa_def, '') || '/wms?'
+        WHEN idfuente_def = 2 THEN
+          COALESCE(url_fuente_def, '')
+        WHEN idfuente_def = 3 AND COALESCE(idsubsistema_def, 0) = 0 THEN
+          'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(hashcode_def, '') || '/wms?'
+        ELSE
+          'https://espacialg.geoperu.gob.pe/geoserver/subsistema/' || COALESCE(hashcode_def, '') || '/wms?'
       END
     ELSE wms
   END AS wms,
   wfs,
   wmts,
   arcgis,
+  kml,
   api
 FROM enriquecida
 WHERE (wms IS NOT NULL OR nombre_capa_def IS NOT NULL)
 ORDER BY id_institucion ASC, layer ASC;
+
 
 --CREATE UNIQUE INDEX ON tmp.resultado_servicios (id_institucion, id_categoria, layer);
 
@@ -201,12 +209,13 @@ FROM tmp.resultado_servicios
 ORDER BY numero ASC;
 
 -- SERVICIOS GEOGRAFICOS
-INSERT INTO ide.def_servicios_geograficos(id_capa, id_tipo_servicio, direccion_web, nombre_capa, titulo_capa, estado, usuario_crea)
-SELECT numero, 11, wms AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wms IS NOT NULL UNION
-SELECT numero, 12, wfs AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wfs IS NOT NULL UNION
-SELECT numero, 14, wmts AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE wmts IS NOT NULL UNION
-SELECT numero, 17, arcgis AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE arcgis IS NOT NULL;
---SELECT numero, 20, kml AS direccion_web, nombre_capa, layer, True, 1 FROM tmp.resultado_servicios WHERE kml IS NOT NULL;
+INSERT INTO ide.def_servicios_geograficos(id_capa, id_tipo_servicio, direccion_web, nombre_capa, titulo_capa, estado, id_layer, usuario_crea)
+SELECT numero, 11, wms AS direccion_web, nombre_capa, layer, True, id_layer, 1 FROM tmp.resultado_servicios WHERE wms IS NOT NULL UNION
+SELECT numero, 12, wfs AS direccion_web, nombre_capa, layer, True, 0, 1 FROM tmp.resultado_servicios WHERE wfs IS NOT NULL UNION
+SELECT numero, 14, wmts AS direccion_web, nombre_capa, layer, True, 0, 1 FROM tmp.resultado_servicios WHERE wmts IS NOT NULL UNION
+SELECT numero, 17, arcgis AS direccion_web, nombre_capa, layer, True, 0, 1 FROM tmp.resultado_servicios WHERE arcgis IS NOT NULL UNION
+SELECT numero, 20, kml AS direccion_web, nombre_capa, layer, True, 0, 1 FROM tmp.resultado_servicios WHERE kml IS NOT NULL UNION
+SELECT numero, 22, api AS direccion_web, nombre_capa, layer, True, 0, 1 FROM tmp.resultado_servicios WHERE api IS NOT NULL;
 
 
 
