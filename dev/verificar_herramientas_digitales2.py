@@ -1,7 +1,10 @@
 import os
 import sys
 import time
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+from contextlib import contextmanager
+from pathlib import Path
+
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -17,7 +20,7 @@ from apps import create_app, db
 from apps.models import HerramientaDigital
 
 # ===== Config =====
-OUT_DIR = BASE_DIR / "apps" / "static" / "imagenes" / "herramientas_digitales"
+OUT_DIR = os.path.join("static", "imagenes", "herramientas_digitales")
 MOBILE_VIEWPORT = {"width": 400, "height": 800}
 TIMEOUT_MS = 15000              # Playwright nav timeout (ms)
 REQ_TIMEOUT = (6, 12)           # (connect, read) en segundos
@@ -34,15 +37,15 @@ MOBILE_UA = (
 
 # ===== Utils =====
 def ensure_out_dir():
-  OUT_DIR.mkdir(parents=True, exist_ok=True)
+    os.makedirs(OUT_DIR, exist_ok=True)
 
 def normalize_url(url: str) -> str | None:
-  if not url:
-    return None
-  u = url.strip()
-  if not u.lower().startswith(("http://", "https://")):
-    u = "http://" + u
-  return u
+    if not url:
+        return None
+    u = url.strip()
+    if not u.lower().startswith(("http://", "https://")):
+        u = "http://" + u
+    return u
 
 def is_url_available_follow_redirects(url: str) -> tuple[bool, str | None]:
     """
@@ -91,20 +94,20 @@ def save_light_webp(png_path: str, out_path: str, max_size=(400, 800), quality=6
 
 @contextmanager
 def pw_context():
-  with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    context = browser.new_context(
-      viewport=MOBILE_VIEWPORT,
-      is_mobile=True,
-      user_agent=MOBILE_UA,
-      device_scale_factor=2,
-      java_script_enabled=True,
-    )
-    try:
-      yield context
-    finally:
-      context.close()
-      browser.close()
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            viewport=MOBILE_VIEWPORT,
+            is_mobile=True,
+            user_agent=MOBILE_UA,
+            device_scale_factor=2,
+            java_script_enabled=True,
+        )
+        try:
+            yield context
+        finally:
+            context.close()
+            browser.close()
 
 def try_capture(context, url: str, out_path: str) -> bool:
     """
@@ -155,7 +158,7 @@ def check_and_capture_all():
                 break
 
             for item in batch:
-                out_path = OUT_DIR / f"{item.id}.webp"
+                out_path = os.path.join(OUT_DIR, f"{item.id}.webp")
                 url = normalize_url(item.recurso)
 
                 # 1) Verificar disponibilidad (resuelve acortadores)
@@ -164,7 +167,7 @@ def check_and_capture_all():
                 if not available:
                     # Recurso caído / no accesible → estado 0
                     item.estado = 0
-                    item.fecha_modifica = datetime.now(UTC)
+                    item.fecha_modifica = datetime.now(timezone.utc)
                     db.session.add(item)
                     set_zero += 1
                     processed += 1
@@ -173,22 +176,22 @@ def check_and_capture_all():
                 # 2) Si hay disponibilidad:
                 #    - Si ya existe imagen: NO recapturar.
                 #    - Si NO existe imagen: capturar ahora.
-                if out_path.exists():
+                if os.path.exists(out_path):
                     # Solo actualiza estado a 1 si el recurso está OK
                     if item.estado != 1:
                         item.estado = 1
-                        item.fecha_modifica = datetime.now(UTC)
+                        item.fecha_modifica = datetime.now(timezone.utc)
                         db.session.add(item)
                     ok_imgs += 1
                 else:
                     # Generar captura; si falla, estado 0
-                    if try_capture(context, final_url or url, str(out_path)):
+                    if try_capture(context, final_url or url, out_path):
                         item.estado = 1
                         ok_imgs += 1
                     else:
                         item.estado = 0
                         set_zero += 1
-                    item.fecha_modifica = datetime.now(UTC)
+                    item.fecha_modifica = datetime.now(timezone.utc)
                     db.session.add(item)
 
                 processed += 1

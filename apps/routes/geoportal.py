@@ -1058,7 +1058,12 @@ def obtener_datos_catalogo_cacheados(
 
         sigla_display = sigla or 'SERVICIO'
         view_map_url = None
-        if estado_activo and sigla_display and 'WMS' in sigla_display.upper():
+        if (
+          estado_activo
+          and sigla_display
+          and 'WMS' in sigla_display.upper()
+          and servicio.id_layer not in (None, 0, '0')
+        ):
           view_map_url = f"https://visor.geoperu.gob.pe/?layers={servicio.id_layer}"
 
         if (

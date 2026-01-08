@@ -378,6 +378,10 @@
       });
     }
 
+    function normalizeText(value) {
+      return (value || '').toString().trim().toLowerCase();
+    }
+
     function buildUrl() {
       const slug = serviceSelect ? serviceSelect.value : '';
       const params = new URLSearchParams();
@@ -424,6 +428,43 @@
       window.location.href = destination;
     }
 
+    function findExactEntityMatch(query) {
+      if (!query) {
+        return null;
+      }
+      const normalizedQuery = normalizeText(query);
+      let exactMatch = null;
+      institutionOptions.forEach((option) => {
+        if (!option || !option.value || exactMatch) {
+          return;
+        }
+        const sigla = normalizeText(option.dataset.sigla);
+        const label = normalizeText(option.textContent);
+        if ((sigla && sigla === normalizedQuery) || label === normalizedQuery) {
+          exactMatch = option;
+        }
+      });
+      return exactMatch;
+    }
+
+    function findBestEntityMatch(query) {
+      if (!query) {
+        return null;
+      }
+      const normalizedQuery = normalizeText(query);
+      let partialMatch = null;
+      institutionOptions.forEach((option) => {
+        if (!option || !option.value || partialMatch) {
+          return;
+        }
+        const searchTerm = option.dataset.searchTerm || normalizeText(option.textContent);
+        if (searchTerm.includes(normalizedQuery)) {
+          partialMatch = option;
+        }
+      });
+      return findExactEntityMatch(query) || partialMatch;
+    }
+
     function applyEntityFilter(resetSelection = false) {
       if (!institutionSelect || !institutionOptions.length) {
         return;
@@ -433,8 +474,13 @@
         institutionSelect.value = '';
       }
 
-      const query = entitySearchInput ? entitySearchInput.value.trim().toLowerCase() : '';
+      const query = entitySearchInput ? normalizeText(entitySearchInput.value) : '';
       const selectedValue = institutionSelect.value;
+      const exactMatch = findExactEntityMatch(query);
+
+      if (exactMatch) {
+        institutionSelect.value = exactMatch.value;
+      }
 
       if (!query) {
         let visible = 0;
@@ -466,7 +512,7 @@
           return;
         }
 
-        const searchTerm = option.dataset.searchTerm || option.textContent.toLowerCase();
+        const searchTerm = option.dataset.searchTerm || normalizeText(option.textContent);
         const matches = searchTerm.includes(query);
 
         if (option.value === selectedValue) {
@@ -522,6 +568,21 @@
     if (entitySearchInput) {
       entitySearchInput.addEventListener('input', () => {
         applyEntityFilter();
+      });
+
+      entitySearchInput.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') {
+          return;
+        }
+        event.preventDefault();
+        const match = findBestEntityMatch(entitySearchInput.value);
+        if (!match) {
+          return;
+        }
+        institutionSelect.value = match.value;
+        entitySearchInput.value = match.textContent.trim();
+        applyEntityFilter();
+        navigateWithFilters();
       });
     }
 
