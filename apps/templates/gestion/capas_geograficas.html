@@ -1451,7 +1451,9 @@
           if (serviciosDetalle.length) {
             serviciosHtml = serviciosDetalle
               .map((servicio) => {
-                const nombreServicio = escaparHtml(servicio.nombre || "");
+                const nombreServicio = escaparHtml(
+                  servicio.sigla || servicio.nombre || ""
+                );
                 let claseEstado = "servicio-badge--sin-estado";
                 let tituloEstado = "Estado no especificado";
                 if (servicio.estado === true) {

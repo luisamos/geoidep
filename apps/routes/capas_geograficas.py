@@ -329,12 +329,15 @@ def listar():
         {
           'id': servicio.tipo_servicio.id,
           'nombre': servicio.tipo_servicio.nombre,
+          'sigla': servicio.tipo_servicio.sigla,
           'estado': estado_servicio,
         }
       )
 
     nombres_servicios = ', '.join(
-      detalle['nombre'] for detalle in servicios_detalle if detalle.get('nombre')
+      detalle.get('sigla') or detalle.get('nombre')
+      for detalle in servicios_detalle
+      if detalle.get('sigla') or detalle.get('nombre')
     )
 
     capa_data = {
