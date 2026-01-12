@@ -206,6 +206,48 @@
         max-height: 150px !important;
         overflow-y: hidden !important;
       }
+
+      .campo-capa-manual {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .campo-capa-manual input {
+        margin: 0;
+      }
+
+      .filtros-aplicados {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .filtros-aplicados__label {
+        font-weight: 600;
+      }
+
+      .filtros-aplicados__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .filtro-tag {
+        border: 1px solid #90caf9;
+        border-radius: 16px;
+        padding: 2px 10px;
+        font-size: 0.85rem;
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        cursor: pointer;
+      }
+
+      .filtros-aplicados__clear[disabled] {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
     </style>
   </head>
 
@@ -241,8 +283,24 @@
             <label>Tipo de servicio</label>
           </div>
           <div class="input-field col s12 m6 l3">
-            <select id="filtroInstitucion">
+            <select
+              id="filtroInstitucion"
+              {%
+              if
+              not
+              puede_editar_institucion
+              %}disabled{%
+              endif
+              %}
+            >
+              {% if puede_editar_institucion %}
               <option value="" selected>Todas las instituciones</option>
+              {% else %}
+              <option value="" selected>
+                {{ institucion_usuario.nombre if institucion_usuario else
+                'Institución asignada' }}
+              </option>
+              {% endif %}
             </select>
             <label>Institución</label>
           </div>
@@ -250,6 +308,27 @@
             <button id="btnBuscar" class="btn btn-small blue" type="button">
               <i class="material-icons left">search</i> Buscar
             </button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1"
+                  >Sin filtros aplicados</span
+                >
+              </div>
+              <button
+                id="btnLimpiarFiltros"
+                class="btn-flat filtros-aplicados__clear"
+                type="button"
+                disabled
+              >
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
           </div>
         </div>
 
@@ -410,7 +489,7 @@
               <table class="highlight" id="tablaServicios">
                 <thead id="tablaServiciosHead" style="display: none">
                   <tr>
-                    <th>Tipo</th>
+                    <th>Sigla</th>
                     <th>Dirección</th>
                     <th>Capa</th>
                     <th class="center-align">Estado</th>
@@ -485,6 +564,8 @@
         txtBuscarNombre: null,
         filtroTipoServicio: null,
         filtroInstitucion: null,
+        tagsFiltros: null,
+        btnLimpiarFiltros: null,
         switchEstados: null,
         btnAgregar: null,
         btnGuardar: null,
@@ -884,7 +965,7 @@
             }
             const opcion = document.createElement("option");
             opcion.value = tipo.id;
-            opcion.textContent = tipo.nombre;
+            opcion.textContent = tipo.sigla || tipo.nombre;
             if (String(tipo.id) === String(valorActual)) {
               opcion.selected = true;
             }
@@ -910,6 +991,23 @@
         input.placeholder = "Nombre de capa";
         input.value = valor || "";
         return input;
+      }
+
+      function crearCamposCapaManual(nombre = "", titulo = "") {
+        const contenedor = document.createElement("div");
+        contenedor.className = "campo-capa-manual";
+
+        const inputNombre = crearCampoCapaComoInput(nombre);
+
+        const inputTitulo = document.createElement("input");
+        inputTitulo.type = "text";
+        inputTitulo.className = "titulo-capa-input";
+        inputTitulo.placeholder = "Título de capa";
+        inputTitulo.value = titulo || "";
+
+        contenedor.appendChild(inputNombre);
+        contenedor.appendChild(inputTitulo);
+        return contenedor;
       }
 
       function crearCampoCapaComoSelect(opciones = [], valorActual = "") {
@@ -1031,10 +1129,19 @@
           actualizarTituloDesdeSelect(fila);
         } else {
           fila.dataset.opcionesCapas = "";
-          celdaCapa.appendChild(
-            crearCampoCapaComoInput(servicio.nombre_capa || "")
-          );
-          setEstadoFilaServicio(fila, false);
+          if (requiereConexion) {
+            celdaCapa.appendChild(
+              crearCamposCapaManual(
+                servicio.nombre_capa || "",
+                servicio.titulo_capa || ""
+              )
+            );
+            setEstadoFilaServicio(fila, false);
+          } else {
+            celdaCapa.appendChild(
+              crearCampoCapaComoInput(servicio.nombre_capa || "")
+            );
+          }
         }
 
         const celdaEstado = document.createElement("td");
@@ -1151,6 +1258,7 @@
         const celdaCapa = fila.querySelector(".celda-capa");
         if (!celdaCapa) return;
         const valorActual = obtenerValorNombreCapa(fila);
+        const tituloActual = obtenerTituloCapa(fila);
         celdaCapa.innerHTML = "";
         if (requiereConexion) {
           const opciones = obtenerOpcionesDesdeFila(fila);
@@ -1162,7 +1270,9 @@
             celdaCapa.appendChild(selectCapas);
             actualizarTituloDesdeSelect(fila);
           } else {
-            celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
+            celdaCapa.appendChild(
+              crearCamposCapaManual(valorActual || "", tituloActual || "")
+            );
             setEstadoFilaServicio(fila, false);
           }
         } else {
@@ -1205,6 +1315,10 @@
           const opcion = select.options[select.selectedIndex];
           if (!opcion) return "";
           return opcion.dataset.titulo || opcion.value || opcion.textContent || "";
+        }
+        const inputTitulo = fila.querySelector(".titulo-capa-input");
+        if (inputTitulo && inputTitulo.value) {
+          return inputTitulo.value;
         }
         const input = fila.querySelector(".nombre-capa-input");
         if (input && input.value) {
@@ -1619,9 +1733,10 @@
         const filtroTipoServicio = ui.filtroTipoServicio
           ? ui.filtroTipoServicio.value
           : "";
-        const filtroInstitucion = ui.filtroInstitucion
-          ? ui.filtroInstitucion.value
-          : "";
+        const filtroInstitucion =
+          ui.filtroInstitucion && !ui.filtroInstitucion.disabled
+            ? ui.filtroInstitucion.value
+            : "";
 
         const switchEstados = ui.switchEstados;
         const mostrarActivos = switchEstados ? switchEstados.checked : true;
@@ -1649,6 +1764,7 @@
         });
 
         renderTabla(filtradas);
+        actualizarTagsFiltros();
       }
 
       function obtenerEtiquetaInstitucionParaListado(capa) {
@@ -1664,9 +1780,12 @@
       }
 
       function actualizarFiltroInstituciones() {
-        if (!ui.filtroInstitucion) {
+        if (!ui.filtroInstitucion || ui.filtroInstitucion.disabled) {
           return;
         }
+        const filtroTipoServicio = ui.filtroTipoServicio
+          ? ui.filtroTipoServicio.value
+          : "";
         const institucionSeleccionada = ui.filtroInstitucion.value;
         const opciones = new Map();
         const total = []
@@ -1675,6 +1794,16 @@
           .concat(capasCache.sin_estado || []);
         total.forEach((capa) => {
           if (!capa || !capa.id_institucion) {
+            return;
+          }
+          if (
+            filtroTipoServicio &&
+            !(Array.isArray(capa.ids_servicio) &&
+              capa.ids_servicio.some(
+                (idServicio) =>
+                  String(idServicio) === String(filtroTipoServicio)
+              ))
+          ) {
             return;
           }
           const etiqueta = obtenerEtiquetaInstitucionParaListado(capa);
@@ -1699,7 +1828,62 @@
           }
           ui.filtroInstitucion.appendChild(option);
         });
+        if (
+          institucionSeleccionada &&
+          !opciones.has(String(institucionSeleccionada))
+        ) {
+          ui.filtroInstitucion.value = "";
+        }
         M.FormSelect.init(ui.filtroInstitucion);
+      }
+
+      function actualizarTagsFiltros() {
+        if (!ui.tagsFiltros) {
+          return;
+        }
+        const tags = [];
+        const filtroNombre = (ui.txtBuscarNombre?.value || "").trim();
+        const filtroTipoServicio = ui.filtroTipoServicio
+          ? ui.filtroTipoServicio.value
+          : "";
+        const filtroInstitucion =
+          ui.filtroInstitucion && !ui.filtroInstitucion.disabled
+            ? ui.filtroInstitucion.value
+            : "";
+
+        if (filtroNombre) {
+          tags.push({ tipo: "nombre", label: `Nombre: ${filtroNombre}` });
+        }
+        if (filtroTipoServicio && ui.filtroTipoServicio) {
+          const textoTipo =
+            ui.filtroTipoServicio.options[
+              ui.filtroTipoServicio.selectedIndex
+            ]?.textContent || "Tipo";
+          tags.push({ tipo: "tipo", label: `Servicio: ${textoTipo}` });
+        }
+        if (filtroInstitucion && ui.filtroInstitucion) {
+          const textoInstitucion =
+            ui.filtroInstitucion.options[
+              ui.filtroInstitucion.selectedIndex
+            ]?.textContent || "Institución";
+          tags.push({ tipo: "institucion", label: textoInstitucion });
+        }
+
+        if (!tags.length) {
+          ui.tagsFiltros.innerHTML =
+            '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+        } else {
+          ui.tagsFiltros.innerHTML = tags
+            .map(
+              (tag) =>
+                `<button type="button" class="filtro-tag" data-filtro="${tag.tipo}">${tag.label} ✕</button>`
+            )
+            .join("");
+        }
+
+        if (ui.btnLimpiarFiltros) {
+          ui.btnLimpiarFiltros.disabled = !tags.length;
+        }
       }
 
       function escaparHtml(texto) {
@@ -1773,6 +1957,8 @@
         ui.txtBuscarNombre = document.getElementById("txtBuscarNombre");
         ui.filtroTipoServicio = document.getElementById("filtroTipoServicio");
         ui.filtroInstitucion = document.getElementById("filtroInstitucion");
+        ui.tagsFiltros = document.getElementById("tagsFiltros");
+        ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
         ui.switchEstados = document.getElementById("switchEstados");
         ui.btnAgregar = document.getElementById("btnAgregar");
         ui.btnGuardar = document.getElementById("btnGuardar");
@@ -1849,7 +2035,10 @@
         }
 
         if (ui.filtroTipoServicio) {
-          ui.filtroTipoServicio.addEventListener("change", aplicarFiltros);
+          ui.filtroTipoServicio.addEventListener("change", () => {
+            actualizarFiltroInstituciones();
+            aplicarFiltros();
+          });
         }
 
         if (ui.filtroInstitucion) {
@@ -1858,6 +2047,50 @@
 
         if (ui.switchEstados) {
           ui.switchEstados.addEventListener("change", aplicarFiltros);
+        }
+
+        if (ui.btnLimpiarFiltros) {
+          ui.btnLimpiarFiltros.addEventListener("click", () => {
+            if (ui.btnLimpiarFiltros.disabled) {
+              return;
+            }
+            if (ui.txtBuscarNombre) {
+              ui.txtBuscarNombre.value = "";
+            }
+            if (ui.filtroTipoServicio) {
+              ui.filtroTipoServicio.value = "";
+            }
+            if (ui.filtroInstitucion && !ui.filtroInstitucion.disabled) {
+              ui.filtroInstitucion.value = "";
+            }
+            actualizarFiltroInstituciones();
+            aplicarFiltros();
+          });
+        }
+
+        if (ui.tagsFiltros) {
+          ui.tagsFiltros.addEventListener("click", (event) => {
+            const boton = event.target.closest(".filtro-tag");
+            if (!boton) {
+              return;
+            }
+            const tipo = boton.dataset.filtro;
+            if (tipo === "nombre" && ui.txtBuscarNombre) {
+              ui.txtBuscarNombre.value = "";
+            }
+            if (tipo === "tipo" && ui.filtroTipoServicio) {
+              ui.filtroTipoServicio.value = "";
+              actualizarFiltroInstituciones();
+            }
+            if (
+              tipo === "institucion" &&
+              ui.filtroInstitucion &&
+              !ui.filtroInstitucion.disabled
+            ) {
+              ui.filtroInstitucion.value = "";
+            }
+            aplicarFiltros();
+          });
         }
 
         const tablaCapasBody = ui.tablaCapasBody;
@@ -1923,6 +2156,16 @@
                 }
               }
             } else if (event.target.classList.contains("nombre-capa-input")) {
+              const tipoId = fila.querySelector(".tipo-servicio")?.value;
+              const tituloInput = fila.querySelector(".titulo-capa-input");
+              if (!tituloInput) {
+                establecerTituloCapaEnFila(fila, event.target.value || "");
+              }
+              if (requiereConexionServicio(tipoId)) {
+                const estadoActual = fila.dataset.estadoServicio === "true";
+                setEstadoFilaServicio(fila, estadoActual);
+              }
+            } else if (event.target.classList.contains("titulo-capa-input")) {
               const tipoId = fila.querySelector(".tipo-servicio")?.value;
               establecerTituloCapaEnFila(fila, event.target.value || "");
               if (requiereConexionServicio(tipoId)) {

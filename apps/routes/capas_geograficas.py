@@ -3,8 +3,10 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import requests
+import urllib3
 from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
+from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from requests.exceptions import ProxyError, RequestException, SSLError
@@ -196,6 +198,7 @@ def realizar_request_get(url, timeout=15, headers=None):
     if not allow_insecure:
       raise
     try:
+      urllib3.disable_warnings(InsecureRequestWarning)
       return requests.get(
         url,
         timeout=timeout,
@@ -203,6 +206,7 @@ def realizar_request_get(url, timeout=15, headers=None):
         verify=False,
       )
     except ProxyError:
+      urllib3.disable_warnings(InsecureRequestWarning)
       return requests.get(
         url,
         timeout=timeout,
@@ -937,7 +941,7 @@ def obtener_capas_servicio():
           'message': 'No se encontraron capas disponibles en el servicio.',
         }
       ),
-      404,
+      200,
     )
 
   return jsonify({'status': 'success', 'capas': capas})
