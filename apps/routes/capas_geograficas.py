@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from requests.exceptions import RequestException
+from requests.exceptions import ProxyError, RequestException
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
@@ -176,6 +176,16 @@ def es_servicio_arcgis_mapserver(tipo_servicio):
   nombre = (tipo_servicio.nombre or '').lower()
   return 'arcgis' in nombre and 'mapserver' in nombre
 
+def realizar_request_get(url, timeout=15):
+  try:
+    return requests.get(url, timeout=timeout)
+  except ProxyError:
+    return requests.get(
+      url,
+      timeout=timeout,
+      proxies={'http': None, 'https': None},
+    )
+
 def asegurar_parametro(url, clave, valor):
   if not url:
     return url
@@ -191,7 +201,7 @@ def asegurar_parametro(url, clave, valor):
 def obtener_capas_desde_mapserver(url):
   url_json = asegurar_parametro(url, 'f', 'pjson')
   try:
-    respuesta = requests.get(url_json, timeout=15)
+    respuesta = realizar_request_get(url_json)
     respuesta.raise_for_status()
   except RequestException as error:
     raise ValueError('No se pudo conectar con el servicio especificado.') from error
@@ -217,8 +227,9 @@ def obtener_capas_desde_mapserver(url):
 def obtener_capas_desde_servicio(tipo_servicio, url):
   url_capabilities = preparar_url_capabilities(tipo_servicio, url)
   try:
-    respuesta = requests.get(url_capabilities, timeout=15)
+    respuesta = realizar_request_get(url_capabilities)
     respuesta.raise_for_status()
+
   except RequestException as error:
     raise ValueError('No se pudo conectar con el servicio especificado.') from error
 
