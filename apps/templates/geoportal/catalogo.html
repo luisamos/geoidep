@@ -279,7 +279,18 @@
                       {% endif %}
                     </div>
                     {% elif herramienta.servicios %}
-                    <p class="text-xs italic text-gray-500">Recurso no disponible.</p>
+                    <div class="flex flex-wrap gap-3 items-center">
+                      {% for servicio in herramienta.servicios %}
+                      {% if servicio.copy_url %}
+                      <button type="button"
+                        class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                        data-copy-url="{{ servicio.copy_url }}" data-copy-label="{{ servicio.sigla }}">
+                        <i class="fa-solid fa-link text-sm"></i>
+                        <span class="js-copy-button-text">Copiar URL {{ servicio.sigla }}</span>
+                      </button>
+                      {% endif %}
+                      {% endfor %}
+                    </div>
                     {% else %}
                     <p class="text-sm text-gray-600">No se registraron servicios geográficos para esta capa.</p>
                     {% endif %}

@@ -1,9 +1,15 @@
 import argparse
 import logging
+import sys
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+
+root_dir = Path(__file__).resolve().parents[1]
+if str(root_dir) not in sys.path:
+  sys.path.insert(0, str(root_dir))
 
 import requests
 from requests import RequestException

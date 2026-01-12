@@ -254,6 +254,7 @@ def inicio():
     {
       'id': tipo.id,
       'nombre': tipo.nombre,
+      'sigla' : tipo.sigla,
       'id_padre': tipo.id_padre,
       'estado': tipo.estado,
     }

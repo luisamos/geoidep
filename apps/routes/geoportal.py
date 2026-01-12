@@ -1100,7 +1100,7 @@ def obtener_datos_catalogo_cacheados(
           {
             'estado': 1 if estado_activo else 0,
             'estado_is_active': estado_activo,
-            'copy_url': copy_url if estado_activo else None,
+            'copy_url': copy_url,
             'view_map_url': view_map_url,
             'sigla': sigla_display,
             'id_tipo_servicio': servicio.id_tipo_servicio,
@@ -1121,7 +1121,7 @@ def obtener_datos_catalogo_cacheados(
           'servicios': servicios_data,
           'acciones': acciones,
           'estado': 1 if estado_general_activo else 0,
-          'estado_label': 'Disponible' if estado_general_activo else 'No disponible',
+          'estado_label': 'Disponible' if estado_general_activo else 'En mantenimiento',
           'estado_is_active': estado_general_activo,
           'recurso': None,
           'imagen_url': obtener_imagen_capa_url(capa.id),
