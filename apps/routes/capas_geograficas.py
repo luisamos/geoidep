@@ -7,8 +7,8 @@ from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from requests.exceptions import ProxyError, RequestException
-from sqlalchemy import func, text
+from requests.exceptions import ProxyError, RequestException, SSLError
+from sqlalchemy import func, nullslast, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -25,6 +25,7 @@ OGC_WMS_IDS = {11}
 OGC_WFS_IDS = {12}
 OGC_WMTS_IDS = {14}
 ARCGIS_MAPSERVER_IDS = {17}
+INSECURE_CERT_HOSTS = {'maps.inei.gob.pe'}
 
 def limpiar_texto(elemento):
   if not elemento or not elemento.text:
@@ -69,18 +70,14 @@ def extraer_capas_wms(contenido):
   for layer in candidatos:
     queryable = layer.get('queryable')
     if queryable == '1':
-      nombre_layer = layer.find('wms:Name', namespaces)
-      titulo_layer = layer.find('wms:Title', namespaces)
-
-      if nombre_layer is not None and titulo_layer is not None:
-        nombre = nombre_layer.text
-        titulo = titulo_layer.text
-
-      if nombre and titulo:
-        capas.append({
-        'value': nombre,
-        'label': titulo
-        })
+      nombre = limpiar_texto(layer.find('wms:Name', namespaces))
+      titulo = limpiar_texto(layer.find('wms:Title', namespaces))
+      if not nombre:
+        continue
+      etiqueta = titulo if titulo else nombre
+      if titulo and titulo != nombre:
+        etiqueta = f"{titulo} ({nombre})"
+      capas.append({'value': nombre, 'label': etiqueta})
 
   return capas
 
@@ -95,7 +92,7 @@ def extraer_capas_wfs(contenido):
     etiqueta = titulo if titulo else nombre
     if titulo and titulo != nombre:
       etiqueta = f"{titulo} ({nombre})"
-      capas.append({'value': nombre, 'label': etiqueta})
+    capas.append({'value': nombre, 'label': etiqueta})
   return capas
 
 def extraer_capas_wmts(contenido):
@@ -109,7 +106,7 @@ def extraer_capas_wmts(contenido):
     etiqueta = titulo if titulo else identificador
     if titulo and titulo != identificador:
       etiqueta = f"{titulo} ({identificador})"
-      capas.append({'value': identificador, 'label': etiqueta})
+    capas.append({'value': identificador, 'label': etiqueta})
   return capas
 
 def es_servicio_wms(tipo_servicio):
@@ -184,6 +181,8 @@ def realizar_request_get(url, timeout=15, headers=None):
   }
   if headers:
     headers_final.update(headers)
+  parsed_url = urlparse(url)
+  allow_insecure = parsed_url.hostname in INSECURE_CERT_HOSTS
   try:
     return requests.get(url, timeout=timeout, headers=headers_final)
   except ProxyError:
@@ -193,6 +192,24 @@ def realizar_request_get(url, timeout=15, headers=None):
       headers=headers_final,
       proxies={'http': None, 'https': None},
     )
+  except SSLError:
+    if not allow_insecure:
+      raise
+    try:
+      return requests.get(
+        url,
+        timeout=timeout,
+        headers=headers_final,
+        verify=False,
+      )
+    except ProxyError:
+      return requests.get(
+        url,
+        timeout=timeout,
+        headers=headers_final,
+        proxies={'http': None, 'https': None},
+        verify=False,
+      )
 
 def asegurar_parametro(url, clave, valor):
   if not url:
@@ -250,6 +267,7 @@ def obtener_capas_desde_servicio(tipo_servicio, url):
   except RequestException as error:
     raise ValueError('No se pudo conectar con el servicio especificado.') from error
 
+  respuesta.encoding = respuesta.apparent_encoding or respuesta.encoding or 'utf-8'
   contenido = respuesta.text
   try:
     if es_servicio_wms(tipo_servicio):
@@ -327,7 +345,13 @@ def listar():
     joinedload(CapaGeografica.servicios).joinedload(
       ServicioGeografico.tipo_servicio
     ),
-  ).order_by(CapaGeografica.nombre.asc())
+  ).outerjoin(
+    Institucion,
+    CapaGeografica.id_institucion == Institucion.id,
+  ).order_by(
+    nullslast(Institucion.nombre.asc()),
+    CapaGeografica.nombre.asc(),
+  )
 
   if usuario.es_gestor:
     consulta = consulta.filter(CapaGeografica.id_institucion == usuario.id_institucion)

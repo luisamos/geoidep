@@ -110,6 +110,7 @@
 
       .estado-indicador {
         font-size: 1.4rem;
+        cursor: pointer;
       }
 
       .estado-indicador--oculto {
@@ -238,6 +239,12 @@
               {% endfor %}
             </select>
             <label>Tipo de servicio</label>
+          </div>
+          <div class="input-field col s12 m6 l3">
+            <select id="filtroInstitucion">
+              <option value="" selected>Todas las instituciones</option>
+            </select>
+            <label>Institución</label>
           </div>
           <div class="col s6 m2 l2">
             <button id="btnBuscar" class="btn btn-small blue" type="button">
@@ -394,7 +401,7 @@
           {% endif %}
 
           <div class="tabla-servicios">
-            <h6>Servicios Asociados</h6>
+            <h6>SERVICIOS ASOCIADOS</h6>
             <div
               class="responsive-table"
               id="tablaServiciosWrapper"
@@ -477,6 +484,7 @@
         btnBuscar: null,
         txtBuscarNombre: null,
         filtroTipoServicio: null,
+        filtroInstitucion: null,
         switchEstados: null,
         btnAgregar: null,
         btnGuardar: null,
@@ -849,6 +857,11 @@
       }
 
       function crearSelectTiposServicio(valorActual = "") {
+        const ocupados = obtenerTiposOcupados();
+        return crearSelectTiposServicioConDisponibles(valorActual, ocupados);
+      }
+
+      function crearSelectTiposServicioConDisponibles(valorActual = "", ocupados) {
         const select = document.createElement("select");
         select.className = "browser-default tipo-servicio";
         const opcionDefault = document.createElement("option");
@@ -860,6 +873,15 @@
           .slice()
           .sort((a, b) => Number(a.id) - Number(b.id))
           .forEach((tipo) => {
+            const tipoId = String(tipo.id);
+            const requiereUnicidad = requiereUnicidadPorTipo(tipoId);
+            if (
+              requiereUnicidad &&
+              ocupados.has(tipoId) &&
+              String(valorActual) !== tipoId
+            ) {
+              return;
+            }
             const opcion = document.createElement("option");
             opcion.value = tipo.id;
             opcion.textContent = tipo.nombre;
@@ -970,10 +992,12 @@
         const requiereConexion = requiereConexionServicio(
           servicio.id_tipo_servicio || ""
         );
+        const ocupados = obtenerTiposOcupados();
 
         const celdaTipo = document.createElement("td");
-        const selectTipo = crearSelectTiposServicio(
-          servicio.id_tipo_servicio || ""
+        const selectTipo = crearSelectTiposServicioConDisponibles(
+          servicio.id_tipo_servicio || "",
+          ocupados
         );
         celdaTipo.appendChild(selectTipo);
 
@@ -1057,11 +1081,60 @@
             setEstadoFilaServicio(fila, true);
           }
         } else if (requiereConexion || !servicio.id_tipo_servicio) {
-          ocultarEstadoFilaServicio(fila);
+          if (servicio.id_tipo_servicio) {
+            setEstadoFilaServicio(fila, false);
+          } else {
+            ocultarEstadoFilaServicio(fila);
+          }
         } else {
           setEstadoFilaServicio(fila, true);
         }
         actualizarVisibilidadTablaServicios();
+        actualizarOpcionesTipoServicio();
+      }
+
+      function obtenerTiposOcupados(excluirFila = null) {
+        const tablaServicios = ui.tablaServiciosBody;
+        const ocupados = new Set();
+        if (!tablaServicios) return ocupados;
+        const filas = Array.from(tablaServicios.querySelectorAll("tr"));
+        filas.forEach((fila) => {
+          if (excluirFila && fila === excluirFila) return;
+          const selectTipo = fila.querySelector(".tipo-servicio");
+          if (!selectTipo) return;
+          const tipoId = selectTipo.value;
+          if (tipoId && requiereUnicidadPorTipo(tipoId)) {
+            ocupados.add(String(tipoId));
+          }
+        });
+        return ocupados;
+      }
+
+      function actualizarOpcionesTipoServicio() {
+        const tablaServicios = ui.tablaServiciosBody;
+        if (!tablaServicios) return;
+        const filas = Array.from(tablaServicios.querySelectorAll("tr"));
+        filas.forEach((fila) => {
+          const selectTipo = fila.querySelector(".tipo-servicio");
+          if (!selectTipo) return;
+          const valorActual = selectTipo.value;
+          const ocupados = obtenerTiposOcupados(fila);
+          const nuevoSelect = crearSelectTiposServicioConDisponibles(
+            valorActual,
+            ocupados
+          );
+          selectTipo.replaceWith(nuevoSelect);
+        });
+      }
+
+      function alternarEstadoFilaServicio(fila) {
+        if (!fila) return;
+        const indicador = fila.querySelector(".estado-indicador");
+        if (!indicador || indicador.classList.contains("estado-indicador--oculto")) {
+          return;
+        }
+        const estadoActual = fila.dataset.estadoServicio === "true";
+        setEstadoFilaServicio(fila, !estadoActual);
       }
 
       function obtenerOpcionesDesdeFila(fila) {
@@ -1132,6 +1205,10 @@
           const opcion = select.options[select.selectedIndex];
           if (!opcion) return "";
           return opcion.dataset.titulo || opcion.value || opcion.textContent || "";
+        }
+        const input = fila.querySelector(".nombre-capa-input");
+        if (input && input.value) {
+          return input.value;
         }
         return fila.dataset.tituloCapa || "";
       }
@@ -1527,6 +1604,7 @@
             .concat(capasCache.activos)
             .concat(capasCache.inactivos)
             .concat(capasCache.sin_estado);
+          actualizarFiltroInstituciones();
           aplicarFiltros();
         } catch (error) {
           console.error(error);
@@ -1541,6 +1619,9 @@
         const filtroTipoServicio = ui.filtroTipoServicio
           ? ui.filtroTipoServicio.value
           : "";
+        const filtroInstitucion = ui.filtroInstitucion
+          ? ui.filtroInstitucion.value
+          : "";
 
         const switchEstados = ui.switchEstados;
         const mostrarActivos = switchEstados ? switchEstados.checked : true;
@@ -1554,6 +1635,9 @@
           const coincideNombre = capa.nombre
             ? capa.nombre.toLowerCase().includes(filtroNombre)
             : false;
+          const coincideInstitucion = filtroInstitucion
+            ? String(capa.id_institucion) === String(filtroInstitucion)
+            : true;
           const coincideServicio = filtroTipoServicio
             ? Array.isArray(capa.ids_servicio) &&
               capa.ids_servicio.some(
@@ -1561,10 +1645,61 @@
                   String(idServicio) === String(filtroTipoServicio)
               )
             : true;
-          return coincideNombre && coincideServicio;
+          return coincideNombre && coincideInstitucion && coincideServicio;
         });
 
         renderTabla(filtradas);
+      }
+
+      function obtenerEtiquetaInstitucionParaListado(capa) {
+        if (!capa) {
+          return "";
+        }
+        const nombre = (capa.institucion_nombre || "").trim();
+        const sigla = (capa.institucion_sigla || "").trim();
+        if (nombre && sigla) {
+          return `${nombre} - ${sigla}`;
+        }
+        return nombre || sigla || "";
+      }
+
+      function actualizarFiltroInstituciones() {
+        if (!ui.filtroInstitucion) {
+          return;
+        }
+        const institucionSeleccionada = ui.filtroInstitucion.value;
+        const opciones = new Map();
+        const total = []
+          .concat(capasCache.activos || [])
+          .concat(capasCache.inactivos || [])
+          .concat(capasCache.sin_estado || []);
+        total.forEach((capa) => {
+          if (!capa || !capa.id_institucion) {
+            return;
+          }
+          const etiqueta = obtenerEtiquetaInstitucionParaListado(capa);
+          if (!etiqueta) {
+            return;
+          }
+          opciones.set(String(capa.id_institucion), etiqueta);
+        });
+
+        const opcionesOrdenadas = Array.from(opciones.entries()).sort((a, b) =>
+          a[1].localeCompare(b[1])
+        );
+
+        ui.filtroInstitucion.innerHTML =
+          '<option value="" selected>Todas las instituciones</option>';
+        opcionesOrdenadas.forEach(([id, etiqueta]) => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = etiqueta;
+          if (String(institucionSeleccionada) === String(id)) {
+            option.selected = true;
+          }
+          ui.filtroInstitucion.appendChild(option);
+        });
+        M.FormSelect.init(ui.filtroInstitucion);
       }
 
       function escaparHtml(texto) {
@@ -1637,6 +1772,7 @@
         ui.btnBuscar = document.getElementById("btnBuscar");
         ui.txtBuscarNombre = document.getElementById("txtBuscarNombre");
         ui.filtroTipoServicio = document.getElementById("filtroTipoServicio");
+        ui.filtroInstitucion = document.getElementById("filtroInstitucion");
         ui.switchEstados = document.getElementById("switchEstados");
         ui.btnAgregar = document.getElementById("btnAgregar");
         ui.btnGuardar = document.getElementById("btnGuardar");
@@ -1716,6 +1852,10 @@
           ui.filtroTipoServicio.addEventListener("change", aplicarFiltros);
         }
 
+        if (ui.filtroInstitucion) {
+          ui.filtroInstitucion.addEventListener("change", aplicarFiltros);
+        }
+
         if (ui.switchEstados) {
           ui.switchEstados.addEventListener("change", aplicarFiltros);
         }
@@ -1743,7 +1883,19 @@
             const fila = event.target.closest("tr");
             if (!fila) return;
             if (event.target.classList.contains("tipo-servicio")) {
-              const tipoId = event.target.value;
+              let tipoId = event.target.value;
+              const ocupados = obtenerTiposOcupados(fila);
+              if (
+                tipoId &&
+                requiereUnicidadPorTipo(tipoId) &&
+                ocupados.has(tipoId)
+              ) {
+                M.toast({
+                  html: "Ya existe un servicio registrado con ese tipo.",
+                });
+                event.target.value = "";
+                tipoId = "";
+              }
               fila.dataset.tipo = tipoId || "";
               establecerTituloCapaEnFila(fila, "");
               const requiereConexion = requiereConexionServicio(tipoId);
@@ -1756,8 +1908,9 @@
               } else if (!requiereConexion) {
                 setEstadoFilaServicio(fila, true);
               } else {
-                ocultarEstadoFilaServicio(fila);
+                setEstadoFilaServicio(fila, false);
               }
+              actualizarOpcionesTipoServicio();
             } else if (event.target.classList.contains("nombre-capa-select")) {
               actualizarTituloDesdeSelect(fila);
               const tipoId = fila.querySelector(".tipo-servicio")?.value;
@@ -1771,9 +1924,10 @@
               }
             } else if (event.target.classList.contains("nombre-capa-input")) {
               const tipoId = fila.querySelector(".tipo-servicio")?.value;
-              establecerTituloCapaEnFila(fila, "");
+              establecerTituloCapaEnFila(fila, event.target.value || "");
               if (requiereConexionServicio(tipoId)) {
-                setEstadoFilaServicio(fila, false);
+                const estadoActual = fila.dataset.estadoServicio === "true";
+                setEstadoFilaServicio(fila, estadoActual);
               }
             }
           });
@@ -1781,6 +1935,11 @@
           tablaServiciosBody.addEventListener("click", (event) => {
             const fila = event.target.closest("tr");
             if (!fila) return;
+
+            if (event.target.closest(".estado-indicador")) {
+              alternarEstadoFilaServicio(fila);
+              return;
+            }
 
             if (event.target.closest(".btn-conectar")) {
               conectarServicioOgc(fila);
@@ -1790,6 +1949,7 @@
             if (event.target.closest(".btn-eliminar-servicio")) {
               fila.remove();
               actualizarVisibilidadTablaServicios();
+              actualizarOpcionesTipoServicio();
             }
           });
         }
