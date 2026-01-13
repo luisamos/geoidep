@@ -390,6 +390,8 @@ def listar():
         }
       )
 
+    servicios_detalle.sort(key=lambda detalle: detalle.get('id') or 0)
+
     nombres_servicios = ', '.join(
       detalle.get('sigla') or detalle.get('nombre')
       for detalle in servicios_detalle

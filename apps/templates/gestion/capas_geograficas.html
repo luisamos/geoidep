@@ -85,6 +85,11 @@
         vertical-align: middle;
       }
 
+      .tabla-servicios--sin-titulo th.col-titulo-capa,
+      .tabla-servicios--sin-titulo td.col-titulo-capa {
+        display: none;
+      }
+
       .tabla-servicios select.browser-default,
       .tabla-servicios input[type="text"] {
         margin: 0;
@@ -205,16 +210,6 @@
       .autocomplete-content {
         max-height: 150px !important;
         overflow-y: hidden !important;
-      }
-
-      .campo-capa-manual {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .campo-capa-manual input {
-        margin: 0;
       }
 
       .filtros-aplicados {
@@ -486,12 +481,16 @@
               id="tablaServiciosWrapper"
               style="display: none"
             >
-              <table class="highlight" id="tablaServicios">
+              <table
+                class="highlight tabla-servicios--sin-titulo"
+                id="tablaServicios"
+              >
                 <thead id="tablaServiciosHead" style="display: none">
                   <tr>
                     <th>Sigla</th>
                     <th>Dirección</th>
                     <th>Capa</th>
+                    <th class="col-titulo-capa">Título Capa</th>
                     <th class="center-align">Estado</th>
                     <th class="center-align">Acciones</th>
                   </tr>
@@ -818,6 +817,7 @@
         if (ui.tablaServiciosHead) {
           ui.tablaServiciosHead.style.display = tieneFilas ? "" : "none";
         }
+        actualizarVisibilidadColumnasCapa();
       }
 
       function limpiarFormulario() {
@@ -988,26 +988,18 @@
         const input = document.createElement("input");
         input.type = "text";
         input.className = "nombre-capa-input";
-        input.placeholder = "Nombre de capa";
+        input.placeholder = "Capa";
         input.value = valor || "";
         return input;
       }
 
-      function crearCamposCapaManual(nombre = "", titulo = "") {
-        const contenedor = document.createElement("div");
-        contenedor.className = "campo-capa-manual";
-
-        const inputNombre = crearCampoCapaComoInput(nombre);
-
+      function crearCampoTituloCapa(valor = "") {
         const inputTitulo = document.createElement("input");
         inputTitulo.type = "text";
         inputTitulo.className = "titulo-capa-input";
         inputTitulo.placeholder = "Título de capa";
-        inputTitulo.value = titulo || "";
-
-        contenedor.appendChild(inputNombre);
-        contenedor.appendChild(inputTitulo);
-        return contenedor;
+        inputTitulo.value = valor || "";
+        return inputTitulo;
       }
 
       function crearCampoCapaComoSelect(opciones = [], valorActual = "") {
@@ -1105,6 +1097,8 @@
 
         const celdaCapa = document.createElement("td");
         celdaCapa.className = "celda-capa";
+        const celdaTitulo = document.createElement("td");
+        celdaTitulo.className = "celda-titulo-capa col-titulo-capa";
         const opcionesIniciales = Array.isArray(servicio.opciones_capas)
           ? servicio.opciones_capas.slice()
           : [];
@@ -1117,31 +1111,6 @@
             value: servicio.nombre_capa,
             label: servicio.titulo_capa || servicio.nombre_capa,
           });
-        }
-
-        if (opcionesIniciales.length) {
-          fila.dataset.opcionesCapas = JSON.stringify(opcionesIniciales);
-          const selectCapas = crearCampoCapaComoSelect(
-            opcionesIniciales,
-            servicio.nombre_capa || ""
-          );
-          celdaCapa.appendChild(selectCapas);
-          actualizarTituloDesdeSelect(fila);
-        } else {
-          fila.dataset.opcionesCapas = "";
-          if (requiereConexion) {
-            celdaCapa.appendChild(
-              crearCamposCapaManual(
-                servicio.nombre_capa || "",
-                servicio.titulo_capa || ""
-              )
-            );
-            setEstadoFilaServicio(fila, false);
-          } else {
-            celdaCapa.appendChild(
-              crearCampoCapaComoInput(servicio.nombre_capa || "")
-            );
-          }
         }
 
         const celdaEstado = document.createElement("td");
@@ -1174,27 +1143,46 @@
         fila.appendChild(celdaTipo);
         fila.appendChild(celdaDireccion);
         fila.appendChild(celdaCapa);
+        fila.appendChild(celdaTitulo);
         fila.appendChild(celdaEstado);
         fila.appendChild(celdaAcciones);
 
         tablaServicios.appendChild(fila);
 
-        if (typeof servicio.estado === "boolean") {
-          if (servicio.estado) {
-            setEstadoFilaServicio(fila, true);
-          } else if (requiereConexion) {
-            setEstadoFilaServicio(fila, false);
-          } else {
-            setEstadoFilaServicio(fila, true);
-          }
-        } else if (requiereConexion || !servicio.id_tipo_servicio) {
-          if (servicio.id_tipo_servicio) {
+        if (requiereConexion) {
+          if (typeof servicio.estado === "boolean") {
+            setEstadoFilaServicio(fila, servicio.estado);
+          } else if (servicio.id_tipo_servicio) {
             setEstadoFilaServicio(fila, false);
           } else {
             ocultarEstadoFilaServicio(fila);
           }
-        } else {
+        } else if (servicio.id_tipo_servicio) {
           setEstadoFilaServicio(fila, true);
+        } else {
+          ocultarEstadoFilaServicio(fila);
+        }
+
+        if (requiereConexion) {
+          if (servicio.estado === true) {
+            renderizarCamposCapa(fila, {
+              modo: "select",
+              opciones: opcionesIniciales,
+              nombre: servicio.nombre_capa || "",
+              titulo: servicio.titulo_capa || "",
+            });
+          } else {
+            renderizarCamposCapa(fila, {
+              modo: "manual",
+              nombre: servicio.nombre_capa || "",
+              titulo: servicio.titulo_capa || "",
+            });
+          }
+        } else {
+          renderizarCamposCapa(fila, {
+            modo: "simple",
+            nombre: servicio.nombre_capa || "",
+          });
         }
         actualizarVisibilidadTablaServicios();
         actualizarOpcionesTipoServicio();
@@ -1241,7 +1229,29 @@
           return;
         }
         const estadoActual = fila.dataset.estadoServicio === "true";
-        setEstadoFilaServicio(fila, !estadoActual);
+        const nuevoEstado = !estadoActual;
+        setEstadoFilaServicio(fila, nuevoEstado);
+        const tipoId = fila.querySelector(".tipo-servicio")?.value;
+        if (!requiereConexionServicio(tipoId)) {
+          return;
+        }
+        const opciones = obtenerOpcionesDesdeFila(fila);
+        const valorNombre = obtenerValorNombreCapa(fila);
+        const valorTitulo = obtenerTituloCapa(fila);
+        if (nuevoEstado) {
+          renderizarCamposCapa(fila, {
+            modo: "select",
+            opciones,
+            nombre: valorNombre || "",
+            titulo: valorTitulo || "",
+          });
+        } else {
+          renderizarCamposCapa(fila, {
+            modo: "manual",
+            nombre: valorNombre || "",
+            titulo: valorTitulo || "",
+          });
+        }
       }
 
       function obtenerOpcionesDesdeFila(fila) {
@@ -1254,30 +1264,92 @@
         }
       }
 
-      function actualizarCampoCapaParaFila(fila, requiereConexion) {
+      function actualizarVisibilidadColumnasCapa() {
+        const tablaServicios = document.getElementById("tablaServicios");
+        if (!tablaServicios) return;
+        const filas = Array.from(tablaServicios.querySelectorAll("tbody tr"));
+        const requiereTitulo = filas.some(
+          (fila) => fila.dataset.modoCapa === "manual"
+        );
+        if (requiereTitulo) {
+          tablaServicios.classList.remove("tabla-servicios--sin-titulo");
+        } else {
+          tablaServicios.classList.add("tabla-servicios--sin-titulo");
+        }
+      }
+
+      function renderizarCamposCapa(
+        fila,
+        { modo, opciones = [], nombre = "", titulo = "" }
+      ) {
         const celdaCapa = fila.querySelector(".celda-capa");
-        if (!celdaCapa) return;
+        const celdaTitulo = fila.querySelector(".celda-titulo-capa");
+        if (!celdaCapa || !celdaTitulo) return;
+        celdaCapa.innerHTML = "";
+        celdaTitulo.innerHTML = "";
+        fila.dataset.modoCapa = modo;
+
+        if (modo === "select") {
+          const opcionesSelect = Array.isArray(opciones)
+            ? opciones.slice()
+            : [];
+          if (!opcionesSelect.length && nombre) {
+            opcionesSelect.push({
+              value: nombre,
+              label: titulo || nombre,
+            });
+          }
+          const selectCapas = crearCampoCapaComoSelect(
+            opcionesSelect,
+            nombre || ""
+          );
+          celdaCapa.appendChild(selectCapas);
+          fila.dataset.opcionesCapas = opcionesSelect.length
+            ? JSON.stringify(opcionesSelect)
+            : "";
+          actualizarTituloDesdeSelect(fila);
+        } else if (modo === "manual") {
+          celdaCapa.appendChild(crearCampoCapaComoInput(nombre || ""));
+          celdaTitulo.appendChild(crearCampoTituloCapa(titulo || ""));
+          fila.dataset.opcionesCapas =
+            Array.isArray(opciones) && opciones.length
+              ? JSON.stringify(opciones)
+              : "";
+        } else {
+          celdaCapa.appendChild(crearCampoCapaComoInput(nombre || ""));
+          fila.dataset.opcionesCapas = "";
+        }
+        actualizarVisibilidadColumnasCapa();
+      }
+
+      function actualizarCampoCapaParaFila(fila, requiereConexion, estado = null) {
         const valorActual = obtenerValorNombreCapa(fila);
         const tituloActual = obtenerTituloCapa(fila);
-        celdaCapa.innerHTML = "";
         if (requiereConexion) {
           const opciones = obtenerOpcionesDesdeFila(fila);
-          if (opciones.length) {
-            const selectCapas = crearCampoCapaComoSelect(
+          const estadoActual =
+            estado !== null ? estado : fila.dataset.estadoServicio === "true";
+          if (estadoActual) {
+            renderizarCamposCapa(fila, {
+              modo: "select",
               opciones,
-              valorActual || ""
-            );
-            celdaCapa.appendChild(selectCapas);
-            actualizarTituloDesdeSelect(fila);
+              nombre: valorActual || "",
+              titulo: tituloActual || "",
+            });
           } else {
-            celdaCapa.appendChild(
-              crearCamposCapaManual(valorActual || "", tituloActual || "")
-            );
+            renderizarCamposCapa(fila, {
+              modo: "manual",
+              opciones,
+              nombre: valorActual || "",
+              titulo: tituloActual || "",
+            });
             setEstadoFilaServicio(fila, false);
           }
         } else {
-          celdaCapa.appendChild(crearCampoCapaComoInput(valorActual || ""));
-          fila.dataset.opcionesCapas = "";
+          renderizarCamposCapa(fila, {
+            modo: "simple",
+            nombre: valorActual || "",
+          });
           setEstadoFilaServicio(fila, true);
         }
       }
@@ -1348,9 +1420,8 @@
         const requiereConexion = requiereConexionServicio(tipoId);
         if (!requiereConexion) {
           M.toast({ html: "El servicio seleccionado no requiere conexión." });
-          actualizarCampoCapaParaFila(fila, false);
+          actualizarCampoCapaParaFila(fila, false, true);
           establecerTituloCapaEnFila(fila, "");
-          setEstadoFilaServicio(fila, true);
           return;
         }
 
@@ -1385,17 +1456,12 @@
           }
 
           const valorAnterior = obtenerValorNombreCapa(fila) || "";
-          fila.dataset.opcionesCapas = JSON.stringify(capasDisponibles);
-          const celdaCapa = fila.querySelector(".celda-capa");
-          if (celdaCapa) {
-            celdaCapa.innerHTML = "";
-            const selectCapas = crearCampoCapaComoSelect(
-              capasDisponibles,
-              valorAnterior
-            );
-            celdaCapa.appendChild(selectCapas);
-            actualizarTituloDesdeSelect(fila);
-          }
+          renderizarCamposCapa(fila, {
+            modo: "select",
+            opciones: capasDisponibles,
+            nombre: valorAnterior,
+            titulo: obtenerTituloCapa(fila),
+          });
           const capaSeleccionada = obtenerValorNombreCapa(fila);
           if (capaSeleccionada) {
             const tituloSeleccionado = obtenerTituloCapa(fila);
@@ -1409,7 +1475,11 @@
         } catch (error) {
           console.error(error);
           fila.dataset.opcionesCapas = "";
-          actualizarCampoCapaParaFila(fila, true);
+          renderizarCamposCapa(fila, {
+            modo: "manual",
+            nombre: obtenerValorNombreCapa(fila),
+            titulo: obtenerTituloCapa(fila),
+          });
           establecerTituloCapaEnFila(fila, "");
           setEstadoFilaServicio(fila, false);
           M.toast({ html: error.message || "No se pudo conectar al servicio." });
@@ -2059,9 +2129,13 @@
             }
             if (ui.filtroTipoServicio) {
               ui.filtroTipoServicio.value = "";
+              ui.filtroTipoServicio.selectedIndex = 0;
+              M.FormSelect.init(ui.filtroTipoServicio);
             }
             if (ui.filtroInstitucion && !ui.filtroInstitucion.disabled) {
               ui.filtroInstitucion.value = "";
+              ui.filtroInstitucion.selectedIndex = 0;
+              M.FormSelect.init(ui.filtroInstitucion);
             }
             actualizarFiltroInstituciones();
             aplicarFiltros();
@@ -2080,6 +2154,8 @@
             }
             if (tipo === "tipo" && ui.filtroTipoServicio) {
               ui.filtroTipoServicio.value = "";
+              ui.filtroTipoServicio.selectedIndex = 0;
+              M.FormSelect.init(ui.filtroTipoServicio);
               actualizarFiltroInstituciones();
             }
             if (
@@ -2088,6 +2164,8 @@
               !ui.filtroInstitucion.disabled
             ) {
               ui.filtroInstitucion.value = "";
+              ui.filtroInstitucion.selectedIndex = 0;
+              M.FormSelect.init(ui.filtroInstitucion);
             }
             aplicarFiltros();
           });
@@ -2135,13 +2213,15 @@
               if (requiereConexion) {
                 fila.dataset.opcionesCapas = "";
               }
-              actualizarCampoCapaParaFila(fila, requiereConexion);
               if (!tipoId) {
                 ocultarEstadoFilaServicio(fila);
+                renderizarCamposCapa(fila, { modo: "simple", nombre: "" });
               } else if (!requiereConexion) {
                 setEstadoFilaServicio(fila, true);
+                actualizarCampoCapaParaFila(fila, false, true);
               } else {
                 setEstadoFilaServicio(fila, false);
+                actualizarCampoCapaParaFila(fila, true, false);
               }
               actualizarOpcionesTipoServicio();
             } else if (event.target.classList.contains("nombre-capa-select")) {
