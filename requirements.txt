@@ -12,4 +12,8 @@ email_validator
 dotenv
 Pillow
 playwright
+owslib
+pyproj
+certifi
+urllib3
 gunicorn

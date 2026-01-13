@@ -35,6 +35,14 @@ def limpiar_texto(elemento):
   texto = elemento.text.strip()
   return texto or None
 
+def obtener_texto_hijo(elemento, nombre):
+  if not elemento:
+    return None
+  for hijo in elemento:
+    if hijo.tag.split('}')[-1] == nombre:
+      return limpiar_texto(hijo)
+  return None
+
 def sincronizar_secuencia(modelo):
   tabla = modelo.__table__
   pk_columna = next(iter(tabla.primary_key.columns))
@@ -60,30 +68,31 @@ def obtener_instituciones_para(usuario):
   return consulta.order_by(Institucion.id.asc()).all()
 
 def extraer_capas_wms(contenido):
+  print(contenido)
   capas = []
   raiz = ET.fromstring(contenido)
 
-  namespaces = {'wms': 'http://www.opengis.net/wms'}
-  candidatos = raiz.findall('.//wms:Layer', namespaces)
-
-  if not candidatos:
-    candidatos = raiz.findall('.//{*}Layer')
+  candidatos = [
+    elemento
+    for elemento in raiz.iter()
+    if elemento.tag.split('}')[-1] == 'Layer'
+  ]
 
   for layer in candidatos:
     queryable = layer.get('queryable')
-    if queryable == '1':
-      nombre = limpiar_texto(layer.find('wms:Name', namespaces))
-      titulo = limpiar_texto(layer.find('wms:Title', namespaces))
-      if not nombre:
-        continue
-      etiqueta = titulo if titulo else nombre
-      if titulo and titulo != nombre:
-        etiqueta = f"{titulo} ({nombre})"
-      capas.append({'value': nombre, 'label': etiqueta})
-
-  return capas
+    if queryable == '0':
+      continue
+    nombre = obtener_texto_hijo(layer, 'Name')
+    titulo = obtener_texto_hijo(layer, 'Title')
+    if not nombre:
+      continue
+    etiqueta = titulo if titulo else nombre
+    if titulo and titulo != nombre:
+      etiqueta = f"{titulo} ({nombre})"
+    capas.append({'value': nombre, 'label': etiqueta})
 
 def extraer_capas_wfs(contenido):
+  print(contenido)
   capas = []
   raiz = ET.fromstring(contenido)
   for feature in raiz.findall('.//{*}FeatureType'):
