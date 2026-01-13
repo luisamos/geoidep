@@ -1474,9 +1474,10 @@
           M.toast({ html: "Capas obtenidas correctamente." });
         } catch (error) {
           console.error(error);
-          fila.dataset.opcionesCapas = "";
+          const opcionesPrevias = obtenerOpcionesDesdeFila(fila);
           renderizarCamposCapa(fila, {
             modo: "manual",
+            opciones: opcionesPrevias,
             nombre: obtenerValorNombreCapa(fila),
             titulo: obtenerTituloCapa(fila),
           });

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
-
 import requests
 import urllib3
 from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
+from owslib.wfs import WebFeatureService
+from owslib.wms import WebMapService
+from owslib.wmts import WebMapTileService
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -28,20 +29,6 @@ OGC_WFS_IDS = {12}
 OGC_WMTS_IDS = {14}
 ARCGIS_MAPSERVER_IDS = {17}
 INSECURE_CERT_HOSTS = {'maps.inei.gob.pe'}
-
-def limpiar_texto(elemento):
-  if not elemento or not elemento.text:
-    return None
-  texto = elemento.text.strip()
-  return texto or None
-
-def obtener_texto_hijo(elemento, nombre):
-  if not elemento:
-    return None
-  for hijo in elemento:
-    if hijo.tag.split('}')[-1] == nombre:
-      return limpiar_texto(hijo)
-  return None
 
 def sincronizar_secuencia(modelo):
   tabla = modelo.__table__
@@ -67,59 +54,6 @@ def obtener_instituciones_para(usuario):
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   return consulta.order_by(Institucion.id.asc()).all()
 
-def extraer_capas_wms(contenido):
-  print(contenido)
-  capas = []
-  raiz = ET.fromstring(contenido)
-
-  candidatos = [
-    elemento
-    for elemento in raiz.iter()
-    if elemento.tag.split('}')[-1] == 'Layer'
-  ]
-
-  for layer in candidatos:
-    queryable = layer.get('queryable')
-    if queryable == '0':
-      continue
-    nombre = obtener_texto_hijo(layer, 'Name')
-    titulo = obtener_texto_hijo(layer, 'Title')
-    if not nombre:
-      continue
-    etiqueta = titulo if titulo else nombre
-    if titulo and titulo != nombre:
-      etiqueta = f"{titulo} ({nombre})"
-    capas.append({'value': nombre, 'label': etiqueta})
-
-def extraer_capas_wfs(contenido):
-  print(contenido)
-  capas = []
-  raiz = ET.fromstring(contenido)
-  for feature in raiz.findall('.//{*}FeatureType'):
-    nombre = limpiar_texto(feature.find('{*}Name'))
-    if not nombre:
-      continue
-    titulo = limpiar_texto(feature.find('{*}Title'))
-    etiqueta = titulo if titulo else nombre
-    if titulo and titulo != nombre:
-      etiqueta = f"{titulo} ({nombre})"
-    capas.append({'value': nombre, 'label': etiqueta})
-  return capas
-
-def extraer_capas_wmts(contenido):
-  capas = []
-  raiz = ET.fromstring(contenido)
-  for layer in raiz.findall('.//{*}Contents/{*}Layer'):
-    identificador = limpiar_texto(layer.find('{*}Identifier'))
-    if not identificador:
-      continue
-    titulo = limpiar_texto(layer.find('{*}Title'))
-    etiqueta = titulo if titulo else identificador
-    if titulo and titulo != identificador:
-      etiqueta = f"{titulo} ({identificador})"
-    capas.append({'value': identificador, 'label': etiqueta})
-  return capas
-
 def es_servicio_wms(tipo_servicio):
   if not tipo_servicio:
     return False
@@ -143,6 +77,34 @@ def es_servicio_wmts(tipo_servicio):
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wmts' in nombre
+
+def formatear_etiqueta_capa(nombre, titulo):
+  titulo_final = titulo or nombre
+  if titulo_final and titulo_final != nombre:
+    return f"{titulo_final} ({nombre})"
+  return titulo_final
+
+def construir_capas_desde_contenidos(contenidos):
+  capas = []
+  for nombre, capa in contenidos.items():
+    if not nombre:
+      continue
+    titulo = getattr(capa, 'title', None) or nombre
+    etiqueta = formatear_etiqueta_capa(nombre, titulo)
+    capas.append({'value': nombre, 'label': etiqueta})
+  return capas
+
+def validar_estado_servicio(url):
+  try:
+    respuesta = realizar_request_get(url)
+  except RequestException as error:
+    raise ValueError('No se pudo conectar con el servicio especificado.') from error
+  if respuesta.status_code != 200:
+    detalle = respuesta.reason or 'Error en el servicio'
+    raise ValueError(
+      f"El servicio respondió con estado {respuesta.status_code}: {detalle}."
+    )
+  return respuesta
 
 def preparar_url_capabilities(tipo_servicio, url):
   if not url:
@@ -238,16 +200,7 @@ def asegurar_parametro(url, clave, valor):
 
 def obtener_capas_desde_mapserver(url):
   url_json = asegurar_parametro(url, 'f', 'pjson')
-  try:
-    respuesta = realizar_request_get(url_json)
-    if respuesta.status_code == 403:
-      raise ValueError(
-        'El servicio remoto rechazó la solicitud (403). '
-        'Verifique si requiere token o autorización.'
-      )
-    respuesta.raise_for_status()
-  except RequestException as error:
-    raise ValueError('No se pudo conectar con el servicio especificado.') from error
+  respuesta = validar_estado_servicio(url_json)
 
   try:
     data = respuesta.json()
@@ -269,30 +222,27 @@ def obtener_capas_desde_mapserver(url):
 
 def obtener_capas_desde_servicio(tipo_servicio, url):
   url_capabilities = preparar_url_capabilities(tipo_servicio, url)
-  try:
-    respuesta = realizar_request_get(url_capabilities)
-    if respuesta.status_code == 403:
-      raise ValueError(
-        'El servicio remoto rechazó la solicitud (403). '
-        'Verifique si requiere token o autorización.'
-      )
-    respuesta.raise_for_status()
-  except RequestException as error:
-    raise ValueError('No se pudo conectar con el servicio especificado.') from error
+  validar_estado_servicio(url_capabilities)
 
-  respuesta.encoding = respuesta.apparent_encoding or respuesta.encoding or 'utf-8'
-  contenido = respuesta.text
   try:
     if es_servicio_wms(tipo_servicio):
-      return extraer_capas_wms(contenido)
-    if es_servicio_wfs(tipo_servicio):
-      return extraer_capas_wfs(contenido)
-    if es_servicio_wmts(tipo_servicio):
-      return extraer_capas_wmts(contenido)
-  except ET.ParseError as error:
-    raise ValueError('La respuesta del servicio no es un XML válido.') from error
+      servicio = WebMapService(url_capabilities)
+      capas = construir_capas_desde_contenidos(servicio.contents)
+    elif es_servicio_wfs(tipo_servicio):
+      servicio = WebFeatureService(url_capabilities)
+      capas = construir_capas_desde_contenidos(servicio.contents)
+    elif es_servicio_wmts(tipo_servicio):
+      servicio = WebMapTileService(url_capabilities)
+      capas = construir_capas_desde_contenidos(servicio.contents)
+    else:
+      raise ValueError('El tipo de servicio OGC seleccionado no está soportado.')
+  except Exception as error:
+    raise ValueError('No se pudo leer las capacidades del servicio.') from error
 
-  raise ValueError('El tipo de servicio OGC seleccionado no está soportado.')
+  if not capas:
+    raise ValueError('No se encontraron capas disponibles en el servicio.')
+
+  return capas
 
 @bp.route('/')
 @jwt_required()
