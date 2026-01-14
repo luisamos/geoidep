@@ -24,11 +24,11 @@ from .helpers import obtener_usuario_actual
 
 bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 
-OGC_WMS_IDS = {11}
-OGC_WFS_IDS = {12}
-OGC_WMTS_IDS = {14}
-ARCGIS_MAPSERVER_IDS = {17}
-INSECURE_CERT_HOSTS = {'maps.inei.gob.pe'}
+HEADERS_LEGALES = {
+  'User-Agent': 'GeoIDEP/1.0 (+https://geoidep.gob.pe)',
+  'Accept': '*/*',
+  'Referer': 'https://geoidep.gob.pe',
+}
 
 def sincronizar_secuencia(modelo):
   tabla = modelo.__table__
@@ -57,7 +57,7 @@ def obtener_instituciones_para(usuario):
 def es_servicio_wms(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in OGC_WMS_IDS:
+  if tipo_servicio.id in 11:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wms' in nombre
@@ -65,7 +65,7 @@ def es_servicio_wms(tipo_servicio):
 def es_servicio_wfs(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in OGC_WFS_IDS:
+  if tipo_servicio.id in 12:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wfs' in nombre
@@ -73,7 +73,7 @@ def es_servicio_wfs(tipo_servicio):
 def es_servicio_wmts(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in OGC_WMTS_IDS:
+  if tipo_servicio.id in 14:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wmts' in nombre
@@ -139,7 +139,7 @@ def preparar_url_capabilities(tipo_servicio, url):
 def es_servicio_arcgis_mapserver(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in ARCGIS_MAPSERVER_IDS:
+  if tipo_servicio.id in 17:
     return True
   if tipo_servicio.id_padre != 3:
     return False
@@ -147,11 +147,7 @@ def es_servicio_arcgis_mapserver(tipo_servicio):
   return 'arcgis' in nombre and 'mapserver' in nombre
 
 def realizar_request_get(url, timeout=15, headers=None):
-  headers_final = {
-    'User-Agent': 'GeoIDEP/1.0 (+https://geoidep.gob.pe)',
-    'Accept': '*/*',
-    'Referer': 'https://geoidep.gob.pe',
-  }
+  headers_final = HEADERS_LEGALES.copy()
   if headers:
     headers_final.update(headers)
   parsed_url = urlparse(url)
@@ -226,18 +222,28 @@ def obtener_capas_desde_servicio(tipo_servicio, url):
 
   try:
     if es_servicio_wms(tipo_servicio):
-      servicio = WebMapService(url_capabilities)
+      servicio = WebMapService(url_capabilities, headers=HEADERS_LEGALES)
       capas = construir_capas_desde_contenidos(servicio.contents)
     elif es_servicio_wfs(tipo_servicio):
-      servicio = WebFeatureService(url_capabilities)
+      servicio = WebFeatureService(url_capabilities, headers=HEADERS_LEGALES)
       capas = construir_capas_desde_contenidos(servicio.contents)
     elif es_servicio_wmts(tipo_servicio):
-      servicio = WebMapTileService(url_capabilities)
+      servicio = WebMapTileService(url_capabilities, headers=HEADERS_LEGALES)
       capas = construir_capas_desde_contenidos(servicio.contents)
     else:
       raise ValueError('El tipo de servicio OGC seleccionado no está soportado.')
   except Exception as error:
-    raise ValueError('No se pudo leer las capacidades del servicio.') from error
+    codigo_error = None
+    respuesta_error = getattr(error, 'response', None)
+    if respuesta_error is not None:
+      codigo_error = getattr(respuesta_error, 'status_code', None)
+    if codigo_error:
+      mensaje_error = (
+        f"No se pudo leer las capacidades del servicio (HTTP {codigo_error})."
+      )
+    else:
+      mensaje_error = 'No se pudo leer las capacidades del servicio.'
+    raise ValueError(mensaje_error) from error
 
   if not capas:
     raise ValueError('No se encontraron capas disponibles en el servicio.')
