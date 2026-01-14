@@ -24,6 +24,7 @@ from .helpers import obtener_usuario_actual
 
 bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 
+INSECURE_CERT_HOSTS = {'maps.inei.gob.pe'}
 HEADERS_LEGALES = {
   'User-Agent': 'GeoIDEP/1.0 (+https://geoidep.gob.pe)',
   'Accept': '*/*',
@@ -57,7 +58,7 @@ def obtener_instituciones_para(usuario):
 def es_servicio_wms(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in 11:
+  if tipo_servicio.id == 11:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wms' in nombre
@@ -65,7 +66,7 @@ def es_servicio_wms(tipo_servicio):
 def es_servicio_wfs(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in 12:
+  if tipo_servicio.id == 12:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wfs' in nombre
@@ -73,7 +74,7 @@ def es_servicio_wfs(tipo_servicio):
 def es_servicio_wmts(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in 14:
+  if tipo_servicio.id == 14:
     return True
   nombre = (tipo_servicio.nombre or '').lower()
   return 'wmts' in nombre
@@ -139,7 +140,7 @@ def preparar_url_capabilities(tipo_servicio, url):
 def es_servicio_arcgis_mapserver(tipo_servicio):
   if not tipo_servicio:
     return False
-  if tipo_servicio.id in 17:
+  if tipo_servicio.id == 17:
     return True
   if tipo_servicio.id_padre != 3:
     return False
