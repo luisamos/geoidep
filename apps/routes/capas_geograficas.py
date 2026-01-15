@@ -913,3 +913,42 @@ def obtener_capas_servicio():
     )
 
   return jsonify({'status': 'success', 'capas': capas})
+
+@bp.route('/<int:id_capa>', methods=['DELETE'])
+@jwt_required()
+def eliminar(id_capa: int):
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return jsonify({'status': 'error', 'message': 'Sesión no válida.'}), 401
+
+  capa = CapaGeografica.query.get(id_capa)
+  if not capa:
+    return jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}), 404
+
+  if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No puedes eliminar capas de otra institución.',
+        }
+      ),
+      403,
+    )
+
+  db.session.delete(capa)
+  try:
+    db.session.commit()
+  except IntegrityError:
+    db.session.rollback()
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo eliminar la capa geográfica.',
+        }
+      ),
+      400,
+    )
+
+  return jsonify({'status': 'success', 'message': 'Capa geográfica eliminada correctamente.'})

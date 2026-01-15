@@ -520,6 +520,26 @@
       </div>
     </div>
 
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align">
+        <h6 id="mensajeModalConfirmacion">
+          ¿Está seguro que desea eliminar la capa geográfica?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button
+          id="btnEliminarCancelar"
+          class="modal-close btn-flat"
+          type="button"
+        >
+          Cancelar
+        </button>
+        <button id="btnEliminarProceder" class="btn red" type="button">
+          Aceptar
+        </button>
+      </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script>
       const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
@@ -586,11 +606,16 @@
         tablaServiciosWrapper: null,
         tablaServiciosHead: null,
         institucionTag: null,
+        modalConfirmacion: null,
+        mensajeModalConfirmacion: null,
+        btnEliminarProceder: null,
+        btnEliminarCancelar: null,
       };
 
       let capas = [];
       let capasCache = { activos: [], inactivos: [], sin_estado: [] };
       let modalInstance = null;
+      let capaEliminando = null;
       let puedeEditarInstitucion = false;
       const mapaInstitucionesPorId = new Map();
       const mapaInstitucionesPorEtiqueta = new Map();
@@ -608,6 +633,9 @@
           if (modalElement) {
             modalInstance = M.Modal.init(modalElement, { dismissible: false });
           }
+        }
+        if (ui.modalConfirmacion && !M.Modal.getInstance(ui.modalConfirmacion)) {
+          M.Modal.init(ui.modalConfirmacion);
         }
       }
 
@@ -2021,6 +2049,67 @@
         }
       }
 
+      function obtenerInstanciaModal(elemento) {
+        return elemento ? M.Modal.getInstance(elemento) : null;
+      }
+
+      function solicitarConfirmacionEliminacion(capa) {
+        capaEliminando = capa || null;
+        if (ui.mensajeModalConfirmacion) {
+          const nombre = capa?.nombre ? capa.nombre.trim() : "";
+          const etiqueta = nombre ? ` "${nombre}"` : "";
+          ui.mensajeModalConfirmacion.textContent =
+            `¿Está seguro que desea eliminar la capa geográfica${etiqueta}?`;
+        }
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.open();
+      }
+
+      function cerrarModalConfirmacion() {
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.close();
+        capaEliminando = null;
+      }
+
+      async function confirmarEliminacion() {
+        if (!capaEliminando) {
+          cerrarModalConfirmacion();
+          return;
+        }
+        await eliminarCapa(capaEliminando);
+      }
+
+      async function eliminarCapa(capa) {
+        if (!capa) {
+          return;
+        }
+        try {
+          const respuesta = await fetch(
+            `/capas_geograficas/${capa.id}`,
+            crearOpcionesJson("DELETE")
+          );
+          const json = await respuesta.json();
+          if (!respuesta.ok) {
+            throw new Error(
+              (json && json.message) ||
+                "No se pudo eliminar la capa geográfica."
+            );
+          }
+          M.toast({
+            html:
+              (json && json.message) ||
+              "Capa geográfica eliminada correctamente.",
+          });
+          cerrarModalConfirmacion();
+          await cargarCapas();
+        } catch (error) {
+          console.error(error);
+          M.toast({
+            html: error.message || "Error al eliminar la capa geográfica.",
+          });
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         ui.tablaCapasBody = document.querySelector("#tablaCapas tbody");
         ui.tablaServiciosBody = document.querySelector("#tablaServicios tbody");
@@ -2184,7 +2273,7 @@
             if (tipo === "actualizar") {
               await abrirModalParaEditar(capa);
             } else if (tipo === "eliminar") {
-              M.toast({ html: "La eliminación se habilitará próximamente." });
+              await eliminarCapa(capa);
             }
           });
         }
