@@ -25,6 +25,7 @@ class RequestConfig:
   origin: str
   referer: str
   user_agent: str
+  contact_email: str
 
   def headers(self) -> dict:
     return {
@@ -34,8 +35,9 @@ class RequestConfig:
       "Origin": self.origin,
       "Referer": self.referer,
       "Connection": "keep-alive",
+      "From": self.contact_email,
+      "X-GeoIDEP-Notice": "Verificacion automatizada de servicios (no ataque)",
     }
-
 
 def build_getcapabilities_url(base_url: str) -> str:
   if not base_url:
@@ -67,8 +69,14 @@ def extraer_nombre_capa_wfs(xml_bytes: bytes) -> Optional[str]:
           return child.text.strip()
   return None
 
+@dataclass
+class RequestResult:
+  response: Optional[requests.Response]
+  status_code: Optional[int]
+  error: Optional[str]
 
-def probar_url(session: requests.Session, url: str, config: RequestConfig) -> Optional[requests.Response]:
+
+def probar_url(session: requests.Session, url: str, config: RequestConfig) -> RequestResult:
   try:
     response = session.get(
       url,
@@ -76,30 +84,48 @@ def probar_url(session: requests.Session, url: str, config: RequestConfig) -> Op
       timeout=config.timeout,
       allow_redirects=True,
     )
-  except RequestException:
-    return None
+  except RequestException as exc:
+    return RequestResult(None, None, str(exc))
 
-  if response.status_code >= 400:
-    return None
-  return response
+  return RequestResult(response, response.status_code, None)
 
+
+def clasificar_estado(status_code: Optional[int]) -> str:
+  if status_code in {400, 401, 301, 503}:
+    return str(status_code)
+  if status_code is None:
+    return "sin_respuesta"
+  return f"otro({status_code})"
+
+def escribir_getcapabilities(tmp_dir: Path, servicio: ServicioGeografico, contenido: bytes) -> Path:
+  tmp_dir.mkdir(parents=True, exist_ok=True)
+  archivo = tmp_dir / f"servicio_{servicio.id}_getcapabilities.xml"
+  archivo.write_bytes(contenido)
+  return archivo
 
 def procesar_servicio(
   session: requests.Session,
   servicio: ServicioGeografico,
   config: RequestConfig,
-) -> tuple[bool, Optional[str]]:
+) -> tuple[bool, Optional[str], Optional[int]]:
   if servicio.id_tipo_servicio == 12:
     url = build_getcapabilities_url(servicio.direccion_web)
-    response = probar_url(session, url, config)
-    if not response:
-      return False, None
-    nombre_capa = extraer_nombre_capa_wfs(response.content)
-    return True, nombre_capa
+    resultado = probar_url(session, url, config)
+    tmp_dir = root_dir / "tmp" / "wfs_getcapabilities"
+    archivo = None
+    if resultado.response and resultado.response.content:
+      archivo = escribir_getcapabilities(tmp_dir, servicio, resultado.response.content)
 
-  response = probar_url(session, servicio.direccion_web, config)
-  return response is not None, None
+    if archivo and archivo.exists():
+      contenido = archivo.read_bytes()
+      nombre_capa = extraer_nombre_capa_wfs(contenido)
+      return True, nombre_capa, 200
 
+    return False, None, resultado.status_code
+
+  resultado = probar_url(session, servicio.direccion_web, config)
+  estado_ok = bool(resultado.response) and (resultado.status_code or 0) < 400
+  return estado_ok, None, resultado.status_code
 
 def actualizar_servicios(
   config: RequestConfig,
@@ -123,7 +149,7 @@ def actualizar_servicios(
 
     for servicio in servicios:
       estado_anterior = servicio.estado
-      estado, nombre_capa = procesar_servicio(session, servicio, config)
+      estado, nombre_capa, status_code = procesar_servicio(session, servicio, config)
       servicio.estado = bool(estado)
 
       if servicio.id_tipo_servicio == 12 and nombre_capa:
@@ -135,6 +161,13 @@ def actualizar_servicios(
         servicio.direccion_web,
         estado_anterior,
         servicio.estado,
+      )
+      logging.info(
+        "Log peticion | ID: %s | Capa: %s | URL: %s | Estado: %s",
+        servicio.id,
+        nombre_capa or servicio.nombre_capa or "N/D",
+        servicio.direccion_web,
+        clasificar_estado(status_code),
       )
 
       if config.delay:
@@ -177,16 +210,30 @@ def parse_args() -> argparse.Namespace:
     help="User-Agent declarado en los encabezados para las peticiones.",
   )
   parser.add_argument(
+    "--contact-email",
+    default="soporte@geoidep.local",
+    help="Correo de contacto declarado en los encabezados para las peticiones.",
+  )
+  parser.add_argument(
     "--dry-run",
     action="store_true",
     help="Ejecuta la verificación sin guardar cambios en la base de datos.",
   )
   return parser.parse_args()
 
-
 def main() -> None:
   args = parse_args()
-  logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+  log_dir = Path(__file__).resolve().parent / "tmp" / "logs"
+  log_dir.mkdir(parents=True, exist_ok=True)
+  log_file = log_dir / "verificacion_servicios_geograficos.log"
+  logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+      logging.StreamHandler(),
+      logging.FileHandler(log_file, encoding="utf-8"),
+    ],
+  )
 
   config = RequestConfig(
     timeout=args.timeout,
@@ -194,6 +241,7 @@ def main() -> None:
     origin=args.origin,
     referer=args.referer,
     user_agent=args.user_agent,
+    contact_email=args.contact_email,
   )
   actualizar_servicios(config, args.limite, args.dry_run)
 

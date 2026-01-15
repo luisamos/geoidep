@@ -435,6 +435,12 @@
       if (event && event.preventDefault) {
         event.preventDefault();
       }
+      if (entitySearchInput && institutionSelect && entitySearchInput.value) {
+        const match = findBestEntityMatch(entitySearchInput.value);
+        if (match) {
+          institutionSelect.value = match.value;
+        }
+      }
       const destination = buildUrl();
       window.location.href = destination;
     }

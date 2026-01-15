@@ -2143,6 +2143,12 @@
         );
         ui.tablaServiciosHead = document.getElementById("tablaServiciosHead");
         ui.institucionTag = document.getElementById("institucionTag");
+        ui.modalConfirmacion = document.getElementById("modalConfirmacion");
+        ui.mensajeModalConfirmacion = document.getElementById(
+          "mensajeModalConfirmacion"
+        );
+        ui.btnEliminarProceder = document.getElementById("btnEliminarProceder");
+        ui.btnEliminarCancelar = document.getElementById("btnEliminarCancelar");
 
         if (ui.institucionTag) {
           institucionBaseId = ui.institucionTag.dataset.institucionId || "";
@@ -2261,6 +2267,19 @@
           });
         }
 
+        if (ui.btnEliminarProceder) {
+          ui.btnEliminarProceder.addEventListener(
+            "click",
+            confirmarEliminacion
+          );
+        }
+
+        if (ui.btnEliminarCancelar) {
+          ui.btnEliminarCancelar.addEventListener("click", () => {
+            capaEliminando = null;
+          });
+        }
+
         const tablaCapasBody = ui.tablaCapasBody;
         if (tablaCapasBody) {
           tablaCapasBody.addEventListener("click", async (event) => {
@@ -2273,7 +2292,7 @@
             if (tipo === "actualizar") {
               await abrirModalParaEditar(capa);
             } else if (tipo === "eliminar") {
-              await eliminarCapa(capa);
+              solicitarConfirmacionEliminacion(capa);
             }
           });
         }

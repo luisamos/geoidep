@@ -1330,6 +1330,63 @@ def obtener_datos_catalogo_cacheados(
     'total_herramientas': total_herramientas,
   }
 
+def obtener_opciones_catalogo_globales():
+  herramientas_exists = db.session.query(HerramientaDigital.id).filter(
+    HerramientaDigital.id_institucion == Institucion.id
+  ).exists()
+
+  capas_exists = db.session.query(CapaGeografica.id).filter(
+    CapaGeografica.id_institucion == Institucion.id
+  ).exists()
+
+  instituciones = (
+    Institucion.query
+    .filter(
+      Institucion.estado.is_(True),
+      ~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS),
+      or_(herramientas_exists, capas_exists),
+    )
+    .with_entities(Institucion.id, Institucion.nombre, Institucion.sigla)
+    .order_by(Institucion.nombre.asc())
+    .distinct()
+    .all()
+  )
+
+  categorias_herramientas = (
+    Categoria.query
+    .join(Categoria.herramientas)
+    .with_entities(Categoria.id, Categoria.nombre)
+  )
+
+  categorias_capas = (
+    Categoria.query
+    .join(Categoria.capas)
+    .with_entities(Categoria.id, Categoria.nombre)
+  )
+
+  categorias_disponibles = (
+    categorias_herramientas.union(categorias_capas)
+    .distinct()
+    .order_by(Categoria.nombre.asc())
+    .all()
+  )
+
+  categorias_opciones = [
+    {'id': id_cat, 'nombre': sanitize_text(nombre)}
+    for id_cat, nombre in categorias_disponibles
+  ]
+
+  instituciones_opciones = [
+    {
+      'id': id_inst,
+      'nombre': sanitize_text(nombre),
+      'sigla': sanitize_text(sigla) if sigla else None,
+    }
+    for id_inst, nombre, sigla in instituciones
+  ]
+
+  return categorias_opciones, instituciones_opciones
+
 def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
   id_institucion = request.args.get('id_institucion', type=int)
   id_categoria = request.args.get('id_categoria', type=int)
@@ -1480,6 +1537,8 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       total_herramientas = sum(
         len(categoria.get('herramientas', [])) for categoria in categorias_list
       )
+    else:
+      categorias_opciones, instituciones_opciones = obtener_opciones_catalogo_globales()
 
   if id_categoria:
     selected_categoria_nombre = next(
@@ -1638,29 +1697,6 @@ def idep_por(tag):
       descripcion_larga=detalle.get('descripcion_larga'),
       imagen=url_for('static', filename=detalle.get('imagen')),
       seccion=seccion_origen,
-  )
-
-
-@bp.route('/catalogos-de-metadatos')
-def catalogo_metadatos():
-  descripcion = (
-    """
-    Reúne descripciones estandarizadas de los datos y servicios geoespaciales
-    publicados por las entidades del Estado. Permite conocer el origen, la
-    calidad, la estructura y las condiciones de uso de cada recurso, para
-    facilitar su evaluación y reutilización.<br /><br />
-    A través de este catálogo, los usuarios pueden ubicar rápidamente datasets,
-    servicios de mapas y aplicaciones relacionadas, asegurando la
-    interoperabilidad y el intercambio eficiente de información geográfica.
-    """
-  )
-
-  return render_template(
-      'geoportal/descripcion2.html',
-      titulo='Catálogo Nacional de Metadatos',
-      descripcion_larga=descripcion,
-      imagen=url_for('static', filename='imagenes/catalogo_nacional.png'),
-      seccion={'titulo': 'Centro Nacional de Datos'},
   )
 
 def obtener_nodos_por_filtro(filtro_id_padre):
