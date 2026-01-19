@@ -41,12 +41,12 @@ def sincronizar_secuencia(modelo):
     nombre_secuencia = f"{tabla.schema}.{nombre_secuencia}"
   valor = max_id if max_id else 1
   db.session.execute(
-      text("SELECT setval(:secuencia::regclass, :valor, :llamado)"),
-      {
-          'secuencia': nombre_secuencia,
-          'valor': valor,
-          'llamado': bool(max_id),
-      },
+    text("SELECT setval(to_regclass(:secuencia), :valor, :llamado)"),
+    {
+      'secuencia': nombre_secuencia,
+      'valor': valor,
+      'llamado': bool(max_id),
+    },
   )
 
 def obtener_instituciones_para(usuario):
