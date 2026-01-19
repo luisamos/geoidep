@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="utf-8" />
@@ -9,6 +9,21 @@
       href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
     />
     <title>Geoportal IDEP - {{ titulo }}</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-9NZG2MM9BE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-9NZG2MM9BE");
+    </script>
     <script src="{{ url_for('static', filename='js/browser@4.js') }}"></script>
     <link
       rel="stylesheet"

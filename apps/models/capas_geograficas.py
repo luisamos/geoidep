@@ -52,7 +52,7 @@ class ServicioGeografico(db.Model):
   nombre_capa = db.Column(db.String(200))
   titulo_capa = db.Column(db.String(500))
   estado = db.Column(db.Boolean, default=True)
-  id_layer = db.Column(db.Integer, nullable=False)
+  id_layer = db.Column(db.Integer, nullable=False, default=0, server_default='0')
   usuario_crea = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_crea = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
   usuario_modifica = db.Column(db.Integer, nullable=True)
