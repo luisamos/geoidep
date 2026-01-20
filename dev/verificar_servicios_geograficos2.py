@@ -153,14 +153,11 @@ async def procesar_servicio(
 async def actualizar_servicios(
     config: RequestConfig,
     limite: Optional[int],
-    ids: Optional[list[int]],
     dry_run: bool,
 ) -> None:
     app = create_app()
     with app.app_context():
         query = ServicioGeografico.query.order_by(ServicioGeografico.id)
-        if ids:
-            query = query.filter(ServicioGeografico.id.in_(ids))
         if limite:
             query = query.limit(limite)
 
@@ -213,11 +210,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Verifica servicios geográficos y actualiza su estado.",
     )
-    parser.add_argument(
-        "--ids",
-        type=str,
-        help="Lista de IDs separados por coma para revisar en lugar de todos los registros.",
-    )
     parser.add_argument("--limite", type=int, help="Número máximo de registros a revisar.")
     parser.add_argument("--timeout", type=float, default=30.0, help="Tiempo de espera HTTP.")
     parser.add_argument(
@@ -252,10 +244,7 @@ def main() -> None:
         timeout=args.timeout,
         delay=args.delay,
     )
-    ids = None
-    if args.ids:
-        ids = [int(value) for value in args.ids.split(",") if value.strip().isdigit()]
-    asyncio.run(actualizar_servicios(config, args.limite, ids, args.dry_run))
+    asyncio.run(actualizar_servicios(config, args.limite, args.dry_run))
 
 
 if __name__ == "__main__":

@@ -181,7 +181,7 @@ SELECT
         WHEN idfuente_def = 3 AND COALESCE(idsubsistema_def, 0) = 0 THEN
           'https://espacialg.geoperu.gob.pe/geoserver/geoperu/' || COALESCE(hashcode_def, '') || '/wms?'
         ELSE
-          'https://espacialg.geoperu.gob.pe/geoserver/subsistema/' || COALESCE(hashcode_def, '') || '/wms?'
+          'https://espacialg.geoperu.gob.pe/geoserver/subsistemas/' || COALESCE(hashcode_def, '') || '/wms?'
       END
     ELSE wms
   END AS wms,

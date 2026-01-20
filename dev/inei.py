@@ -84,7 +84,6 @@ async def main():
     print("GetCapabilities OK:", result["capabilities_url"])
     print("Total layers (FeatureTypes):", len(result["layers"]))
     print("Layers:", result["layers"])
-    print("Layers:", result["layers"])
 
 if __name__ == "__main__":
     asyncio.run(main())
