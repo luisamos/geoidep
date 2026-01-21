@@ -1,15 +1,13 @@
 import argparse
 import asyncio
 import logging
-import random
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import aiohttp
-from lxml import etree
 
 root_dir = Path(__file__).resolve().parents[1]
 if str(root_dir) not in sys.path:
