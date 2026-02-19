@@ -110,7 +110,7 @@ SELECT * FROM public.def_layer;
 --
 -- CONSULTA PRINCIPAL
 --
--- 
+--
 -- DROP TABLE tmp.resultado_servicios;
 CREATE TABLE tmp.resultado_servicios AS
 WITH base AS (

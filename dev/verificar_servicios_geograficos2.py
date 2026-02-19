@@ -246,6 +246,5 @@ def main() -> None:
     )
     asyncio.run(actualizar_servicios(config, args.limite, args.dry_run))
 
-
 if __name__ == "__main__":
     main()
