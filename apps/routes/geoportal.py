@@ -16,7 +16,7 @@ Blueprint,
   url_for,
   session,
 )
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import func, or_, and_
 from markupsafe import escape
 from pathlib import Path
@@ -929,7 +929,7 @@ def obtener_datos_catalogo_cacheados(
       CapaGeografica.query.options(
         joinedload(CapaGeografica.categoria),
         joinedload(CapaGeografica.institucion),
-        joinedload(CapaGeografica.servicios).joinedload(
+        selectinload(CapaGeografica.servicios).joinedload(
           ServicioGeografico.tipo_servicio
         ),
       )

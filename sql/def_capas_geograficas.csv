@@ -1258,7 +1258,6 @@
 1257,"Caracterización de Precipitación del Departamento de San Martín - Mes de Diciembre.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1258,"Caracterización de Precipitación del Departamento de San Martín - Mes de Enero.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1259,"Caracterización de Precipitación del Departamento de San Martín - Mes de Febrero.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
-1333,"Gestión de Recursos Públicos",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1260,"Caracterización de Precipitación del Departamento de San Martín - Mes de Julio.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1261,"Caracterización de Precipitación del Departamento de San Martín - Mes de Junio.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1262,"Caracterización de Precipitación del Departamento de San Martín - Mes de Marzo.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
@@ -1332,6 +1331,7 @@
 1330,"Transportes",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1331,"Agrarios",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1332,"Demarcación territorial",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
+1333,"Gestión de Recursos Públicos",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1334,"Hídricos",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1335,"Hidrocarburos Socioambiental",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1336,"Industria Socioambiental",NULL,1,True,NULL,17,45,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
@@ -1694,7 +1694,6 @@
 1693,"Caracterización de Temperatura Mínima - Mes de Mayo.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1694,"Caracterización de Temperatura Mínima - Mes de Octubre.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1695,"Caracterización de Temperatura Mínima - Mes de Septiembre.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
-1755,"Denuncias ambientales registradas",NULL,1,True,NULL,5,70,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1696,"Caracterización de Temperatura Mínima del Departamento de Lima - Anual.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1697,"Caracterización de Temperatura Mínima del Departamento de Lima - Estación de Invierno.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1698,"Caracterización de Temperatura Mínima del Departamento de Lima - Estación de Otoño.",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
@@ -1754,6 +1753,7 @@
 1752,"Densidad de potencia a 75 m del suelo",NULL,1,True,NULL,20,174,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1753,"Densidad del aire",NULL,1,True,NULL,20,174,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1754,"Densidad del aire anual a 100 m del suelo",NULL,1,True,NULL,20,174,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
+1755,"Denuncias ambientales registradas",NULL,1,True,NULL,5,70,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1756,"Descenso Tmin - Agosto",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1757,"Descenso Tmin - Julio",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
 1758,"Descenso Tmin - Junio",NULL,1,True,NULL,5,75,1,"2026-02-18 10:17:21.177581-05",NULL,NULL
