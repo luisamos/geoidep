@@ -1496,13 +1496,20 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
               'nombre': categoria.get('nombre'),
               'descripcion': categoria.get('descripcion'),
               'herramientas': [],
+              '_herramienta_ids': set(),
             },
           )
 
           for herramienta in categoria.get('herramientas', []):
+            herramienta_id = herramienta.get('id')
+            if herramienta_id in categoria_acumulada['_herramienta_ids']:
+              continue
+
             if not herramienta.get('tipo_servicio'):
               herramienta['tipo_servicio'] = tipo.get('nombre')
             categoria_acumulada['herramientas'].append(herramienta)
+            if herramienta_id is not None:
+              categoria_acumulada['_herramienta_ids'].add(herramienta_id)
 
         for opcion in datos_tipo['categorias_opciones']:
           categorias_opciones_map[opcion['id']] = opcion
@@ -1521,6 +1528,7 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       ]
 
       for categoria in categorias_list:
+        categoria.pop('_herramienta_ids', None)
         categoria['herramientas'].sort(
           key=lambda item: (item.get('nombre') or '').lower()
         )

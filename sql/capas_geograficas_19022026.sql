@@ -21,11 +21,19 @@ SELECT 'capas_geograficas' tabla, COUNT(*) total FROM ide.def_capas_geograficas
 UNION ALL
 SELECT 'servicios_geograficos' tabla, COUNT(*) total FROM ide.def_servicios_geograficos;
 
-SELECT *, b.* 
+SELECT a.nombre, b.* 
 FROM ide.def_capas_geograficas a
 INNER JOIN ide.def_servicios_geograficos b
 ON a.id = b.id_capa 
-WHERE nombre ILIKE ('%Unidad Ofertada%');
+WHERE nombre ILIKE ('%Conseciones%');
 
-SELECT * FROM ide.def_servicios_geograficos WHERE direccion_web ILIKE '%https://ider.regionucayali.gob.pe/geoservicios/services/servicios_ogc/Peru_GRU_0802/MapServer/WMSServer?request=GetCapabilities&service=WMS%';
+SELECT * FROM ide.def_servicios_geograficos 
+WHERE id_tipo_servicio = 14
+ORDER BY 3;
+
+DELETE FROM ide.def_servicios_geograficos
+WHERE id IN(558,941,1648);
+
+
+
 
