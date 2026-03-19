@@ -363,6 +363,10 @@ def listar():
       for detalle in servicios_detalle
       if detalle.get('sigla') or detalle.get('nombre')
     )
+    servicio_wms = next(
+      (servicio for servicio in capa.servicios if servicio.id_tipo_servicio == 11),
+      None,
+    )
 
     capa_data = {
       'id': capa.id,
@@ -370,6 +374,7 @@ def listar():
       'descripcion': capa.descripcion,
       'tipo_capa': capa.tipo_capa,
       'en_geoperu': capa.publicar_geoperu,
+      'id_layer_geoperu': servicio_wms.id_layer if servicio_wms else 0,
       'servicios': nombres_servicios,
       'servicios_detalle': servicios_detalle,
       'categoria': capa.categoria.nombre if capa.categoria else None,
