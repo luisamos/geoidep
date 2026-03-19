@@ -553,6 +553,60 @@ def guardar():
   publicar_geoperu = bool(data.get('publicar_geoperu', False))
   id_layer_geoperu = data.get('id_layer_geoperu')
 
+  if id_capa:
+    try:
+      id_capa_int = int(id_capa)
+    except (TypeError, ValueError):
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El identificador enviado no es válido.',
+          }
+        ),
+        400,
+      )
+    capa = CapaGeografica.query.get(id_capa_int)
+    if not capa:
+      return (
+        jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}),
+        404,
+      )
+    if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'No puedes modificar capas de otra institución.',
+          }
+        ),
+        403,
+      )
+  else:
+    sincronizar_secuencia(CapaGeografica)
+    capa = CapaGeografica(usuario_crea=usuario.id)
+    db.session.add(capa)
+
+  capa.nombre = nombre
+  capa.descripcion = descripcion
+  capa.tipo_capa = tipo_capa
+  capa.publicar_geoperu = publicar_geoperu
+  capa.id_categoria = id_categoria
+  capa.id_institucion = id_institucion
+  capa.usuario_modifica = usuario.id
+
+  servicios_payload = data.get('servicios', [])
+  if servicios_payload and not isinstance(servicios_payload, list):
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'El formato de servicios enviados no es válido.',
+        }
+      ),
+      400,
+    )
+
   if id_layer_geoperu in ('', None):
     id_layer_geoperu = None
   else:
