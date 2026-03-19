@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -65,6 +65,16 @@
         display: flex;
         align-items: center;
         gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .estado-switch__input {
+        margin: 0;
+        max-width: 180px;
+      }
+
+      .estado-switch__input[hidden] {
+        display: none !important;
       }
 
       .institucion-label {
@@ -431,6 +441,21 @@
                 Sí
               </label>
             </div>
+            <div
+              id="contenedor_id_layer_geoperu"
+              class="input-field estado-switch__input"
+              hidden
+            >
+              <input
+                id="id_layer_geoperu"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                pattern="[0-9]*"
+              />
+              <label for="id_layer_geoperu">ID Layer GeoPerú</label>
+            </div>
           </div>
 
           <div class="input-field">
@@ -596,6 +621,8 @@
         descripcionCapa: null,
         tipoCapaModal: null,
         publicarGeoperu: null,
+        contenedorIdLayerGeoperu: null,
+        idLayerGeoperu: null,
         categoriaCapa: null,
         institucionCapa: null,
         institucionAutocomplete: null,
@@ -646,6 +673,26 @@
         M.FormSelect.init(formSelects);
         M.updateTextFields();
         inicializarBusquedaInstituciones();
+        actualizarVisibilidadIdLayerGeoPeru();
+      }
+
+      function actualizarVisibilidadIdLayerGeoPeru() {
+        const mostrar = Boolean(
+          ui.publicarGeoperu &&
+            ui.publicarGeoperu.checked &&
+            ui.contenedorIdLayerGeoperu
+        );
+        if (ui.contenedorIdLayerGeoperu) {
+          ui.contenedorIdLayerGeoperu.hidden = !mostrar;
+        }
+        if (!mostrar && ui.idLayerGeoperu) {
+          ui.idLayerGeoperu.classList.remove("invalid");
+        }
+        M.updateTextFields();
+      }
+
+      function normalizarIdLayerGeoPeru(valor = "") {
+        return String(valor || "").replace(/\D+/g, "");
       }
 
       function inicializarBusquedaInstituciones() {
@@ -862,6 +909,9 @@
           limpiarSeleccionInstitucion();
         } else {
           restablecerInstitucionBase();
+        }
+        if (ui.idLayerGeoperu) {
+          ui.idLayerGeoperu.value = "";
         }
         limpiarTablaServicios();
         setTimeout(() => {
@@ -1104,6 +1154,10 @@
         if (servicio.id) {
           fila.dataset.servicioId = servicio.id;
         }
+        fila.dataset.idLayer =
+          servicio.id_layer !== undefined && servicio.id_layer !== null
+            ? String(servicio.id_layer)
+            : "";
         fila.dataset.visible = servicio.estado === false ? "false" : "true";
         fila.dataset.tipo = servicio.id_tipo_servicio || "";
         establecerTituloCapaEnFila(fila, servicio.titulo_capa || "");
@@ -1559,6 +1613,7 @@
               direccion: direccion,
               nombre_capa: nombreCapa ? nombreCapa.trim() : "",
               titulo_capa: tituloCapa,
+              id_layer: fila.dataset.idLayer ? Number(fila.dataset.idLayer) : null,
               estado,
               visible,
             };
@@ -1619,6 +1674,27 @@
             return false;
           }
         }
+        if (ui.publicarGeoperu?.checked) {
+          const serviciosWms = servicios.filter(
+            (servicio) => Number(servicio.id_tipo_servicio) === 11
+          );
+          if (serviciosWms.length) {
+            const idLayer = ui.idLayerGeoperu
+              ? normalizarIdLayerGeoPeru(ui.idLayerGeoperu.value)
+              : "";
+            if (!idLayer) {
+              M.toast({
+                html:
+                  "Ingrese el ID Layer de GeoPerú para el servicio WMS cuando la publicación esté activa.",
+              });
+              if (ui.idLayerGeoperu) {
+                ui.idLayerGeoperu.focus();
+                ui.idLayerGeoperu.classList.add("invalid");
+              }
+              return false;
+            }
+          }
+        }
         return true;
       }
 
@@ -1638,6 +1714,7 @@
               direccion_web: servicio.direccion_web,
               nombre_capa: servicio.nombre_capa,
               titulo_capa: servicio.titulo_capa,
+              id_layer: servicio.id_layer,
               estado:
                 servicio.estado === false
                   ? false
@@ -1689,6 +1766,9 @@
         }
         if (ui.publicarGeoperu) {
           ui.publicarGeoperu.checked = !!capa.en_geoperu;
+        }
+        if (ui.idLayerGeoperu) {
+          ui.idLayerGeoperu.value = capa.id_layer_geoperu || "";
         }
         if (ui.categoriaCapa) {
           ui.categoriaCapa.value = capa.id_categoria || "";
@@ -2001,6 +2081,9 @@
         const publicar = ui.publicarGeoperu
           ? ui.publicarGeoperu.checked
           : false;
+        const idLayerGeoPeru = ui.idLayerGeoperu
+          ? normalizarIdLayerGeoPeru(ui.idLayerGeoperu.value)
+          : "";
         const categoriaId = ui.categoriaCapa ? ui.categoriaCapa.value : "";
         if (!validarInstitucionSeleccionada()) {
           M.toast({ html: "Seleccione una institución válida." });
@@ -2026,6 +2109,7 @@
           descripcion,
           tipo_capa: tipoCapa,
           publicar_geoperu: publicar,
+          id_layer_geoperu: idLayerGeoPeru ? Number(idLayerGeoPeru) : null,
           id_categoria: categoriaId,
           id_institucion: institucionId,
           servicios,
@@ -2130,6 +2214,10 @@
         ui.descripcionCapa = document.getElementById("descripcion_capa");
         ui.tipoCapaModal = document.getElementById("tipo_capa_modal");
         ui.publicarGeoperu = document.getElementById("publicar_geoperu");
+        ui.contenedorIdLayerGeoperu = document.getElementById(
+          "contenedor_id_layer_geoperu"
+        );
+        ui.idLayerGeoperu = document.getElementById("id_layer_geoperu");
         ui.categoriaCapa = document.getElementById("categoria_capa");
         ui.institucionCapa = document.getElementById("institucion_capa");
         ui.institucionAutocomplete = document.getElementById(
@@ -2171,6 +2259,20 @@
 
         if (ui.btnAgregar) {
           ui.btnAgregar.addEventListener("click", abrirModalParaNueva);
+        }
+        if (ui.publicarGeoperu) {
+          ui.publicarGeoperu.addEventListener(
+            "change",
+            actualizarVisibilidadIdLayerGeoPeru
+          );
+        }
+        if (ui.idLayerGeoperu) {
+          ui.idLayerGeoperu.addEventListener("input", () => {
+            ui.idLayerGeoperu.value = normalizarIdLayerGeoPeru(
+              ui.idLayerGeoperu.value
+            );
+            ui.idLayerGeoperu.classList.remove("invalid");
+          });
         }
 
         if (ui.imgCloseModalLayer) {

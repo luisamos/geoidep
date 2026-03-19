@@ -14,7 +14,7 @@ def create_app() -> Flask:
   jwt.init_app(app)
   mail.init_app(app)
   cache.init_app(app)
-  
+
   register_routes(app)
 
   @app.errorhandler(404)

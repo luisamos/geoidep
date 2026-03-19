@@ -434,6 +434,7 @@ def detalle(id_capa):
       'direccion_web': servicio.direccion_web,
       'nombre_capa': servicio.nombre_capa,
       'titulo_capa': servicio.titulo_capa,
+      'id_layer': servicio.id_layer,
       'estado': servicio.estado,
       'tipo_servicio_nombre': servicio.tipo_servicio.nombre
       if servicio.tipo_servicio
@@ -442,6 +443,11 @@ def detalle(id_capa):
     for servicio in capa.servicios
   ]
 
+  servicio_wms = next(
+    (servicio for servicio in capa.servicios if servicio.id_tipo_servicio == 11),
+    None,
+  )
+
   return jsonify(
     {
       'id': capa.id,
@@ -449,6 +455,7 @@ def detalle(id_capa):
       'descripcion': capa.descripcion,
       'tipo_capa': capa.tipo_capa,
       'en_geoperu': capa.publicar_geoperu,
+      'id_layer_geoperu': servicio_wms.id_layer if servicio_wms else 0,
       'id_categoria': capa.id_categoria,
       'id_institucion': capa.id_institucion,
       'servicios': servicios,
@@ -544,55 +551,33 @@ def guardar():
 
   descripcion = (data.get('descripcion') or '').strip()
   publicar_geoperu = bool(data.get('publicar_geoperu', False))
+  id_layer_geoperu = data.get('id_layer_geoperu')
 
-  if id_capa:
+  if id_layer_geoperu in ('', None):
+    id_layer_geoperu = None
+  else:
     try:
-      id_capa_int = int(id_capa)
+      id_layer_geoperu = int(id_layer_geoperu)
     except (TypeError, ValueError):
-      return (
-        jsonify({'status': 'error', 'message': 'El identificador enviado no es válido.'}),
-        400,
-      )
-    capa = CapaGeografica.query.get(id_capa_int)
-    if not capa:
-      return (
-        jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}),
-        404,
-      )
-    if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
       return (
         jsonify(
           {
             'status': 'error',
-            'message': 'No puedes modificar capas de otra institución.',
+            'message': 'El ID Layer de GeoPerú debe contener solo números.',
           }
         ),
-        403,
+        400,
       )
-  else:
-    sincronizar_secuencia(CapaGeografica)
-    capa = CapaGeografica(usuario_crea=usuario.id)
-    db.session.add(capa)
-
-  capa.nombre = nombre
-  capa.descripcion = descripcion
-  capa.tipo_capa = tipo_capa
-  capa.publicar_geoperu = publicar_geoperu
-  capa.id_categoria = id_categoria
-  capa.id_institucion = id_institucion
-  capa.usuario_modifica = usuario.id
-
-  servicios_payload = data.get('servicios', [])
-  if servicios_payload and not isinstance(servicios_payload, list):
-    return (
-      jsonify(
-        {
-          'status': 'error',
-          'message': 'El formato de servicios enviados no es válido.',
-        }
-      ),
-      400,
-    )
+    if id_layer_geoperu < 0:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El ID Layer de GeoPerú no puede ser negativo.',
+          }
+        ),
+        400,
+      )
 
   servicios_validos = []
   tipos_requeridos = set()
@@ -613,6 +598,7 @@ def guardar():
     direccion = (servicio.get('direccion') or '').strip()
     nombre_capa_servicio = (servicio.get('nombre_capa') or '').strip()
     titulo_capa_servicio = (servicio.get('titulo_capa') or '').strip()
+    id_layer = servicio.get('id_layer')
     visible = bool(servicio.get('visible', True))
     estado_valor = servicio.get('estado', False)
     if isinstance(estado_valor, str):
@@ -661,6 +647,7 @@ def guardar():
         'direccion': direccion,
         'nombre_capa': nombre_capa_servicio,
         'titulo_capa': titulo_capa_servicio,
+        'id_layer': id_layer,
         'estado': estado_servicio,
         'visible': visible,
       }
@@ -766,6 +753,17 @@ def guardar():
     servicio['nombre_capa'] = servicio['nombre_capa'] or None
     servicio['titulo_capa'] = servicio['titulo_capa'] or None
 
+    if servicio['tipo_id'] == 11 and publicar_geoperu and id_layer_geoperu is None:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'Ingrese el ID Layer de GeoPerú para el servicio WMS.',
+          }
+        ),
+        400,
+      )
+
   servicios_existentes = {serv.id: serv for serv in capa.servicios}
   ids_a_conservar = set()
 
@@ -810,6 +808,11 @@ def guardar():
     servicio_instancia.titulo_capa = servicio['titulo_capa'] or None
     servicio_instancia.estado = servicio['estado']
     servicio_instancia.visible = servicio['visible']
+    if servicio['tipo_id'] == 11:
+      if publicar_geoperu and id_layer_geoperu is not None:
+        servicio_instancia.id_layer = id_layer_geoperu
+    elif not servicio_instancia.id_layer:
+      servicio_instancia.id_layer = 0
     servicio_instancia.usuario_modifica = usuario.id
 
   for servicio in list(capa.servicios):
