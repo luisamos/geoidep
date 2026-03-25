@@ -35,9 +35,11 @@ class Usuario(db.Model):
   contrasena = db.Column(db.String(256), nullable=False)
   cargo = db.Column(db.String(100), nullable=True)
   estado = db.Column(db.Boolean, default=True, server_default='True')
-  geoidep = db.Column(db.Boolean, default=False, nullable=False)
+  cnd = db.Column(db.Boolean, default=False, nullable=False)
+  idep = db.Column(db.Boolean, default=False, nullable=False)
   geoperu = db.Column(db.Boolean, default=False, nullable=False)
-  metadatos = db.Column(db.Boolean, default=False, nullable=False)
+  pnda = db.Column(db.Boolean, default=False, nullable=False)
+  cnm = db.Column(db.Boolean, default=False, nullable=False)
   fecha_baja = db.Column(db.Date, nullable=True)
   id_perfil = db.Column(
       db.Integer,

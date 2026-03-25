@@ -187,8 +187,8 @@ def ingreso():
       flash('Correo o contraseña inválidos', 'error')
     elif not usuario.estado:
       flash('La cuenta se encuentra deshabilitada. Contacta al administrador.', 'error')
-    elif not usuario.geoidep or not usuario.tiene_acceso_gestion:
-      flash('Tu usuario no cuenta con acceso a GEOIDEP.', 'error')
+    elif not usuario.idep or not usuario.tiene_acceso_gestion:
+      flash('Tu usuario no cuenta con acceso a la geoIDEP.', 'error')
     else:
       access_token = create_access_token(
         identity=str(usuario.id),

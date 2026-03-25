@@ -62,7 +62,7 @@ def obtener_usuario_actual(*, requerido: bool = False) -> Optional[Usuario]:
   if (
     not usuario
     or not usuario.estado
-    or not usuario.geoidep
+    or not usuario.idep
     or not usuario.tiene_acceso_gestion
   ):
     g.usuario_actual = None

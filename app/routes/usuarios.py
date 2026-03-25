@@ -91,8 +91,11 @@ def datos_usuarios():
       'id_institucion': u.id_institucion,
       'institucion_nombre': u.institucion.nombre if u.institucion else '',
       'institucion_sigla': u.institucion.sigla if u.institucion else '',
-      'geoidep': u.geoidep,
+      'cnd': u.cnd,
+      'idep': u.idep,
       'geoperu': u.geoperu,
+      'pnda': u.pnda,
+      'cnm': u.cnm,
       'estado': u.estado,
     }
     for u in consulta.all()

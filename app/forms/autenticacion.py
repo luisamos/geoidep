@@ -58,8 +58,11 @@ class UsuarioForm(FlaskForm):
     validators=[DataRequired(message="Selecciona un perfil")],
   )
   estado = BooleanField("Usuario activo", default=True)
-  geoidep = BooleanField("Acceso a GeoIDEP", default=False)
+  cnd = BooleanField("Acceso al CND", default=False)
+  idep = BooleanField("Acceso a la IDEP", default=False)
   geoperu = BooleanField("Acceso a GeoPerú", default=False)
+  pnda = BooleanField("Acceso a la PNDA", default=False)
+  cnm = BooleanField("Acceso a CNM", default=False)
   password = PasswordField(
     "Contraseña",
     validators=[Optional(), Length(max=256, message="Máximo 256 caracteres")],
