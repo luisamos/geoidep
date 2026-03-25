@@ -142,11 +142,6 @@
             </select>
             <label>Tipo de rol</label>
           </div>
-          <div class="col s6 m2 l2" style="margin-top: 22px">
-            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
-              <i class="material-icons left">search</i>Buscar
-            </button>
-          </div>
         </div>
 
         <!-- Filtros aplicados + Nuevo -->
@@ -369,10 +364,8 @@
           radio.addEventListener("change", actualizarVisibilidadPadre);
         });
 
-        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
         document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
         document.getElementById("filtroPadre").addEventListener("change", aplicarFiltros);
-        document.getElementById("filtroNombre").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
         document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
         document.getElementById("tagsFiltros").addEventListener("click", (e) => {
           const btn = e.target.closest(".filtro-tag");

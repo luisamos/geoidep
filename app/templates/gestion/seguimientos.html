@@ -135,11 +135,6 @@
             <label for="filtroInstitucion">Institución (sigla)</label>
             <span id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
           </div>
-          <div class="col s6 m2 l2" style="margin-top: 22px">
-            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
-              <i class="material-icons left">search</i>Buscar
-            </button>
-          </div>
         </div>
 
         <!-- Filtros aplicados + botón Nuevo -->
@@ -168,6 +163,7 @@
                   Activo
                 </label>
               </div>
+              <p class="grey-text" id="contadorResultados"></p>
               <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
                 <i class="material-icons left">add</i>Nuevo
               </button>
@@ -424,8 +420,7 @@
         ui.btnEliminar.addEventListener("click", confirmarEliminacion);
         ui.tabla.addEventListener("click", manejarTabla);
 
-        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
-        document.getElementById("txtBuscarDoc").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
+        document.getElementById("txtBuscarDoc").addEventListener("input", aplicarFiltros);
         document.getElementById("filtroInstitucion").addEventListener("input", () => {
           actualizarHintInstitucion();
           aplicarFiltros();
@@ -508,6 +503,8 @@
       }
 
       function renderizarFiltrada(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
           ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">Sin resultados para los filtros aplicados.</td></tr>';
           return;

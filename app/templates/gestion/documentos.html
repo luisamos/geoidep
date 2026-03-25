@@ -113,15 +113,10 @@
             <input id="txtBuscarExp" type="text" placeholder="Código de expediente" />
             <label for="txtBuscarExp">Expediente</label>
           </div>
-          <div class="col s6 m2 l2" style="margin-top: 22px">
-            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
-              <i class="material-icons left">search</i>Buscar
-            </button>
-          </div>
         </div>
 
         <!-- Filtros aplicados + botón Nuevo -->
-        <!--<div class="row">
+        <div class="row">
           <div class="col s12">
             <div class="filtros-aplicados">
               <span class="filtros-aplicados__label">Filtros aplicados:</span>
@@ -133,19 +128,12 @@
               </button>
             </div>
           </div>
-        </div>-->
+        </div>
 
         <div class="row">
           <div class="col s12">
             <div class="estado-filtros-row">
-              <div class="switch">
-                <!--<label>
-                  Inactivo
-                  <input type="checkbox" id="switchEstados" checked />
-                  <span class="lever"></span>
-                  Activo
-                </label>-->
-              </div>
+              <p class="grey-text" id="contadorResultados"></p>
               <button
                 id="btnNuevo"
                 class="btn waves-effect btn-small green"
@@ -280,7 +268,6 @@
         tabla: null,
         modal: null,
         modalConfirmacion: null,
-        filtros: {},
         btnNuevo: null,
         btnGuardar: null,
         btnEliminar: null,
@@ -290,7 +277,6 @@
       let cache = [];
       let editandoId = null;
       let eliminandoId = null;
-      let filtrosActuales = { n_documento: "", cod_expediente: "" };
 
       document.addEventListener("DOMContentLoaded", () => {
         ui.tabla = document.querySelector("#tablaDocumentos tbody");
@@ -315,34 +301,29 @@
         ui.btnEliminar.addEventListener("click", confirmarEliminacion);
         ui.tabla.addEventListener("click", manejarTabla);
 
-        document.getElementById("btnBuscar").addEventListener("click", buscar);
-        ui.filtros.nDocumento.addEventListener("keyup", (e) => { if (e.key === "Enter") buscar(); });
-        ui.filtros.expediente.addEventListener("keyup", (e) => { if (e.key === "Enter") buscar(); });
-        ui.filtros.btnLimpiar.addEventListener("click", limpiarFiltros);
-        ui.filtros.tags.addEventListener("click", (e) => {
+        document.getElementById("txtBuscarDoc").addEventListener("input", aplicarFiltros);
+        document.getElementById("txtBuscarExp").addEventListener("input", aplicarFiltros);
+        document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
+        document.getElementById("tagsFiltros").addEventListener("click", (e) => {
           const btn = e.target.closest(".filtro-tag");
           if (!btn) return;
           const tipo = btn.dataset.filtro;
-          if (tipo === "nombre") ui.filtros.nDocumento.value = "";
-          if (tipo === "expediente") ui.filtros.expediente.value = "";
-          buscar();
+          if (tipo === "nombre") document.getElementById("txtBuscarDoc").value = "";
+          if (tipo === "expediente") document.getElementById("txtBuscarExp").value = "";
+          aplicarFiltros();
         });
 
-        buscar();
+        cargar();
       });
 
-      async function cargar(filtros = filtrosActuales) {
+      async function cargar() {
         ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
         try {
-          const query = new URLSearchParams();
-          if (filtros.n_documento) query.append("n_documento", filtros.n_documento);
-          if (filtros.cod_expediente) query.append("cod_expediente", filtros.cod_expediente);
-          const url = query.toString() ? `/documentos/datos?${query}` : "/documentos/datos";
-          const resp = await fetch(url);
+          const resp = await fetch("/documentos/datos");
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "Error al cargar");
           cache = data.documentos || [];
-          renderizar(cache);
+          aplicarFiltros();
         } catch (err) {
           ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align red-text">Error al cargar los datos.</td></tr>';
           M.toast({ html: err.message || "Error al cargar documentos.", classes: "red" });
@@ -350,6 +331,8 @@
       }
 
       function renderizar(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
           ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">No hay registros.</td></tr>';
           return;
@@ -376,35 +359,37 @@
         `).join("");
       }
 
-      function buscar() {
-        const termNombre = ui.filtros.nDocumento.value.trim();
-        const termExp = ui.filtros.expediente.value.trim();
-        filtrosActuales = {
-          n_documento: termNombre,
-          cod_expediente: termExp,
-        };
-        actualizarTags(termNombre.toLowerCase(), termExp.toLowerCase());
-        cargar(filtrosActuales);
+      function aplicarFiltros() {
+        const termDoc = document.getElementById("txtBuscarDoc").value.trim().toLowerCase();
+        const termExp = document.getElementById("txtBuscarExp").value.trim().toLowerCase();
+
+        const filtradas = cache.filter((item) => {
+          const okDoc = termDoc ? (item.n_documento || "").toLowerCase().includes(termDoc) : true;
+          const okExp = termExp ? (item.cod_expediente || "").toLowerCase().includes(termExp) : true;
+          return okDoc && okExp;
+        });
+
+        renderizar(filtradas);
+        actualizarTags(termDoc, termExp);
       }
 
-      function actualizarTags(termNombre, termExp) {
+      function actualizarTags(termDoc, termExp) {
         const tags = [];
-        if (termNombre) tags.push({ tipo: "nombre",     label: `Documento: ${termNombre}` });
-        if (termExp)    tags.push({ tipo: "expediente", label: `Expediente: ${termExp}` });
+        if (termDoc) tags.push({ tipo: "nombre",     label: `Documento: ${termDoc}` });
+        if (termExp) tags.push({ tipo: "expediente", label: `Expediente: ${termExp}` });
 
-        const contenedor = ui.filtros.tags;
+        const contenedor = document.getElementById("tagsFiltros");
         contenedor.innerHTML = tags.length
           ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
           : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
 
-        ui.filtros.btnLimpiar.disabled = !tags.length;
+        document.getElementById("btnLimpiarFiltros").disabled = !tags.length;
       }
 
       function limpiarFiltros() {
-        ui.filtros.nDocumento.value = "";
-        ui.filtros.expediente.value = "";
-        filtrosActuales = { n_documento: "", cod_expediente: "" };
-        actualizarTags("", "");
+        document.getElementById("txtBuscarDoc").value = "";
+        document.getElementById("txtBuscarExp").value = "";
+        aplicarFiltros();
       }
 
       function manejarTabla(evento) {
@@ -456,7 +441,7 @@
           if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
           M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
           ui.modal.close();
-          cargar(filtrosActuales);
+          cargar();
         } catch (err) {
           M.toast({ html: err.message || "Error al guardar.", classes: "red" });
         }
@@ -469,7 +454,7 @@
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
           M.toast({ html: data.message || "Documento eliminado.", classes: "green" });
-          cargar(filtrosActuales);
+          cargar();
         } catch (err) {
           M.toast({ html: err.message || "Error al eliminar.", classes: "red" });
         } finally {

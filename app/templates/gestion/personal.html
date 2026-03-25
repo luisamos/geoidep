@@ -114,11 +114,6 @@
             <input id="filtroDoc" type="text" placeholder="Número de documento" />
             <label for="filtroDoc">Documento</label>
           </div>
-          <div class="col s6 m2 l2" style="margin-top: 22px">
-            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
-              <i class="material-icons left">search</i>Buscar
-            </button>
-          </div>
         </div>
 
         <!-- Filtros aplicados + Nuevo -->
@@ -303,11 +298,8 @@
         ui.btnEliminar.addEventListener("click", confirmarEliminacion);
         ui.tabla.addEventListener("click", manejarTabla);
 
-        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
         document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
         document.getElementById("filtroDoc").addEventListener("input", aplicarFiltros);
-        document.getElementById("filtroNombre").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
-        document.getElementById("filtroDoc").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
         document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
         document.getElementById("tagsFiltros").addEventListener("click", (e) => {
           const btn = e.target.closest(".filtro-tag");

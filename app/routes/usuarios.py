@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_jwt_extended import jwt_required, unset_jwt_cookies
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
@@ -39,11 +39,11 @@ def obtener_instituciones_para(usuario: Usuario):
 @bp.route('/', endpoint='listar')
 @jwt_required()
 def usuarios():
-  admin, respuesta = obtener_admin_actual()
-  if respuesta:
-    return respuesta
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return redirect_to_login()
 
-  instituciones = obtener_instituciones_para(admin)
+  instituciones = obtener_instituciones_para(usuario)
   instituciones_json = [
     {'id': inst.id, 'nombre': inst.nombre or '', 'sigla': inst.sigla or ''}
     for inst in instituciones
@@ -55,7 +55,7 @@ def usuarios():
     'gestion/usuarios.html',
     instituciones=instituciones_json,
     perfiles=perfiles,
-    usuario_actual=admin,
+    usuario_actual=usuario,
     seccion_activa='rol14',
   )
 
@@ -63,8 +63,8 @@ def usuarios():
 @bp.route('/datos', endpoint='datos')
 @jwt_required()
 def datos_usuarios():
-  admin, respuesta = obtener_admin_actual()
-  if respuesta:
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
     return jsonify({'status': 'error', 'message': 'Sin acceso.'}), 403
 
   consulta = (

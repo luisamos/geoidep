@@ -162,11 +162,6 @@
             </select>
             <label>Perfil</label>
           </div>
-          <div class="col s6 m2 l2" style="margin-top: 22px">
-            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
-              <i class="material-icons left">search</i>Buscar
-            </button>
-          </div>
         </div>
 
         <!-- Filtros aplicados + Nuevo -->
@@ -195,6 +190,7 @@
                   Activo
                 </label>
               </div>
+              <p class="grey-text" id="contadorResultados"></p>
               <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
                 <i class="material-icons left">person_add</i>Nuevo usuario
               </button>
@@ -467,13 +463,10 @@
           });
         });
 
-        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
         document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
         document.getElementById("filtroEmail").addEventListener("input", aplicarFiltros);
         document.getElementById("filtroPerfil").addEventListener("change", aplicarFiltros);
         document.getElementById("switchEstados").addEventListener("change", aplicarFiltros);
-        document.getElementById("filtroNombre").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
-        document.getElementById("filtroEmail").addEventListener("keyup",  (e) => { if (e.key === "Enter") aplicarFiltros(); });
         document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
         document.getElementById("tagsFiltros").addEventListener("click", (e) => {
           const btn = e.target.closest(".filtro-tag");
@@ -506,6 +499,8 @@
       }
 
       function renderizar(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
           ui.tabla.innerHTML = '<tr><td colspan="9" class="center-align grey-text">No hay registros.</td></tr>';
           return;

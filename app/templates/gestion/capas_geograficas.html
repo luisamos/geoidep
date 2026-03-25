@@ -302,11 +302,6 @@
             <label for="filtroInstitucion">Buscar institución por sigla</label>
             <span class="helper-text" id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
           </div>
-          <div class="col s6 m2 l2">
-            <button id="btnBuscar" class="btn btn-small blue" type="button">
-              <i class="material-icons left">search</i> Buscar
-            </button>
-          </div>
         </div>
 
         <div class="row">
@@ -342,6 +337,7 @@
                     Activo
                   </label>
                 </div>
+                <p class="grey-text" id="contadorResultados"></p>
               </div>
               <div class="estado-filtros-acciones">
                 <button
@@ -597,7 +593,6 @@
 
       const ui = {
         tablaCapasBody: null,
-        btnBuscar: null,
         txtBuscarNombre: null,
         filtroTipo: null,
         filtroInstitucion: null,
@@ -1790,6 +1785,8 @@
         if (!tabla) {
           return;
         }
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${data.length} registro(s)`;
         tabla.innerHTML = "";
         if (!data.length) {
           const fila = document.createElement("tr");
@@ -2162,7 +2159,6 @@
       document.addEventListener("DOMContentLoaded", () => {
         ui.tablaCapasBody = document.querySelector("#tablaCapas tbody");
         ui.tablaServiciosBody = document.querySelector("#tablaServicios tbody");
-        ui.btnBuscar = document.getElementById("btnBuscar");
         ui.txtBuscarNombre = document.getElementById("txtBuscarNombre");
         ui.filtroTipo = document.getElementById("filtroTipo");
         ui.filtroInstitucion = document.getElementById("filtroInstitucion");
@@ -2255,16 +2251,8 @@
           });
         }
 
-        if (ui.btnBuscar) {
-          ui.btnBuscar.addEventListener("click", aplicarFiltros);
-        }
-
         if (ui.txtBuscarNombre) {
-          ui.txtBuscarNombre.addEventListener("keyup", (event) => {
-            if (event.key === "Enter") {
-              aplicarFiltros();
-            }
-          });
+          ui.txtBuscarNombre.addEventListener("input", aplicarFiltros);
         }
 
         if (ui.filtroTipo) {
