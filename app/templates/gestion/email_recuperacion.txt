@@ -1,0 +1,10 @@
+Hola {{ usuario.nombre_completo }},
+
+Recibimos una solicitud para restablecer tu contraseña en GEOIDEP. Puedes hacerlo ingresando al siguiente enlace:
+
+{{ reset_url }}
+
+Si no solicitaste este cambio, ignora este mensaje y tu contraseña permanecerá sin modificaciones.
+
+Saludos,
+Equipo GEOIDEP

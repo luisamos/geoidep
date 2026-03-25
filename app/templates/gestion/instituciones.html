@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>GEOIDEP | Instituciones</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .tabla-gestion .col-indice   { width: 50px; }
+      .tabla-gestion .col-sigla    { width: 100px; font-weight: 600; }
+      .tabla-gestion .col-opciones { width: 110px; }
+
+      .estado-filtros-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        flex-wrap: wrap;
+      }
+
+      .filtros-aplicados {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .filtros-aplicados__label { font-weight: 600; }
+      .filtros-aplicados__tags  { display: flex; flex-wrap: wrap; gap: 8px; }
+
+      .filtro-tag {
+        border: 1px solid #90caf9;
+        border-radius: 16px;
+        padding: 2px 10px;
+        font-size: 0.85rem;
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        cursor: pointer;
+      }
+
+      .icono-accion {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        margin-right: 6px;
+      }
+
+      .badge-sigla {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: #e3f2fd;
+        color: #0d47a1;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .link-web {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.82rem;
+        color: #1565c0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <!-- Encabezado -->
+        <div class="row">
+          <div class="col s12">
+            <h3>Instituciones</h3>
+            <p class="flow-text">
+              Administra las instituciones comprendidas entre los poderes del
+              estado, organismos autónomos, ONG y otras entidades.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row">
+          <div class="input-field col s12 m4 l3">
+            <i class="material-icons prefix">business</i>
+            <input
+              id="filtroSigla"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej: IGN, MINAM, PCM…"
+            />
+            <label for="filtroSigla">Buscar por sigla</label>
+          </div>
+          <div class="input-field col s12 m5 l4">
+            <i class="material-icons prefix">search</i>
+            <input
+              id="filtroNombre"
+              type="text"
+              placeholder="Nombre de la institución"
+            />
+            <label for="filtroNombre">Nombre</label>
+          </div>
+          <div class="input-field col s12 m3 l3">
+            <select id="filtroSector">
+              <option value="" selected>Todos los sectores</option>
+              {% for sector in sectores %}
+              <option value="{{ sector.id }}">{{ sector.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Sector</label>
+          </div>
+          <div class="col s6 m2 l2" style="margin-top: 22px">
+            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
+              <i class="material-icons left">search</i>Buscar
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros aplicados + Nuevo -->
+        <div class="row">
+          <div class="col s12">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1">Sin filtros aplicados</span>
+              </div>
+              <button id="btnLimpiarFiltros" class="btn-flat" type="button" disabled>
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="estado-filtros-row">
+              <p class="grey-text" id="contadorResultados"></p>
+              <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
+                <i class="material-icons left">add</i>Nueva institución
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="row" style="max-height: 600px; overflow-y: auto">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaInstituciones">
+              <thead>
+                <tr>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th class="col-sigla">Sigla</th>
+                  <th>Nombre</th>
+                  <th>RUC</th>
+                  <th>Sector</th>
+                  <th>Sitio web</th>
+                  <th class="col-opciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Institución -->
+    <div id="modalInstitucion" class="modal">
+      <div class="modal-content">
+        <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
+          <h5 id="tituloModal">INSTITUCIÓN</h5>
+          <i
+            class="material-icons"
+            id="btnCerrarModal"
+            style="position:absolute;right:16px;top:16px;cursor:pointer;color:#757575"
+          >close</i>
+        </div>
+
+        <form id="formInstitucion">
+          <input type="hidden" id="instId" />
+          <div class="row" style="margin-top: 16px">
+            <div class="input-field col s12 m6">
+              <input id="inst_sigla" type="text" maxlength="50" />
+              <label for="inst_sigla">Sigla</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="inst_codigo" type="text" maxlength="20" />
+              <label for="inst_codigo">Código</label>
+            </div>
+            <div class="input-field col s12">
+              <input id="inst_nombre" type="text" maxlength="800" required />
+              <label for="inst_nombre">Nombre completo</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="inst_ruc" type="text" maxlength="11" />
+              <label for="inst_ruc">RUC</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="inst_ubigeo" type="text" maxlength="20" />
+              <label for="inst_ubigeo">Ubigeo</label>
+            </div>
+            <div class="input-field col s12">
+              <input id="inst_web" type="url" maxlength="255" />
+              <label for="inst_web">Dirección web</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <select id="inst_sector" required>
+                <option value="" disabled selected>Seleccione sector</option>
+                {% for sector in sectores %}
+                <option value="{{ sector.id }}">{{ sector.nombre }}</option>
+                {% endfor %}
+              </select>
+              <label>Sector</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardar" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación -->
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align" style="padding: 32px 24px">
+        <i class="material-icons large red-text">warning</i>
+        <h6 id="mensajeConfirmacion" style="margin-top: 12px">
+          ¿Desea eliminar la institución seleccionada?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">Cancelar</button>
+        <button id="btnEliminar" class="btn red" type="button">
+          <i class="material-icons small left">delete</i>Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
+      const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        for (const parte of (document.cookie || "").split("; ")) {
+          if (parte.startsWith(prefijo))
+            return decodeURIComponent(parte.slice(prefijo.length));
+        }
+        return null;
+      }
+
+      function crearOpciones(method, payload) {
+        const headers = {};
+        const token = obtenerCookie("csrf_access_token");
+        if (token) headers["X-CSRF-Token"] = token;
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+
+      const ui = {
+        tabla: null,
+        modal: null,
+        modalConf: null,
+        btnNuevo: null,
+        btnGuardar: null,
+        btnEliminar: null,
+        campos: {},
+      };
+
+      let cache = [];
+      let editandoId = null;
+      let eliminandoId = null;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla    = document.querySelector("#tablaInstituciones tbody");
+        ui.modal    = M.Modal.init(document.getElementById("modalInstitucion"), { dismissible: false });
+        ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
+        ui.btnNuevo    = document.getElementById("btnNuevo");
+        ui.btnGuardar  = document.getElementById("btnGuardar");
+        ui.btnEliminar = document.getElementById("btnEliminar");
+        ui.campos = {
+          instId:  document.getElementById("instId"),
+          sigla:   document.getElementById("inst_sigla"),
+          codigo:  document.getElementById("inst_codigo"),
+          nombre:  document.getElementById("inst_nombre"),
+          ruc:     document.getElementById("inst_ruc"),
+          ubigeo:  document.getElementById("inst_ubigeo"),
+          web:     document.getElementById("inst_web"),
+          sector:  document.getElementById("inst_sector"),
+        };
+
+        M.FormSelect.init(document.querySelectorAll("select"));
+        document.getElementById("btnCerrarModal").addEventListener("click", () => ui.modal.close());
+        ui.btnNuevo.addEventListener("click", () => abrirModal());
+        ui.btnGuardar.addEventListener("click", guardar);
+        ui.btnEliminar.addEventListener("click", confirmarEliminacion);
+        ui.tabla.addEventListener("click", manejarTabla);
+
+        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
+        document.getElementById("filtroSigla").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroSector").addEventListener("change", aplicarFiltros);
+        document.getElementById("filtroSigla").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
+        document.getElementById("filtroNombre").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
+        document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
+        document.getElementById("tagsFiltros").addEventListener("click", (e) => {
+          const btn = e.target.closest(".filtro-tag");
+          if (!btn) return;
+          if (btn.dataset.filtro === "sigla")   document.getElementById("filtroSigla").value = "";
+          if (btn.dataset.filtro === "nombre")  document.getElementById("filtroNombre").value = "";
+          if (btn.dataset.filtro === "sector") {
+            const sel = document.getElementById("filtroSector");
+            sel.value = "";
+            M.FormSelect.init(sel);
+          }
+          aplicarFiltros();
+        });
+
+        cargar();
+      });
+
+      async function cargar() {
+        ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        try {
+          const resp = await fetch("/instituciones/datos");
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "Error al cargar");
+          // Excluir registros que son sectores (id < 45)
+          cache = (data.instituciones || []).filter((i) => Number(i.id) >= 45);
+          renderizar(cache);
+        } catch (err) {
+          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          M.toast({ html: err.message, classes: "red" });
+        }
+      }
+
+      function renderizar(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
+        if (!lista.length) {
+          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">No hay registros.</td></tr>';
+          return;
+        }
+        ui.tabla.innerHTML = lista.map((inst, i) => `
+          <tr>
+            <td style="padding-left:20px">${i + 1}</td>
+            <td>
+              ${inst.sigla
+                ? `<span class="badge-sigla">${escapar(inst.sigla)}</span>`
+                : '<span class="grey-text">—</span>'}
+            </td>
+            <td>${escapar(inst.nombre)}</td>
+            <td>${escapar(inst.nro_ruc) || '<span class="grey-text">—</span>'}</td>
+            <td>${escapar(inst.sector) || '<span class="grey-text">—</span>'}</td>
+            <td>
+              ${inst.direccion_web
+                ? `<a href="${escapar(inst.direccion_web)}" target="_blank" rel="noopener" class="link-web">
+                     <i class="material-icons tiny">open_in_new</i>Sitio web
+                   </a>`
+                : '<span class="grey-text">—</span>'}
+            </td>
+            <td>
+              <img src="${iconoEditar}"  alt="Editar"   class="icono-accion accion-editar"   data-id="${inst.id}" />
+              <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${inst.id}" />
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      function aplicarFiltros() {
+        const termSigla   = document.getElementById("filtroSigla").value.trim().toLowerCase();
+        const termNombre  = document.getElementById("filtroNombre").value.trim().toLowerCase();
+        const termSector  = document.getElementById("filtroSector").value;
+
+        const filtradas = cache.filter((inst) => {
+          const okSigla  = termSigla  ? (inst.sigla  || "").toLowerCase().includes(termSigla)  : true;
+          const okNombre = termNombre ? (inst.nombre || "").toLowerCase().includes(termNombre) : true;
+          const okSector = termSector ? String(inst.sector_id) === String(termSector) : true;
+          return okSigla && okNombre && okSector;
+        });
+
+        renderizar(filtradas);
+        actualizarTags(termSigla, termNombre, termSector);
+      }
+
+      function actualizarTags(termSigla, termNombre, termSector) {
+        const tags = [];
+        if (termSigla)  tags.push({ tipo: "sigla",  label: `Sigla: ${termSigla}` });
+        if (termNombre) tags.push({ tipo: "nombre", label: `Nombre: ${termNombre}` });
+        if (termSector) {
+          const sel = document.getElementById("filtroSector");
+          const txt = sel.options[sel.selectedIndex]?.textContent || termSector;
+          tags.push({ tipo: "sector", label: `Sector: ${txt}` });
+        }
+
+        const cont = document.getElementById("tagsFiltros");
+        cont.innerHTML = tags.length
+          ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
+          : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+
+        document.getElementById("btnLimpiarFiltros").disabled = !tags.length;
+      }
+
+      function limpiarFiltros() {
+        document.getElementById("filtroSigla").value  = "";
+        document.getElementById("filtroNombre").value = "";
+        const sel = document.getElementById("filtroSector");
+        sel.value = "";
+        M.FormSelect.init(sel);
+        renderizar(cache);
+        actualizarTags("", "", "");
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        const id = Number(objetivo.dataset.id);
+        if (objetivo.classList.contains("accion-editar")) {
+          const inst = cache.find((i) => i.id === id);
+          if (inst) abrirModal(inst);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          eliminandoId = id;
+          ui.modalConf.open();
+        }
+      }
+
+      function abrirModal(inst = null) {
+        editandoId = inst ? inst.id : null;
+        document.getElementById("tituloModal").textContent = inst ? "EDITAR INSTITUCIÓN" : "NUEVA INSTITUCIÓN";
+        document.getElementById("formInstitucion").reset();
+
+        if (inst) {
+          ui.campos.instId.value  = inst.id      || "";
+          ui.campos.sigla.value   = inst.sigla   || "";
+          ui.campos.codigo.value  = inst.codigo  || "";
+          ui.campos.nombre.value  = inst.nombre  || "";
+          ui.campos.ruc.value     = inst.nro_ruc || "";
+          ui.campos.ubigeo.value  = inst.ubigeo  || "";
+          ui.campos.web.value     = inst.direccion_web || "";
+          ui.campos.sector.value  = inst.sector_id || "";
+        }
+
+        M.updateTextFields();
+        M.FormSelect.init(document.querySelectorAll("#formInstitucion select"));
+        ui.modal.open();
+      }
+
+      async function guardar() {
+        const nombre = ui.campos.nombre.value.trim();
+        const sector = ui.campos.sector.value;
+        if (!nombre) {
+          M.toast({ html: "El nombre es obligatorio.", classes: "orange" });
+          return;
+        }
+        if (!sector) {
+          M.toast({ html: "Seleccione un sector.", classes: "orange" });
+          return;
+        }
+        const payload = {
+          sigla:        ui.campos.sigla.value.trim()  || null,
+          codigo:       ui.campos.codigo.value.trim() || null,
+          nombre,
+          nro_ruc:      ui.campos.ruc.value.trim()    || null,
+          ubigeo:       ui.campos.ubigeo.value.trim() || null,
+          direccion_web: ui.campos.web.value.trim()   || null,
+          sector_id:    sector,
+        };
+        const url    = editandoId ? `/instituciones/${editandoId}` : "/instituciones/guardar";
+        const metodo = editandoId ? "PUT" : "POST";
+        try {
+          const resp = await fetch(url, crearOpciones(metodo, payload));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
+          M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
+          ui.modal.close();
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar.", classes: "red" });
+        }
+      }
+
+      async function confirmarEliminacion() {
+        if (!eliminandoId) { ui.modalConf.close(); return; }
+        try {
+          const resp = await fetch(`/instituciones/${eliminandoId}`, crearOpciones("DELETE"));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
+          M.toast({ html: data.message || "Institución eliminada.", classes: "green" });
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar.", classes: "red" });
+        } finally {
+          eliminandoId = null;
+          ui.modalConf.close();
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1029 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>Geoportal IDEP</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-9NZG2MM9BE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-9NZG2MM9BE");
+    </script>
+    <script src="{{ url_for('static', filename='js/browser@4.js') }}"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body topmargin="0" leftmargin="0">
+    {% include 'geoportal/cabecera.html' %}
+
+    <form
+      name="frm_buscar_catalogo"
+      id="frm_buscar_catalogo"
+      method="get"
+      action="{{ catalogo_url }}"
+    >
+      <input type="hidden" name="search_token" value="{{ search_token }}" />
+      <section class="bg-[#EEF3FB]">
+        <div class="max-w-screen-xl mx-auto px-6 pt-[62px] pb-[62px]">
+          <h2
+            class="text-black text-center [font-feature-settings:'liga'_off,'clig'_off] text-[32px] md:text-[36px] leading-[40px] font-bold"
+          >
+            Catálogo Nacional de Servicios Georreferenciados
+          </h2>
+
+          <p
+            class="mb-8 mt-2 max-w-[820px] mx-auto text-black text-center text-[13px] leading-[24px] font-normal"
+          >
+            Es el Registro de los servicios web que son administrados y
+            mantenidos por las entidades públicas productoras de información,
+            con el objeto de compartir e intercambiar datos mediante servicios
+            interoperables.
+          </p>
+
+          <div class="mb-6 flex justify-center">
+            <a
+              href="{{ url_for('geoportal.principal') }}"
+              class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#184397] text-white font-semibold shadow hover:bg-[#133574] transition"
+            >
+              <i class="fa-solid fa-house"></i>
+              <span>Ir al inicio</span>
+            </a>
+          </div>
+
+          <div class="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-6">
+            <div class="md:col-span-3">
+              <div
+                class="flex items-center border-2 border-[#26292E] rounded-[8px] bg-white px-2"
+              >
+                <input
+                  type="text"
+                  id="texto_busqueda"
+                  name="filter_terms"
+                  value="{{ filter_terms or '' }}"
+                  placeholder="Buscar Geoportales, Visores, Metadatos, Servicios de mapas"
+                  class="flex-1 h-12 px-3 bg-transparent placeholder-gray-400 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  class="flex items-center justify-center h-10 w-10 bg-[#26292E] rounded-[6px] hover:bg-black transition outline-none ring-0 focus:outline-none focus:ring-0"
+                  aria-label="Buscar"
+                >
+                  <i class="fas fa-search text-white text-base"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2" for="tipos"
+                >Tipo</label
+              >
+              <div class="relative">
+                <select
+                  name="tipos"
+                  id="tipos"
+                  class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0"
+                >
+                  <option
+                    value=""
+                    {%
+                    if
+                    not
+                    selected_tipo
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    [Todos]
+                  </option>
+                  {% for tipo in tipos %}
+                  <option
+                    value="{{ tipo.slug|lower }}"
+                    {% if selected_tipo and tipo.id == selected_tipo.id %}selected{% endif %}
+                  >
+                    {{ tipo.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
+                <span
+                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <i
+                    class="fa-solid fa-chevron-down text-[#26292E] text-xs"
+                  ></i>
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2" for="categoria"
+                >Categoría</label
+              >
+              <div class="relative">
+                <select
+                  name="id_categoria"
+                  id="categoria"
+                  class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0"
+                >
+                  <option
+                    value=""
+                    {%
+                    if
+                    not
+                    selected_id_categoria
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    [Todos]
+                  </option>
+                  {% for categoria in categorias_opciones %}
+                  <option
+                    value="{{ categoria.id }}"
+                    {%
+                    if
+                    selected_id_categoria==categoria.id
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    {{ categoria.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
+                <span
+                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <i
+                    class="fa-solid fa-chevron-down text-[#26292E] text-xs"
+                  ></i>
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2" for="entidad"
+                >Entidad</label
+              >
+              <div class="space-y-2">
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="entidadSearch"
+                    placeholder="Buscar entidad o sigla"
+                    class="w-full h-12 pl-10 pr-3 bg-white border-2 border-[#26292E] rounded-[8px] outline-none focus:ring-0 focus:border-[#184397]"
+                    autocomplete="off"
+                    aria-label="Buscar entidad"
+                  />
+                  <span
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
+                  >
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                  </span>
+                </div>
+                <div class="relative">
+                  <select
+                    name="id_institucion"
+                    id="entidad"
+                    class="w-full h-12 pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0"
+                  >
+                    <option
+                      value=""
+                      {%
+                      if
+                      not
+                      selected_id_institucion
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      [Todos]
+                    </option>
+                    {% for institucion in instituciones_opciones %}
+                    <option
+                      value="{{ institucion.id }}"
+                      data-sigla="{{ institucion.sigla or '' }}"
+                      {%
+                      if
+                      selected_id_institucion==institucion.id
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      {{ institucion.nombre }}{% if institucion.sigla %} ({{
+                      institucion.sigla }}){% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <span
+                    class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <i
+                      class="fa-solid fa-chevron-down text-[#26292E] text-xs"
+                    ></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="md:col-span-3">
+              <div class="flex items-start gap-3">
+                <span
+                  class="shrink-0 text-sm font-semibold text-[#0B1221] leading-5"
+                  >Filtros aplicados:</span
+                >
+                <div
+                  class="flex flex-wrap items-center gap-2 flex-1"
+                  id="filters-container"
+                >
+                  <div
+                    class="flex flex-wrap items-center gap-2"
+                    aria-live="polite"
+                  >
+                    {% if applied_filters %} {% for filtro in applied_filters %}
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#BFCBDE] bg-white text-xs font-semibold text-[#184397] hover:bg-[#184397]/10 transition js-remove-filter"
+                      data-filter-type="{{ filtro.type }}"
+                      aria-label="Quitar filtro {{ filtro.label }}"
+                    >
+                      <span>{{ filtro.label }}</span>
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                    {% endfor %} {% else %}
+                    <span class="text-sm text-gray-500"
+                      >Sin filtros aplicados</span
+                    >
+                    {% endif %}
+                  </div>
+                  <button
+                    id="clear-filters"
+                    type="button"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border border-transparent {% if clear_filters_enabled %}text-[#184397] hover:underline{% else %}text-gray-400 cursor-not-allowed{% endif %}"
+                    {%
+                    if
+                    not
+                    clear_filters_enabled
+                    %}disabled
+                    aria-disabled="true"
+                    {%
+                    endif
+                    %}
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                    Borrar filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </form>
+
+    <section class="bg-white">
+      <div class="max-w-screen-xl mx-auto px-6 py-12">
+        {% if selected_tipo or total_herramientas or applied_filters %}
+        <div
+          class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
+          <p class="text-[16px] leading-[24px] font-semibold text-black">
+            <span id="resCount">{{ total_herramientas }}</span> Resultados
+            encontrados
+          </p>
+          <div
+            class="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-3 w-full md:w-auto"
+          >
+            <label for="ordenar2" class="text-sm text-black font-medium"
+              >Ordenar por:</label
+            >
+
+            <div class="relative w-full md:w-[280px]">
+              <select
+                name="ordenar"
+                id="ordenar"
+                class="h-11 md:h-10 w-full pr-10 pl-3 bg-white border-2 border-[#26292E] rounded-[8px] appearance-none outline-none ring-0 focus:outline-none focus:ring-0"
+              >
+                <option
+                  value=""
+                  {%
+                  if
+                  selected_estado
+                  is
+                  none
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  [Todos]
+                </option>
+                <option
+                  value="1"
+                  {%
+                  if
+                  selected_estado==1
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  Disponible
+                </option>
+                <option
+                  value="0"
+                  {%
+                  if
+                  selected_estado==0
+                  %}selected{%
+                  endif
+                  %}
+                >
+                  En mantenimiento
+                </option>
+              </select>
+              <span
+                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <i class="fa-solid fa-chevron-down text-[#26292E] text-xs"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-8 space-y-12">
+          {% if categorias %} {% for categoria in categorias %}
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-[20px] font-semibold text-[#0B1221]">
+                {{ categoria.nombre }}
+              </h4>
+            </div>
+            <div class="space-y-8">
+              {% for herramienta in categoria.herramientas %}
+              <article
+                class="rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] overflow-hidden"
+              >
+                <div class="grid md:grid-cols-[220px_1fr]">
+                  <div
+                    class="relative flex justify-center items-center bg-gray-50 p-4 md:p-0 md:block"
+                  >
+                    <img
+                      src="{{ herramienta.imagen_url }}"
+                      alt="Vista previa"
+                      class="w-[140px] h-[220px] object-cover rounded-xl md:rounded-none md:absolute md:inset-0 md:w-full md:h-full"
+                    />
+                  </div>
+                  <div class="flex flex-col p-6 md:p-8 gap-5">
+                    <div
+                      class="flex flex-wrap items-center justify-between gap-2"
+                    >
+                      <span
+                        class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] border border-[#BFCBDE] bg-[#F6F6FF] text-[12px] leading-[20px] font-bold text-[#331980]"
+                      >
+                        {{ (herramienta.institucion or 'Institución no
+                        disponible')|upper }}
+                      </span>
+                      <span
+                        class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[4px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}"
+                      >
+                        {{ herramienta.estado_label|upper }}
+                      </span>
+                    </div>
+
+                    <h4
+                      class="text-[18px] font-semibold text-[#184397] underline decoration-transparent hover:decoration-current transition"
+                    >
+                      {{ herramienta.nombre }}
+                    </h4>
+
+                    {% if herramienta.descripcion %}
+                    <p class="text-[14px] leading-6 text-gray-800">
+                      {{ herramienta.descripcion }}
+                    </p>
+                    {% endif %} {% if herramienta.es_capa %}
+                    <div class="space-y-4">
+                      {% if herramienta.servicios %}
+                      <div class="space-y-2">
+                        <div class="flex flex-wrap gap-2">
+                          <p class="text-sm font-semibold text-[#0B1221]">
+                            Servicios:
+                          </p>
+                          {% for servicio in herramienta.servicios %} {% set
+                          sigla_servicio = servicio.sigla or 'SERVICIO' %}
+                          <span
+                            class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if servicio.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}"
+                          >
+                            {{ sigla_servicio }}
+                          </span>
+                          {% endfor %}
+                        </div>
+                      </div>
+                      {% endif %} {% if herramienta.acciones %} {% set
+                      descarga_opciones = namespace(lista=[]) %} {% for servicio
+                      in herramienta.servicios %} {% if
+                      servicio.download_options and not descarga_opciones.lista
+                      %} {% set descarga_opciones.lista =
+                      servicio.download_options %} {% endif %} {% endfor %}
+                      <div class="flex flex-wrap gap-3 items-center">
+                        {% for accion in herramienta.acciones %} {% if
+                        accion.tipo == 'view_map' %}
+                        <a
+                          href="{{ accion.url }}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition"
+                        >
+                          <i class="fa-solid fa-map-location-dot text-sm"></i>
+                          <span>Ver mapa</span>
+                        </a>
+                        {% elif accion.tipo == 'copy' %}
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                          data-copy-url="{{ accion.url }}"
+                          data-copy-label="{{ accion.sigla }}"
+                        >
+                          <i class="fa-solid fa-link text-sm"></i>
+                          <span class="js-copy-button-text"
+                            >Copiar URL {{ accion.sigla }}</span
+                          >
+                        </button>
+                        {% endif %} {% endfor %} {% if descarga_opciones.lista
+                        %}
+                        <label
+                          class="flex items-center gap-2 text-sm font-semibold text-[#0F172A]"
+                        >
+                          <select
+                            class="js-descarga-select h-[44px] rounded-[8px] border-2 border-[#0F172A] px-6 text-[#0F172A] font-semibold hover:border-[#184397] focus:outline-none"
+                          >
+                            <option value="" selected disabled>
+                              [ Descargar elegir formato ]
+                            </option>
+                            {% for opcion in descarga_opciones.lista %}
+                            <option value="{{ opcion.url }}">
+                              {{ opcion.label }}
+                            </option>
+                            {% endfor %}
+                          </select>
+                        </label>
+                        {% endif %}
+                      </div>
+                      {% elif herramienta.servicios %}
+                      <div class="flex flex-wrap gap-3 items-center">
+                        {% for servicio in herramienta.servicios %} {% if
+                        servicio.copy_url %}
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                          data-copy-url="{{ servicio.copy_url }}"
+                          data-copy-label="{{ servicio.sigla }}"
+                        >
+                          <i class="fa-solid fa-link text-sm"></i>
+                          <span class="js-copy-button-text"
+                            >Copiar URL {{ servicio.sigla }}</span
+                          >
+                        </button>
+                        {% endif %} {% endfor %}
+                      </div>
+                      {% else %}
+                      <p class="text-sm text-gray-600">
+                        No se registraron servicios geográficos para esta capa.
+                      </p>
+                      {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="space-y-2 text-[14px] text-black">
+                      <p class="flex flex-wrap items-center gap-2">
+                        <span class="font-semibold">Servicio:</span>
+                        <span
+                          class="inline-flex items-center justify-center gap-1 px-2 py-[2px] rounded-[6px] text-[12px] leading-[20px] font-bold {% if herramienta.estado_is_active %}border border-[#16A34A] text-[#166534] bg-[#F0FDF4]{% else %}border border-[#DC2626] text-[#991B1B] bg-[#FEF2F2]{% endif %}"
+                        >
+                          {{ (herramienta.tipo or 'Sin registro') }}
+                        </span>
+                      </p>
+                      {% if herramienta.institucion %}
+                      <p>
+                        <span class="font-semibold">Recurso:</span>
+                        {{ herramienta.recurso }}
+                      </p>
+                      {% endif %}
+                    </div>
+                    <div class="pt-2">
+                      {% if herramienta.recurso %}
+                      <div class="flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-8 py-[14px] hover:bg-[#0F172A] hover:text-white transition js-copy-url"
+                          data-copy-url="{{ herramienta.recurso }}"
+                          data-copy-label="Recurso"
+                        >
+                          <i class="fa-solid fa-link text-sm"></i>
+                          <span class="js-copy-button-text"
+                            >Copiar recurso</span
+                          >
+                        </button>
+                        {% if herramienta.estado_is_active %}
+                        <a
+                          href="{{ herramienta.recurso }}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition"
+                        >
+                          <i
+                            class="fa-solid fa-arrow-up-right-from-square text-sm"
+                          ></i>
+                          <span>Ir al recurso</span>
+                        </a>
+                        {% else %}
+                        <span
+                          class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#9CA3AF] text-[#9CA3AF] font-semibold px-8 py-[14px] cursor-not-allowed"
+                        >
+                          <i
+                            class="fa-solid fa-arrow-up-right-from-square text-sm"
+                          ></i>
+                          <span>Ir al recurso</span>
+                        </span>
+                        {% endif %}
+                      </div>
+                      {% else %}
+                      <span
+                        class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#9CA3AF] text-[#9CA3AF] font-semibold px-8 py-[14px] cursor-not-allowed"
+                      >
+                        <i
+                          class="fa-solid fa-arrow-up-right-from-square text-sm"
+                        ></i>
+                        <span>Ir al recurso</span>
+                      </span>
+                      {% endif %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %} {% elif selected_tipo or applied_filters %}
+          <div
+            class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl"
+          >
+            <p class="text-[16px] text-gray-600">
+              No se encontraron resultados para los filtros seleccionados.
+            </p>
+          </div>
+          {% else %}
+          <div
+            class="text-center py-12 border border-dashed border-[#BFCBDE] rounded-2xl"
+          >
+            <p class="text-[16px] text-gray-600">
+              Selecciona un tipo de servicio para ver los resultados
+              disponibles.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% include 'geoportal/pie_pagina.html' %}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const baseCatalogUrl = "{{ catalogo_url }}";
+        const serviceSelect = document.getElementById("tipos");
+        const categorySelect = document.getElementById("categoria");
+        const institutionSelect = document.getElementById("entidad");
+        const searchInput = document.getElementById("texto_busqueda");
+        const orderSelect = document.getElementById("ordenar");
+        const entitySearchInput = document.getElementById("entidadSearch");
+        const clearButton = document.getElementById("clear-filters");
+        const searchTokenInput = document.querySelector(
+          'input[name="search_token"]',
+        );
+        const filterButtons = document.querySelectorAll(".js-remove-filter");
+
+        let institutionOptions = [];
+        if (institutionSelect) {
+          institutionOptions = Array.from(institutionSelect.options);
+          institutionOptions.forEach((option) => {
+            if (!option || !option.value) {
+              option.hidden = false;
+              return;
+            }
+            const sigla = option.dataset.sigla || "";
+            option.dataset.searchTerm =
+              `${option.textContent} ${sigla}`.toLowerCase();
+          });
+        }
+
+        function normalizeText(value) {
+          return (value || "").toString().trim().toLowerCase();
+        }
+
+        function buildUrl() {
+          const slug = serviceSelect ? serviceSelect.value : "";
+          const params = new URLSearchParams();
+
+          if (categorySelect && categorySelect.value) {
+            params.set("id_categoria", categorySelect.value);
+          }
+
+          if (institutionSelect && institutionSelect.value) {
+            params.set("id_institucion", institutionSelect.value);
+          }
+
+          const searchValue = searchInput ? searchInput.value.trim() : "";
+          if (searchValue) {
+            params.set("filter_terms", searchValue);
+          }
+
+          if (searchTokenInput && searchTokenInput.value && searchValue) {
+            params.set("search_token", searchTokenInput.value);
+          }
+
+          if (orderSelect && orderSelect.value) {
+            params.set("ordenar", orderSelect.value);
+          }
+
+          let url = baseCatalogUrl;
+          if (slug) {
+            url = `${baseCatalogUrl}/${slug}`;
+          }
+
+          const queryString = params.toString();
+          if (queryString) {
+            url += `?${queryString}`;
+          }
+
+          return url;
+        }
+
+        function navigateWithFilters(event) {
+          if (event && event.preventDefault) {
+            event.preventDefault();
+          }
+          if (
+            entitySearchInput &&
+            institutionSelect &&
+            entitySearchInput.value
+          ) {
+            const match = findBestEntityMatch(entitySearchInput.value);
+            if (match) {
+              institutionSelect.value = match.value;
+            }
+          }
+          const destination = buildUrl();
+          window.location.href = destination;
+        }
+
+        function findExactEntityMatch(query) {
+          if (!query) {
+            return null;
+          }
+          const normalizedQuery = normalizeText(query);
+          let exactMatch = null;
+          institutionOptions.forEach((option) => {
+            if (!option || !option.value || exactMatch) {
+              return;
+            }
+            const sigla = normalizeText(option.dataset.sigla);
+            const label = normalizeText(option.textContent);
+            if (
+              (sigla && sigla === normalizedQuery) ||
+              label === normalizedQuery
+            ) {
+              exactMatch = option;
+            }
+          });
+          return exactMatch;
+        }
+
+        function findBestEntityMatch(query) {
+          if (!query) {
+            return null;
+          }
+          const normalizedQuery = normalizeText(query);
+          let partialMatch = null;
+          institutionOptions.forEach((option) => {
+            if (!option || !option.value || partialMatch) {
+              return;
+            }
+            const searchTerm =
+              option.dataset.searchTerm || normalizeText(option.textContent);
+            if (searchTerm.includes(normalizedQuery)) {
+              partialMatch = option;
+            }
+          });
+          return findExactEntityMatch(query) || partialMatch;
+        }
+
+        function applyEntityFilter(resetSelection = false) {
+          if (!institutionSelect || !institutionOptions.length) {
+            return;
+          }
+
+          if (resetSelection) {
+            institutionSelect.value = "";
+          }
+
+          const query = entitySearchInput
+            ? normalizeText(entitySearchInput.value)
+            : "";
+          const selectedValue = institutionSelect.value;
+          const exactMatch = findExactEntityMatch(query);
+
+          if (exactMatch) {
+            institutionSelect.value = exactMatch.value;
+          }
+
+          if (!query) {
+            let visible = 0;
+            institutionOptions.forEach((option) => {
+              if (!option.value) {
+                option.hidden = false;
+                return;
+              }
+              if (option.value === selectedValue) {
+                option.hidden = false;
+                return;
+              }
+              if (visible < 10) {
+                option.hidden = false;
+                visible += 1;
+              } else {
+                option.hidden = true;
+              }
+            });
+            return;
+          }
+
+          let visibleMatches = 0;
+          let hasExactMatch = false;
+
+          institutionOptions.forEach((option) => {
+            if (!option.value) {
+              option.hidden = false;
+              return;
+            }
+
+            const searchTerm =
+              option.dataset.searchTerm || normalizeText(option.textContent);
+            const matches = searchTerm.includes(query);
+
+            if (option.value === selectedValue) {
+              option.hidden = false;
+              if (matches) {
+                hasExactMatch = true;
+              }
+              return;
+            }
+
+            if (matches && visibleMatches < 10) {
+              option.hidden = false;
+              visibleMatches += 1;
+              hasExactMatch = true;
+            } else {
+              option.hidden = true;
+            }
+          });
+
+          if (!hasExactMatch) {
+            let fallbackVisible = visibleMatches;
+            institutionOptions.forEach((option) => {
+              if (!option.value || option.value === selectedValue) {
+                return;
+              }
+              if (fallbackVisible < 10) {
+                option.hidden = false;
+                fallbackVisible += 1;
+              }
+            });
+          }
+        }
+
+        if (serviceSelect) {
+          serviceSelect.addEventListener("change", navigateWithFilters);
+        }
+
+        if (categorySelect) {
+          categorySelect.addEventListener("change", navigateWithFilters);
+        }
+
+        if (institutionSelect) {
+          institutionSelect.addEventListener("change", (event) => {
+            applyEntityFilter();
+            navigateWithFilters(event);
+          });
+        }
+
+        if (orderSelect) {
+          orderSelect.addEventListener("change", navigateWithFilters);
+        }
+
+        if (entitySearchInput) {
+          entitySearchInput.addEventListener("input", () => {
+            applyEntityFilter();
+          });
+
+          entitySearchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
+              return;
+            }
+            event.preventDefault();
+            const match = findBestEntityMatch(entitySearchInput.value);
+            if (!match) {
+              return;
+            }
+            institutionSelect.value = match.value;
+            entitySearchInput.value = match.textContent.trim();
+            applyEntityFilter();
+            navigateWithFilters();
+          });
+        }
+
+        const form = document.getElementById("frm_buscar_catalogo");
+        if (form) {
+          form.addEventListener("submit", navigateWithFilters);
+        }
+
+        if (clearButton) {
+          clearButton.addEventListener("click", function () {
+            if (clearButton.hasAttribute("disabled")) {
+              return;
+            }
+            if (serviceSelect) {
+              serviceSelect.value = "";
+            }
+            if (categorySelect) {
+              categorySelect.value = "";
+            }
+            if (institutionSelect) {
+              institutionSelect.value = "";
+            }
+            if (searchInput) {
+              searchInput.value = "";
+            }
+            if (orderSelect) {
+              orderSelect.value = "";
+            }
+            if (entitySearchInput) {
+              entitySearchInput.value = "";
+            }
+            applyEntityFilter(true);
+            navigateWithFilters();
+          });
+        }
+
+        if (filterButtons.length) {
+          filterButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+              const filterType = button.getAttribute("data-filter-type");
+              switch (filterType) {
+                case "tipo":
+                  if (serviceSelect) {
+                    serviceSelect.value = "";
+                  }
+                  break;
+                case "categoria":
+                  if (categorySelect) {
+                    categorySelect.value = "";
+                  }
+                  break;
+                case "entidad":
+                  if (institutionSelect) {
+                    institutionSelect.value = "";
+                  }
+                  if (entitySearchInput) {
+                    entitySearchInput.value = "";
+                  }
+                  applyEntityFilter(true);
+                  break;
+                case "search":
+                  if (searchInput) {
+                    searchInput.value = "";
+                  }
+                  break;
+                case "estado":
+                  if (orderSelect) {
+                    orderSelect.value = "";
+                  }
+                  break;
+                default:
+                  break;
+              }
+              navigateWithFilters();
+            });
+          });
+        }
+
+        applyEntityFilter();
+
+        function setCopyFeedback(button, successText) {
+          if (!button) {
+            return;
+          }
+
+          const textContainer = button.querySelector(".js-copy-button-text");
+          if (!textContainer) {
+            return;
+          }
+          if (!textContainer.dataset.originalText) {
+            textContainer.dataset.originalText =
+              textContainer.textContent.trim();
+          }
+          textContainer.textContent = successText || "Copiado";
+          button.classList.add("copied");
+          window.setTimeout(() => {
+            textContainer.textContent =
+              textContainer.dataset.originalText || "Copiar URL";
+            button.classList.remove("copied");
+          }, 2000);
+        }
+
+        async function copiarAlPortapapeles(url) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            return true;
+          }
+          const temporal = document.createElement("input");
+          temporal.type = "text";
+          temporal.value = url;
+          temporal.setAttribute("aria-hidden", "true");
+          temporal.style.position = "absolute";
+          temporal.style.opacity = "0";
+          document.body.appendChild(temporal);
+          temporal.select();
+          let exito = false;
+          try {
+            exito = document.execCommand("copy");
+          } catch (error) {
+            console.error("No se pudo copiar la URL.", error);
+            exito = false;
+          }
+          document.body.removeChild(temporal);
+          return exito;
+        }
+
+        const copyButtons = document.querySelectorAll(".js-copy-url");
+        copyButtons.forEach((button) => {
+          button.addEventListener("click", async () => {
+            const url = button.getAttribute("data-copy-url");
+            if (!url) {
+              return;
+            }
+            const label = button.getAttribute("data-copy-label");
+            const successText = label ? `Copiado ${label}` : "Copiado";
+            try {
+              const resultado = await copiarAlPortapapeles(url);
+              if (resultado) {
+                setCopyFeedback(button, successText);
+              }
+            } catch (error) {
+              console.error("Error al copiar la URL.", error);
+            }
+          });
+        });
+
+        const downloadSelects = document.querySelectorAll(
+          ".js-descarga-select",
+        );
+        downloadSelects.forEach((select) => {
+          select.addEventListener("change", (event) => {
+            const selectedUrl = event.target.value;
+            if (!selectedUrl) {
+              return;
+            }
+            window.open(selectedUrl, "_blank", "noopener,noreferrer");
+            select.value = "";
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

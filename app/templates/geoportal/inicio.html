@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="keywords"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="description"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="author"
+      content="Secretaría de Gobierno Digital y Transformación Digital."
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+
+    <title>Geoportal IDEP</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-9NZG2MM9BE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-9NZG2MM9BE");
+    </script>
+
+    <script src="{{ url_for('static', filename='js/browser@4.js') }}"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+    />
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    {% include 'geoportal/cabecera.html' %}
+    <section class="bg-[#EEF3FB]">
+      <div class="max-w-screen-xl mx-auto px-6 py-[40px]">
+        <div
+          class="flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-[95px]"
+        >
+          <div class="w-full md:w-1/2">
+            <h1 class="text-[32px] leading-[40px] font-semibold text-black">
+              Catálogo Nacional de Servicios Georreferenciados
+            </h1>
+
+            <p
+              class="mt-3 max-w-[560px] text-justify leading-relaxed text-gray-700"
+            >
+              Acceso a los recursos geoespaciales de la Infraestructura de Datos
+              Espaciales del Perú (IDEP).
+            </p>
+
+            <form
+              name="frm_buscar_catalogo"
+              id="frm_buscar_catalogo"
+              method="get"
+              action="{{ catalogo_url }}"
+              class="mt-6 max-w-[560px]"
+            >
+              <input
+                type="hidden"
+                name="search_token"
+                value="{{ search_token }}"
+              />
+              <div
+                class="flex items-center border-2 border-[#26292E] rounded-[8px] bg-white px-2"
+              >
+                <input
+                  type="text"
+                  name="filter_terms"
+                  placeholder="Buscar geoportales, visores, metadatos, servicios de mapas"
+                  class="flex-1 h-12 px-2 text-gray-700 placeholder-gray-400 bg-transparent focus:outline-none focus:ring-0 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  class="flex items-center justify-center p-2 bg-[#26292E] rounded-[6px] hover:bg-black transition cursor-pointer"
+                  aria-label="Buscar en el catálogo"
+                >
+                  <i class="fas fa-search text-white text-base"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="w-full md:w-1/2 flex md:justify-end mt-8 md:mt-0">
+            <img
+              src="{{ url_for('static', filename='imagenes/catalogo.png') }}"
+              alt="catalogo"
+              class="w-full max-w-[450px] h-[300px] object-cover rounded-2xl shadow"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white">
+      <div class="max-w-screen-xl mx-auto px-6 py-[70px]">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center"
+        >
+          {% for estadistica in estadisticas %}
+          <div class="text-center">
+            <div class="font-bold text-[56px] leading-[62px] text-[#3D4053]">
+              {{ estadistica.display_value }}
+            </div>
+            <div class="font-bold mt-2 text-xs md:text-sm text-[#3D4053]">
+              {{ estadistica.label }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-[#EEF3FB]">
+      <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+        <h2
+          class="text-center text-[22px] md:text-[24px] font-semibold text-black"
+        >
+          Catálogo Nacional de Servicios Georreferenciados
+        </h2>
+
+        <div class="mt-8 flex items-stretch gap-6">
+          <button
+            type="button"
+            id="btnPrev"
+            class="hidden md:flex w-12 rounded-xl bg-[#26292E] text-white items-center justify-center self-stretch shrink-0 cursor-pointer"
+            aria-label="Anterior"
+          >
+            <span class="text-2xl">←</span>
+          </button>
+          <div
+            id="tiposServiciosGrid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 flex-1"
+          >
+            {% if tipos %} {% for tipo in tipos %}
+            <article
+              class="bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-8"
+            >
+              <div class="flex items-start gap-6">
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-blue-100 grid place-items-center p-[10px]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                  >
+                    {{ tipo.logotipo or 'layers' }}
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <a
+                    href="{{ url_for('geoportal.catalogo_por_tipo', slug=tipo.tag) }}"
+                    class="text-[#184397] font-semibold underline"
+                  >
+                    {{ tipo.nombre }}
+                  </a>
+                  {% if tipo.descripcion %}
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    {{ tipo.descripcion }}
+                  </p>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+            {% endfor %} {% else %}
+            <p class="text-gray-600 text-sm">
+              No se encontraron tipos de servicios disponibles.
+            </p>
+            {% endif %}
+          </div>
+
+          <button
+            type="button"
+            id="btnNext"
+            class="hidden md:flex w-12 rounded-xl bg-[#26292E] text-white items-center justify-center self-stretch shrink-0 cursor-pointer"
+            aria-label="Siguiente"
+          >
+            <span class="text-2xl">→</span>
+          </button>
+        </div>
+
+        <div class="mt-8 flex justify-center">
+          <a
+            href="{{ url_for('geoportal.catalogo') }}"
+            class="inline-flex items-center justify-center px-5 py-2.5 rounded-md border-2 border-[#184397] text-[#184397] font-medium hover:bg-[#184397]/5"
+            >Ir al catálogo de servicios
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white">
+      <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+        <div class="text-center max-w-3xl mx-auto">
+          <h3 class="text-[22px] md:text-[24px] font-semibold text-black">
+            Centro Nacional de Datos
+          </h3>
+          <p class="mt-3 text-gray-700 leading-relaxed">
+            Plataforma nacional que gestiona, dirige, articula y supervisa la
+            operación, educación, promoción, colaboración y cooperación de datos
+            a nivel nacional, con el fin de fortalecer la confianza y bienestar
+            de las personas en el entorno digital.
+          </p>
+        </div>
+
+        <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <a
+            href="https://www.gob.pe/cnd"
+            class="group block h-full"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <article
+              class="h-full rounded-2xl border border-[#E0E7F1] bg-white p-6 shadow-sm transition duration-150 group-hover:-translate-y-1 group-hover:shadow-md"
+            >
+              <div class="flex flex-col gap-4 h-full">
+                <div
+                  class="h-12 w-12 rounded-full bg-[#E6EDF7] grid place-items-center text-[#184397]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[26px] leading-none"
+                    >business</span
+                  >
+                </div>
+                <h4 class="text-[16px] font-semibold text-black leading-snug">
+                  Centro Nacional de Datos
+                </h4>
+                <p class="text-sm text-gray-700 leading-6 flex-1">
+                  Repositorio que articula la gestión y publicación de
+                  información digital del Estado.
+                </p>
+                <span
+                  class="text-[#184397] font-semibold text-sm inline-flex items-center gap-1"
+                >
+                  Ir al sitio <span class="text-lg leading-none">→</span>
+                </span>
+              </div>
+            </article>
+          </a>
+
+          <a
+            href="https://visor.geoperu.gob.pe/"
+            class="group block h-full"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <article
+              class="h-full rounded-2xl border border-[#E0E7F1] bg-white p-6 shadow-sm transition duration-150 group-hover:-translate-y-1 group-hover:shadow-md"
+            >
+              <div class="flex flex-col gap-4 h-full">
+                <div
+                  class="h-12 w-12 rounded-full bg-[#E6EDF7] grid place-items-center text-[#184397]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[26px] leading-none"
+                    >map</span
+                  >
+                </div>
+                <h4 class="text-[16px] font-semibold text-black leading-snug">
+                  Plataforma Nacional de Datos Georeferenciados - GEOPERU
+                </h4>
+                <p class="text-sm text-gray-700 leading-6 flex-1">
+                  Acceso centralizado a mapas y servicios geoespaciales para
+                  consulta y visualización.
+                </p>
+                <span
+                  class="text-[#184397] font-semibold text-sm inline-flex items-center gap-1"
+                >
+                  Ir al sitio <span class="text-lg leading-none">→</span>
+                </span>
+              </div>
+            </article>
+          </a>
+
+          <a
+            href="https://www.datosabiertos.gob.pe/"
+            class="group block h-full"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <article
+              class="h-full rounded-2xl border border-[#E0E7F1] bg-white p-6 shadow-sm transition duration-150 group-hover:-translate-y-1 group-hover:shadow-md"
+            >
+              <div class="flex flex-col gap-4 h-full">
+                <div
+                  class="h-12 w-12 rounded-full bg-[#E6EDF7] grid place-items-center text-[#184397]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[26px] leading-none"
+                    >dataset</span
+                  >
+                </div>
+                <h4 class="text-[16px] font-semibold text-black leading-snug">
+                  Plataforma Nacional de Datos Abiertos - PNDA
+                </h4>
+                <p class="text-sm text-gray-700 leading-6 flex-1">
+                  Portal para descubrir, descargar y reutilizar datos abiertos
+                  publicados por entidades públicas.
+                </p>
+                <span
+                  class="text-[#184397] font-semibold text-sm inline-flex items-center gap-1"
+                >
+                  Ir al sitio <span class="text-lg leading-none">→</span>
+                </span>
+              </div>
+            </article>
+          </a>
+
+          <a
+            href="https://catalogo.geoidep.gob.pe/metadatos"
+            class="group block h-full"
+          >
+            <article
+              class="h-full rounded-2xl border border-[#E0E7F1] bg-white p-6 shadow-sm transition duration-150 group-hover:-translate-y-1 group-hover:shadow-md"
+            >
+              <div class="flex flex-col gap-4 h-full">
+                <div
+                  class="h-12 w-12 rounded-full bg-[#E6EDF7] grid place-items-center text-[#184397]"
+                >
+                  <span
+                    class="material-symbols-outlined text-[26px] leading-none"
+                    >inventory_2</span
+                  >
+                </div>
+                <h4 class="text-[16px] font-semibold text-black leading-snug">
+                  Catálogo Nacional de Metadatos
+                </h4>
+                <p class="text-sm text-gray-700 leading-6 flex-1">
+                  Consulta las descripciones de datasets y servicios
+                  geoespaciales para conocer su contenido y calidad.
+                </p>
+                <span
+                  class="text-[#184397] font-semibold text-sm inline-flex items-center gap-1"
+                >
+                  Ir al sitio <span class="text-lg leading-none">→</span>
+                </span>
+              </div>
+            </article>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-[#EEF3FB]">
+      <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+          <div class="w-full md:w-1/2">
+            <h3
+              class="text-[22px] md:text-[24px] font-semibold text-black text-center md:text-left"
+            >
+              Sobre la Infraestructura de Datos Espaciales del Perú
+            </h3>
+            <p
+              class="mt-3 text-gray-700 leading-relaxed text-center md:text-left"
+            >
+              La IDEP es una red que organiza y comparte la información
+              geográfica del país. Reúne normas, instituciones y tecnología para
+              que los datos del territorio estén disponibles de forma rápida,
+              segura y confiable.
+              <br />
+              Las instituciones públicas y privadas que producen mapas y datos
+              geográficos los publican en internet usando formatos y protocolos
+              comunes, lo que permite que todos accedan a información
+              actualizada y oficial.
+              <br />
+              Gracias a la IDEP, es más fácil encontrar y usar información del
+              territorio para planificar, tomar decisiones y apoyar el
+              desarrollo del país.
+            </p>
+            <div class="mt-8 flex">
+              <a
+                href="{{ url_for('geoportal.idep') }}"
+                class="inline-flex items-center justify-center px-5 py-2.5 rounded-md border-2 border-[#184397] text-[#184397] font-medium hover:bg-[#184397]/5"
+                >Mas información<span class="text-2xl"> →</span>
+              </a>
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 md:flex md:justify-end">
+            <img
+              src="{{ url_for('static', filename='imagenes/que_es_idep.png') }}"
+              alt="Importancia la IDEP"
+              class="max-w-screen-xl md:max-w-[549px] md:h-[398px] object-cover rounded-2xl shadow"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white">
+      <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+        <h2
+          class="text-black text-center font-bold text-[30px] leading-[36px] [font-feature-settings:'liga'_off,'clig'_off]"
+        >
+          Nodos de la Infraestructura de Datos Espaciales
+        </h2>
+        <form name="frm_datos_catalogo" id="frm_datos_catalogo" method="post">
+          <div
+            class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center"
+          >
+            <input name="id_catalogo" type="hidden" value="" />
+            <input name="id_entidad" type="hidden" value="" />
+
+            <article
+              class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
+            >
+              <a
+                href="{{ url_for('geoportal.nodos_institucionales') }}"
+                class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
+              >
+                Nodos institucionales
+              </a>
+
+              <p
+                class="text-gray-700 text-sm leading-6 flex-1 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]"
+              >
+                Son las entidades responsables de producir, administrar y
+                compartir datos espaciales dentro de la IDE, actuando como
+                puntos clave de articulación y colaboración entre diferentes
+                niveles de gobierno y academia.
+              </p>
+            </article>
+
+            <article
+              class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
+            >
+              <a
+                href="{{ url_for('geoportal.nodos_regionales_locales') }}"
+                class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
+              >
+                Nodos regionales y locales
+              </a>
+
+              <p
+                class="text-gray-700 text-sm leading-6 flex-1 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]"
+              >
+                Son instancias descentralizadas como gobiernos regionales,
+                municipalidades u otras entidades locales que participan
+                activamente en la generación, gestión y difusión de información
+                geoespacial en su ámbito de su territorio.
+              </p>
+            </article>
+
+            <article
+              class="w-full sm:w-[360px] min-h-[252px] h-auto p-8 flex flex-col items-start gap-6 rounded-[12px] border-[1.5px] border-[#BFCBDE] bg-white shadow-sm"
+            >
+              <a
+                href="{{ url_for('geoportal.nodos_no_gubernamentales') }}"
+                class="text-[#184397] font-semibold underline leading-6 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]"
+              >
+                Nodos no gubernamentales e privados
+              </a>
+
+              <p
+                class="text-gray-700 text-sm leading-6 flex-1 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:3] [-webkit-box-orient:vertical]"
+              >
+                Son organizaciones de la sociedad civil, centros de
+                investigación, organismos internacionales, ONGs o empresas
+                privadas que participan en la producción, gestión o uso de
+                información geoespacial.
+              </p>
+            </article>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Google Analytics -->
+
+    {% include 'geoportal/pie_pagina.html' %}
+
+    <script>
+      (function () {
+        const pageSize = 6;
+        const grid = document.getElementById("tiposServiciosGrid");
+        if (!grid) return;
+
+        const items = Array.from(
+          grid.querySelectorAll(".sector-item, article"),
+        );
+        const nextBtn = document.getElementById("btnNext");
+        const prevBtn = document.getElementById("btnPrev");
+
+        let page = 0;
+        const maxPage = Math.ceil(items.length / pageSize) - 1;
+
+        function render() {
+          items.forEach((el, idx) => {
+            const p = Math.floor(idx / pageSize);
+            el.style.display = p === page ? "" : "none";
+          });
+
+          if (prevBtn) {
+            const hidePrev = page === 0;
+            prevBtn.disabled = hidePrev;
+            prevBtn.hidden = hidePrev;
+          }
+
+          if (nextBtn) {
+            const hideNext = page === maxPage;
+            nextBtn.disabled = hideNext;
+            nextBtn.hidden = hideNext;
+          }
+
+          if (maxPage <= 0) {
+            if (prevBtn) prevBtn.style.display = "none";
+            if (nextBtn) nextBtn.style.display = "none";
+          }
+        }
+
+        if (nextBtn)
+          nextBtn.addEventListener("click", () => {
+            if (page < maxPage) page++;
+            render();
+          });
+
+        if (prevBtn)
+          prevBtn.addEventListener("click", () => {
+            if (page > 0) page--;
+            render();
+          });
+
+        render();
+      })();
+    </script>
+  </body>
+</html>

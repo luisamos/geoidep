@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico' ) }}"
+    />
+    <title>GEOIDEP | Herramientas geográficas</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      .icono-tabla {
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+      }
+
+      .estado-icono {
+        font-size: 1.3rem;
+        display: inline-block;
+      }
+
+      .tabla-herramientas {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-herramientas th,
+      .tabla-herramientas td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .tabla-herramientas .col-indice {
+        width: 50px;
+      }
+
+      .tabla-herramientas .col-categoria,
+      .tabla-herramientas .col-tipo {
+        width: 140px;
+        white-space: normal;
+      }
+
+      .tabla-herramientas .col-nombre,
+      .tabla-herramientas .col-institucion {
+        max-width: 180px;
+      }
+
+      .tabla-herramientas .col-estado {
+        width: 90px;
+        text-align: center;
+      }
+
+      .tabla-herramientas .col-opciones {
+        width: 150px;
+      }
+
+      .icono-tabla.inferior {
+        margin: 0;
+      }
+
+      .estado-filtros-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        margin-bottom: 0;
+        flex-wrap: wrap;
+      }
+
+      .estado-filtros {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .estado-filtros-acciones {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .autocomplete-content {
+        max-height: 220px !important;
+        overflow-y: hidden !important;
+      }
+
+      @media (max-width: 600px) {
+        .estado-filtros-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+
+        .estado-filtros-acciones {
+          justify-content: flex-start;
+          width: 100%;
+        }
+      }
+
+      .autocomplete-content {
+        max-height: 200px !important;
+        overflow-y: hidden !important;
+      }
+
+      .filtros-aplicados {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .filtros-aplicados__label {
+        font-weight: 600;
+      }
+
+      .filtros-aplicados__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .filtro-tag {
+        border: 1px solid #90caf9;
+        border-radius: 16px;
+        padding: 2px 10px;
+        font-size: 0.85rem;
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        cursor: pointer;
+      }
+
+      .filtros-aplicados__clear[disabled] {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="row">
+          <div class="col s12">
+            <h3>Herramientas geográficas</h3>
+            <p class="flow-text">
+              Acceso a los recursos geoespaciales de la Infraestructura de Datos
+              Espaciales del Perú.
+            </p>
+          </div>
+          <div class="input-field col s12 m4 l3">
+            <select id="filtro_tipo">
+              <option value="" selected>Todos los tipos</option>
+              {% for tipo in tipos_servicio %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Tipo de recurso</label>
+          </div>
+          <div class="input-field col s12 m4 l3">
+            <input
+              id="txtFiltro"
+              type="text"
+              class="validate"
+              placeholder="Ingrese el nombre del recurso"
+            />
+            <label for="txtFiltro">Nombre del recurso</label>
+          </div>
+          <div class="input-field col s12 m4 l3">
+            <i class="material-icons prefix" style="font-size:1.5rem;top:0.6rem">business</i>
+            <input
+              id="filtroInstitucion"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej: IGN, MINAM, PCM…"
+              {% if not puede_editar_institucion %}disabled{% endif %}
+              {% if not puede_editar_institucion %}
+              value="{{ institucion_usuario.sigla or institucion_usuario.nombre if institucion_usuario else '' }}"
+              {% endif %}
+            />
+            <label for="filtroInstitucion">Buscar institución por sigla</label>
+            <span class="helper-text" id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
+          </div>
+          <div class="col s6 m2 l2">
+            <button id="btnBuscar" class="btn btn-small blue" type="button">
+              <i class="material-icons left">search</i> Buscar
+            </button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1">Sin filtros aplicados</span>
+              </div>
+              <button
+                id="btnLimpiarFiltros"
+                class="btn-flat filtros-aplicados__clear"
+                type="button"
+                disabled
+              >
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="estado-filtros-row">
+              <div class="estado-filtros">
+                <div class="switch">
+                  <label>
+                    Inactivo
+                    <input type="checkbox" id="switchActivos" checked />
+                    <span class="lever"></span>
+                    Activo
+                  </label>
+                </div>
+              </div>
+              <div class="estado-filtros-acciones">
+                <button
+                  id="btnAgregar"
+                  class="btn waves-light btn-small green"
+                  data-target="modalHerramienta"
+                  type="button"
+                >
+                  <i class="material-icons left">add</i>Nuevo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="max-height: 600px; overflow-y: auto">
+          <div class="col s12">
+            <table class="highlight tabla-herramientas" id="tablaHerramientas">
+              <thead>
+                <tr>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th class="col-categoria">Categoría</th>
+                  <th class="col-tipo">Tipo de recurso</th>
+                  <th class="col-nombre">Nombre</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-institucion">Institución</th>
+                  <th class="col-opciones">Opciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="institucionTag"
+      data-institucion-id="{{ institucion_usuario.id if institucion_usuario else '' }}"
+      data-institucion-nombre="{{ institucion_usuario.nombre if institucion_usuario else '' }}"
+      data-permite-editar="{{ 'true' if puede_editar_institucion else 'false' }}"
+      hidden
+    ></div>
+
+    <div id="modalHerramienta" class="modal">
+      <div class="modal-content">
+        <div
+          class="row center"
+          style="border-bottom: 3px solid rgba(1, 11, 100, 0.14)"
+        >
+          <h5 id="modalTituloHerramienta">NUEVA HERRAMIENTA DIGITAL</h5>
+          <img
+            id="imgClose_modal_layer"
+            alt="Cerrar ventana"
+            src="{{ url_for('static', filename='imagenes/close.png') }}"
+            style="position: absolute; right: 10px; top: 10px"
+          />
+        </div>
+        <form id="formHerramienta">
+          <div class="input-field">
+            <input id="nombre_herramienta" type="text" maxlength="200" />
+            <label for="nombre_herramienta">Nombre</label>
+          </div>
+
+          <div class="input-field">
+            <textarea
+              id="descripcion_herramienta"
+              class="materialize-textarea"
+              maxlength="800"
+            ></textarea>
+            <label for="descripcion_herramienta">Descripción (opcional)</label>
+          </div>
+
+          <div class="input-field">
+            <select id="tipo_herramienta">
+              <option value="" disabled selected>Seleccione tipo</option>
+              {% for tipo in tipos_servicio %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Tipo de recurso</label>
+          </div>
+
+          <div class="input-field">
+            <select id="categoria_herramienta">
+              <option value="" disabled selected>Seleccione categoría</option>
+              {% for categoria in categorias %}
+              <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Categoría</label>
+          </div>
+
+          {% if puede_editar_institucion %}
+          <input
+            type="hidden"
+            id="institucion_herramienta"
+            value="{{ institucion_usuario.id if institucion_usuario else '' }}"
+          />
+          <div class="input-field">
+            <input
+              type="text"
+              id="institucion_autocomplete"
+              class="autocomplete validate"
+              autocomplete="off"
+              required
+            />
+            <label for="institucion_autocomplete">Institución</label>
+            <span
+              class="helper-text"
+              data-error="Seleccione una institución válida"
+            ></span>
+          </div>
+          {% else %}
+          <input
+            type="hidden"
+            id="institucion_herramienta"
+            value="{{ institucion_usuario.id if institucion_usuario else '' }}"
+          />
+          <div class="input-field">
+            <label class="active" for="institucion_herramienta"
+              >Institución</label
+            >
+            <p id="institucionNombre">
+              {{ institucion_usuario.nombre if institucion_usuario else 'No
+              asociada' }}
+            </p>
+          </div>
+          {% endif %}
+
+          <div class="input-field">
+            <input id="recurso_herramienta" type="url" />
+            <label for="recurso_herramienta">URL del recurso (opcional)</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn-flat" type="button">Cancelar</button>
+        <button class="btn blue" id="btnGuardar" type="button">Guardar</button>
+      </div>
+    </div>
+
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align">
+        <h6 id="mensajeModalConfirmacion">
+          ¿Está seguro que desea eliminar el registro?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button
+          id="btnEliminarCancelar"
+          class="modal-close btn-flat"
+          type="button"
+        >
+          Cancelar
+        </button>
+        <button id="btnEliminarProceder" class="btn red" type="button">
+          Aceptar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const iconoEnlace =
+        "{{ url_for('static', filename='imagenes/enlace.png') }}";
+      const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
+      const iconoEliminar =
+        "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        const partes = document.cookie ? document.cookie.split("; ") : [];
+        for (const parte of partes) {
+          if (parte.startsWith(prefijo)) {
+            return decodeURIComponent(parte.slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      function obtenerTokenCSRF() {
+        return obtenerCookie("csrf_access_token");
+      }
+
+      function crearOpcionesJson(method, payload) {
+        const headers = {};
+        const token = obtenerTokenCSRF();
+        if (token) {
+          headers["X-CSRF-Token"] = token;
+        }
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
+      const puedeEditarInstitucion = {{ 'true' if puede_editar_institucion else 'false' }};
+
+      const ui = {
+        tablaHerramientasBody: null,
+        btnBuscar: null,
+        filtroTipo: null,
+        txtFiltro: null,
+        filtroInstitucion: null,
+        tagsFiltros: null,
+        btnLimpiarFiltros: null,
+        switchActivos: null,
+        btnAgregar: null,
+        formHerramienta: null,
+        modalTituloHerramienta: null,
+        btnGuardar: null,
+        modalHerramienta: null,
+        nombreHerramienta: null,
+        descripcionHerramienta: null,
+        tipoHerramienta: null,
+        categoriaHerramienta: null,
+        recursoHerramienta: null,
+        institucionTag: null,
+        institucionHerramienta: null,
+        institucionAutocomplete: null,
+        institucionNombre: null,
+        modalConfirmacion: null,
+        btnEliminarProceder: null,
+        btnEliminarCancelar: null,
+        imgCloseModalLayer: null,
+      };
+
+      let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
+      let herramientaEditandoId = null;
+      let herramientaEliminandoId = null;
+      const mapaInstitucionesPorId = new Map();
+      const mapaInstitucionesPorEtiqueta = new Map();
+      let institucionBaseId = '';
+      let institucionBaseNombre = '';
+
+      document.addEventListener("DOMContentLoaded", function () {
+        ui.tablaHerramientasBody = document.querySelector(
+          "#tablaHerramientas tbody"
+        );
+        ui.btnBuscar = document.getElementById("btnBuscar");
+        ui.filtroTipo = document.getElementById("filtro_tipo");
+        ui.txtFiltro = document.getElementById("txtFiltro");
+        ui.switchActivos = document.getElementById("switchActivos");
+        ui.btnAgregar = document.getElementById("btnAgregar");
+        ui.formHerramienta = document.getElementById("formHerramienta");
+        ui.modalTituloHerramienta = document.getElementById(
+          "modalTituloHerramienta"
+        );
+        ui.btnGuardar = document.getElementById("btnGuardar");
+        ui.modalHerramienta = document.getElementById("modalHerramienta");
+        ui.nombreHerramienta = document.getElementById("nombre_herramienta");
+        ui.descripcionHerramienta = document.getElementById(
+          "descripcion_herramienta"
+        );
+        ui.tipoHerramienta = document.getElementById(
+          "tipo_herramienta"
+        );
+        ui.categoriaHerramienta = document.getElementById(
+          "categoria_herramienta"
+        );
+        ui.recursoHerramienta = document.getElementById("recurso_herramienta");
+        ui.institucionTag = document.getElementById("institucionTag");
+        ui.institucionHerramienta = document.getElementById(
+          "institucion_herramienta"
+        );
+        ui.institucionAutocomplete = document.getElementById(
+          "institucion_autocomplete"
+        );
+        ui.institucionNombre = document.getElementById("institucionNombre");
+        ui.modalConfirmacion = document.getElementById("modalConfirmacion");
+        ui.btnEliminarProceder = document.getElementById("btnEliminarProceder");
+        ui.btnEliminarCancelar = document.getElementById("btnEliminarCancelar");
+        ui.imgCloseModalLayer = document.getElementById("imgClose_modal_layer");
+        ui.filtroInstitucion = document.getElementById("filtroInstitucion");
+        ui.tagsFiltros = document.getElementById("tagsFiltros");
+        ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
+
+        if (ui.institucionTag) {
+          institucionBaseId = ui.institucionTag.dataset.institucionId || '';
+          institucionBaseNombre =
+            ui.institucionTag.dataset.institucionNombre || '';
+        }
+
+        prepararDatosInstituciones();
+
+        const modalElems = document.querySelectorAll(".modal");
+        M.Modal.init(modalElems);
+        inicializarSelects();
+        inicializarBusquedaInstituciones();
+
+        if (ui.btnBuscar) {
+          ui.btnBuscar.addEventListener("click", cargarHerramientas);
+        }
+
+        if (ui.filtroTipo) {
+          ui.filtroTipo.addEventListener("change", renderHerramientas);
+        }
+
+        if (ui.txtFiltro) {
+          ui.txtFiltro.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+              cargarHerramientas();
+            }
+          });
+        }
+
+        if (ui.filtroInstitucion) {
+          ui.filtroInstitucion.addEventListener("input", () => {
+            renderHerramientas();
+          });
+          ui.filtroInstitucion.addEventListener("keyup", (event) => {
+            if (event.key === "Enter") {
+              renderHerramientas();
+            }
+          });
+        }
+
+        if (ui.btnLimpiarFiltros) {
+          ui.btnLimpiarFiltros.addEventListener("click", () => {
+            if (ui.btnLimpiarFiltros.disabled) return;
+            if (ui.filtroInstitucion && !ui.filtroInstitucion.disabled) {
+              ui.filtroInstitucion.value = "";
+              const hint = document.getElementById("filtroInstitucionHint");
+              if (hint) hint.textContent = "";
+            }
+            if (ui.txtFiltro) ui.txtFiltro.value = "";
+            if (ui.filtroTipo) {
+              ui.filtroTipo.value = "";
+              M.FormSelect.init(ui.filtroTipo);
+            }
+            renderHerramientas();
+          });
+        }
+
+        if (ui.tagsFiltros) {
+          ui.tagsFiltros.addEventListener("click", (event) => {
+            const tag = event.target.closest(".filtro-tag");
+            if (!tag) return;
+            const tipo = tag.dataset.tipo;
+            if (tipo === "institucion" && ui.filtroInstitucion && !ui.filtroInstitucion.disabled) {
+              ui.filtroInstitucion.value = "";
+              const hint = document.getElementById("filtroInstitucionHint");
+              if (hint) hint.textContent = "";
+            } else if (tipo === "texto" && ui.txtFiltro) {
+              ui.txtFiltro.value = "";
+            } else if (tipo === "tipo" && ui.filtroTipo) {
+              ui.filtroTipo.value = "";
+              M.FormSelect.init(ui.filtroTipo);
+            }
+            renderHerramientas();
+          });
+        }
+
+        if (ui.switchActivos) {
+          ui.switchActivos.addEventListener("change", renderHerramientas);
+        }
+
+        if (ui.btnAgregar) {
+          ui.btnAgregar.addEventListener("click", function () {
+            if (ui.formHerramienta) {
+              ui.formHerramienta.reset();
+            }
+            if (puedeEditarInstitucion) {
+              limpiarSeleccionInstitucion();
+            } else {
+              restablecerInstitucionBase();
+            }
+            herramientaEditandoId = null;
+            if (ui.modalTituloHerramienta) {
+              ui.modalTituloHerramienta.textContent =
+                "NUEVA HERRAMIENTA DIGITAL";
+            }
+            const modal = obtenerInstanciaModal(ui.modalHerramienta);
+            modal?.open();
+            setTimeout(() => {
+              inicializarSelects();
+              inicializarBusquedaInstituciones();
+              M.updateTextFields();
+              if (ui.descripcionHerramienta) {
+                ui.descripcionHerramienta.value = "";
+                M.textareaAutoResize(ui.descripcionHerramienta);
+              }
+            }, 0);
+          });
+        }
+
+        if (ui.imgCloseModalLayer) {
+          ui.imgCloseModalLayer.style.cursor = "pointer";
+          ui.imgCloseModalLayer.addEventListener("click", () => {
+            const modal = obtenerInstanciaModal(ui.modalHerramienta);
+            modal?.close();
+          });
+        }
+
+        if (ui.btnGuardar) {
+          ui.btnGuardar.addEventListener("click", function (event) {
+            event.preventDefault();
+            guardarHerramienta();
+          });
+        }
+
+        if (ui.tablaHerramientasBody) {
+          ui.tablaHerramientasBody.addEventListener(
+            "click",
+            manejarAccionesTabla
+          );
+        }
+
+        if (ui.btnEliminarProceder) {
+          ui.btnEliminarProceder.addEventListener(
+            "click",
+            confirmarEliminacion
+          );
+        }
+
+        if (ui.btnEliminarCancelar) {
+          ui.btnEliminarCancelar.addEventListener("click", () => {
+            herramientaEliminandoId = null;
+          });
+        }
+
+        if (ui.descripcionHerramienta) {
+          M.textareaAutoResize(ui.descripcionHerramienta);
+        }
+
+        cargarHerramientas();
+      });
+
+      async function cargarHerramientas() {
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
+        const query = new URLSearchParams();
+        if (filtroTipo) {
+          query.append("id_tipo", filtroTipo);
+        }
+        if (textoFiltro) {
+          query.append("q", textoFiltro);
+        }
+
+        try {
+          const resp = await fetch(
+            `/herramientas_geograficas/listar?${query.toString()}`
+          );
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(data.message || "Error al cargar la información");
+          }
+
+          herramientasCache = {
+            activos: data.activos || [],
+            inactivos: data.inactivos || [],
+            sin_estado: data.sin_estado || [],
+          };
+          renderHerramientas();
+        } catch (error) {
+          console.error("Error al cargar las herramientas geográficas", error);
+          M.toast({ html: "Error al cargar las herramientas geográficas" });
+        }
+      }
+
+      function inicializarSelects() {
+        const selects = document.querySelectorAll("select");
+        M.FormSelect.init(selects);
+      }
+
+      function prepararDatosInstituciones() {
+        mapaInstitucionesPorId.clear();
+        mapaInstitucionesPorEtiqueta.clear();
+        institucionesDisponibles.forEach((inst) => {
+          if (!inst || inst.id === undefined || inst.id === null) {
+            return;
+          }
+          const etiqueta = obtenerEtiquetaInstitucion(inst);
+          if (!etiqueta) {
+            return;
+          }
+          const info = {
+            id: String(inst.id),
+            nombre: inst.nombre || "",
+            sigla: inst.sigla || "",
+            etiqueta,
+          };
+          mapaInstitucionesPorId.set(info.id, info);
+          mapaInstitucionesPorEtiqueta.set(etiqueta.toLowerCase(), info);
+        });
+      }
+
+      function obtenerEtiquetaInstitucion(institucion) {
+        if (!institucion) {
+          return "";
+        }
+        const nombre = (institucion.nombre || "").trim();
+        const sigla = (institucion.sigla || "").trim();
+        if (!nombre) {
+          return "";
+        }
+        return sigla ? `${nombre} - ${sigla}` : nombre;
+      }
+
+      function inicializarBusquedaInstituciones() {
+        if (!puedeEditarInstitucion) {
+          restablecerInstitucionBase();
+          actualizarEtiquetaInstitucionBase();
+          return;
+        }
+
+        const input = ui.institucionAutocomplete;
+        if (!input) {
+          return;
+        }
+
+        const data = {};
+        mapaInstitucionesPorId.forEach((info) => {
+          if (info.etiqueta) {
+            data[info.etiqueta] = null;
+          }
+        });
+
+        let instance = M.Autocomplete.getInstance(input);
+        if (instance) {
+          instance.updateData(data);
+          instance.options.limit = 5;
+        } else {
+          instance = M.Autocomplete.init(input, {
+            data,
+            minLength: 0,
+            limit: 5,
+            onAutocomplete: (seleccion) => {
+              const info = mapaInstitucionesPorEtiqueta.get(
+                (seleccion || "").toLowerCase()
+              );
+              if (info) {
+                if (ui.institucionHerramienta) {
+                  ui.institucionHerramienta.value = info.id;
+                }
+                input.value = info.etiqueta;
+                input.classList.remove("invalid");
+              }
+            },
+          });
+          input.dataset.autocompleteInicializado = "true";
+          input.addEventListener("focus", () => {
+            const autocomplete = M.Autocomplete.getInstance(input);
+            autocomplete?.open();
+          });
+          input.addEventListener("input", () => {
+            if (ui.institucionHerramienta) {
+              ui.institucionHerramienta.value = "";
+            }
+            input.classList.remove("invalid");
+          });
+          input.addEventListener("blur", () => {
+            validarInstitucionSeleccionada();
+          });
+        }
+
+        if (ui.institucionHerramienta?.value) {
+          establecerInstitucionSeleccionadaPorId(
+            ui.institucionHerramienta.value
+          );
+        } else {
+          limpiarSeleccionInstitucion();
+        }
+      }
+
+      function limpiarSeleccionInstitucion() {
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = "";
+        }
+        if (ui.institucionAutocomplete) {
+          ui.institucionAutocomplete.value = "";
+          ui.institucionAutocomplete.classList.remove("invalid");
+          M.updateTextFields();
+        }
+      }
+
+      function restablecerInstitucionBase() {
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = institucionBaseId || "";
+        }
+        if (puedeEditarInstitucion && ui.institucionAutocomplete) {
+          ui.institucionAutocomplete.value = "";
+          ui.institucionAutocomplete.classList.remove("invalid");
+          M.updateTextFields();
+        } else {
+          actualizarEtiquetaInstitucionBase();
+        }
+      }
+
+      function actualizarEtiquetaInstitucionBase() {
+        if (puedeEditarInstitucion) {
+          return;
+        }
+        if (ui.institucionNombre) {
+          const texto = institucionBaseNombre || "No asociada";
+          ui.institucionNombre.textContent = texto;
+        }
+      }
+
+      function validarInstitucionSeleccionada() {
+        if (!puedeEditarInstitucion) {
+          return Boolean(ui.institucionHerramienta?.value || institucionBaseId);
+        }
+        const input = ui.institucionAutocomplete;
+        if (!input) {
+          return false;
+        }
+        const valorTexto = input.value.trim();
+        if (!valorTexto) {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = "";
+          }
+          input.classList.add("invalid");
+          return false;
+        }
+        const info = mapaInstitucionesPorEtiqueta.get(valorTexto.toLowerCase());
+        if (info) {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = info.id;
+          }
+          input.value = info.etiqueta;
+          input.classList.remove("invalid");
+          return true;
+        }
+        if (ui.institucionHerramienta) {
+          ui.institucionHerramienta.value = "";
+        }
+        input.classList.add("invalid");
+        return false;
+      }
+
+      function establecerInstitucionSeleccionadaPorId(
+        id,
+        nombreAlternativo = ""
+      ) {
+        const valorId = id != null ? String(id) : "";
+        if (puedeEditarInstitucion) {
+          const info = valorId ? mapaInstitucionesPorId.get(valorId) : null;
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = info ? info.id : valorId;
+          }
+          if (ui.institucionAutocomplete) {
+            ui.institucionAutocomplete.value = info
+              ? info.etiqueta
+              : nombreAlternativo || "";
+            ui.institucionAutocomplete.classList.remove("invalid");
+            M.updateTextFields();
+          }
+        } else {
+          if (ui.institucionHerramienta) {
+            ui.institucionHerramienta.value = valorId;
+          }
+          const info = valorId ? mapaInstitucionesPorId.get(valorId) : null;
+          institucionBaseId = valorId;
+          institucionBaseNombre = info
+            ? info.nombre || info.etiqueta
+            : nombreAlternativo || institucionBaseNombre;
+          if (ui.institucionTag) {
+            ui.institucionTag.dataset.institucionId = institucionBaseId;
+            ui.institucionTag.dataset.institucionNombre = institucionBaseNombre;
+          }
+          actualizarEtiquetaInstitucionBase();
+        }
+      }
+
+      function renderHerramientas() {
+        const tbody = ui.tablaHerramientasBody;
+        if (!tbody) {
+          return;
+        }
+        tbody.innerHTML = "";
+
+        const mostrarSoloActivos =
+          ui.switchActivos && !ui.switchActivos.checked ? false : true;
+
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
+        const filtroInstitucionTexto =
+          ui.filtroInstitucion && !ui.filtroInstitucion.disabled
+            ? ui.filtroInstitucion.value.trim().toLowerCase()
+            : "";
+
+        let herramientas = [];
+
+        if (mostrarSoloActivos) {
+          herramientas = herramientas.concat(herramientasCache.activos || []);
+        } else {
+          herramientas = herramientas.concat(herramientasCache.inactivos || []);
+        }
+
+        herramientas = herramientas.concat(herramientasCache.sin_estado || []);
+
+        if (filtroTipo) {
+          herramientas = herramientas.filter(
+            (item) => String(item.id_tipo) === String(filtroTipo)
+          );
+        }
+
+        if (textoFiltro) {
+          const filtro = textoFiltro.toLowerCase();
+          herramientas = herramientas.filter((item) => {
+            const nombre = item.nombre ? item.nombre.toLowerCase() : "";
+            const categoria = item.categoria
+              ? item.categoria.toLowerCase()
+              : "";
+            return nombre.includes(filtro) || categoria.includes(filtro);
+          });
+        }
+
+        if (filtroInstitucionTexto) {
+          herramientas = herramientas.filter((item) => {
+            const info = item.id_institucion
+              ? mapaInstitucionesPorId.get(String(item.id_institucion))
+              : null;
+            const sigla = info ? (info.sigla || "").toLowerCase() : "";
+            const nombre = (item.institucion || (info ? info.nombre : "") || "").toLowerCase();
+            return sigla.includes(filtroInstitucionTexto) || nombre.includes(filtroInstitucionTexto);
+          });
+          actualizarHintInstitucion(herramientas.length);
+        } else {
+          const hint = document.getElementById("filtroInstitucionHint");
+          if (hint) hint.textContent = "";
+        }
+
+        actualizarTagsFiltros();
+
+        if (herramientas.length === 0) {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+            <td colspan="7" class="center-align">
+              No se encontraron herramientas geográficas con los criterios seleccionados.
+            </td>
+          `;
+          tbody.appendChild(fila);
+          return;
+        }
+
+        herramientas.forEach((herramienta, index) => {
+          const fila = document.createElement("tr");
+
+          const categoria =
+            herramienta.categoria != null
+              ? escaparHtml(herramienta.categoria)
+              : "-";
+          const tipo =
+            herramienta.tipo != null
+              ? escaparHtml(herramienta.tipo)
+              : "-";
+          const nombre = escaparHtml(herramienta.nombre || "");
+          const institucion =
+            herramienta.institucion != null
+              ? escaparHtml(herramienta.institucion)
+              : "-";
+          const estadoIcono = herramienta.estado_icono || "⚪";
+          const estadoTexto = herramienta.estado_display || "Sin estado";
+          const estadoTooltip = escaparHtml(estadoTexto);
+
+          fila.innerHTML = `
+            <td class="col-indice" style="padding-left: 20px">${index + 1}</td>
+            <td class="col-categoria">${categoria}</td>
+            <td class="col-tipo">${tipo}</td>
+            <td class="col-nombre">${nombre}</td>
+            <td class="col-estado">
+              <span class="estado-icono" title="${estadoTooltip}">${estadoIcono}</span>
+            </td>
+            <td class="col-institucion">${institucion}</td>
+            <td class="col-opciones">
+                  <img
+                    src="${iconoEnlace}"
+                    class="icono-tabla accion-enlace"
+                    alt="Ir al recurso"
+                    title="Ir al recurso"
+                  />
+                  <img
+                    src="${iconoEditar}"
+                    class="icono-tabla accion-editar"
+                    data-id="${herramienta.id}"
+                    alt="Editar"
+                    title="Editar"
+                  />
+                  <img
+                    src="${iconoEliminar}"
+                    class="icono-tabla accion-eliminar"
+                    data-id="${herramienta.id}"
+                    alt="Eliminar"
+                    title="Eliminar"
+                  />
+              </div>
+            </td>
+          `;
+
+          const iconoRecurso = fila.querySelector(".accion-enlace");
+          if (iconoRecurso) {
+            iconoRecurso.dataset.recurso = herramienta.recurso || "";
+          }
+
+          tbody.appendChild(fila);
+        });
+      }
+
+      function buscarHerramientaPorId(id) {
+        const conjuntos = [
+          herramientasCache.activos,
+          herramientasCache.inactivos,
+          herramientasCache.sin_estado,
+        ];
+        for (const lista of conjuntos) {
+          if (!Array.isArray(lista)) {
+            continue;
+          }
+          const encontrada = lista.find((item) => Number(item.id) === id);
+          if (encontrada) {
+            return encontrada;
+          }
+        }
+        return null;
+      }
+
+      function escaparHtml(texto) {
+        const div = document.createElement("div");
+        div.textContent = texto;
+        return div.innerHTML;
+      }
+
+      async function guardarHerramienta() {
+        const nombre = (ui.nombreHerramienta?.value || "").trim();
+        const descripcion = (ui.descripcionHerramienta?.value || "").trim();
+        const tipo = ui.tipoHerramienta
+          ? ui.tipoHerramienta.value
+          : "";
+        const categoria = ui.categoriaHerramienta
+          ? ui.categoriaHerramienta.value
+          : "";
+        const recurso = (ui.recursoHerramienta?.value || "").trim();
+
+        let institucionSeleccionada = ui.institucionHerramienta
+          ? Number(ui.institucionHerramienta.value || 0)
+          : 0;
+        if (puedeEditarInstitucion) {
+          if (!validarInstitucionSeleccionada()) {
+            M.toast({ html: "Seleccione una institución válida." });
+            return;
+          }
+          institucionSeleccionada = ui.institucionHerramienta
+            ? Number(ui.institucionHerramienta.value || 0)
+            : 0;
+        } else if (!institucionSeleccionada) {
+          institucionSeleccionada = Number(institucionBaseId || 0);
+        }
+
+        const esEdicion = Boolean(herramientaEditandoId);
+
+        if (!nombre || !tipo || !categoria) {
+          M.toast({ html: "Complete los campos obligatorios." });
+          return;
+        }
+
+        if (!institucionSeleccionada) {
+          M.toast({
+            html: "No se encontró la institución asociada al usuario.",
+          });
+          return;
+        }
+
+        const payload = {
+          nombre: nombre,
+          id_tipo: Number(tipo),
+          id_categoria: Number(categoria),
+          descripcion: descripcion,
+          recurso: recurso,
+          id_institucion: institucionSeleccionada,
+        };
+
+        try {
+          const url = esEdicion
+            ? `/herramientas_geograficas/${herramientaEditandoId}`
+            : "/herramientas_geograficas/guardar";
+          const method = esEdicion ? "PUT" : "POST";
+          const resp = await fetch(url, crearOpcionesJson(method, payload));
+          const resultado = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(
+              resultado.message ||
+                (esEdicion
+                  ? "No se pudo actualizar la herramienta"
+                  : "No se pudo registrar la herramienta")
+            );
+          }
+
+          const mensajeExito = esEdicion
+            ? "Herramienta actualizada correctamente"
+            : "Herramienta registrada correctamente";
+          M.toast({ html: mensajeExito });
+          const modal = obtenerInstanciaModal(ui.modalHerramienta);
+          modal?.close();
+          if (ui.formHerramienta) {
+            ui.formHerramienta.reset();
+          }
+          inicializarSelects();
+          inicializarBusquedaInstituciones();
+          M.updateTextFields();
+          if (puedeEditarInstitucion) {
+            limpiarSeleccionInstitucion();
+          } else {
+            const valorId = String(institucionSeleccionada || '');
+            if (ui.institucionTag) {
+              ui.institucionTag.dataset.institucionId = valorId;
+            }
+            const info = mapaInstitucionesPorId.get(valorId);
+            const nombreBase = info
+              ? info.nombre || info.etiqueta
+              : ui.institucionTag?.dataset.institucionNombre || '';
+            institucionBaseId = valorId;
+            institucionBaseNombre = nombreBase || institucionBaseNombre;
+            if (ui.institucionTag) {
+              ui.institucionTag.dataset.institucionNombre = institucionBaseNombre;
+            }
+            restablecerInstitucionBase();
+          }
+          if (ui.modalTituloHerramienta) {
+            ui.modalTituloHerramienta.textContent = "NUEVA HERRAMIENTA DIGITAL";
+          }
+          if (ui.descripcionHerramienta) {
+            ui.descripcionHerramienta.value = "";
+            M.textareaAutoResize(ui.descripcionHerramienta);
+          }
+          herramientaEditandoId = null;
+          cargarHerramientas();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar la herramienta" });
+        }
+      }
+
+      function manejarAccionesTabla(event) {
+        const target = event.target;
+        if (target.classList.contains("accion-enlace")) {
+          const recurso = target.dataset.recurso;
+          if (!recurso) {
+            M.toast({ html: "La herramienta no tiene un recurso disponible." });
+            return;
+          }
+          window.open(recurso, "_blank", "noopener");
+          return;
+        }
+
+        if (target.classList.contains("accion-editar")) {
+          const id = Number(target.dataset.id);
+          const herramienta = buscarHerramientaPorId(id);
+          if (!herramienta) {
+            M.toast({
+              html: "No se encontró la información de la herramienta",
+            });
+            return;
+          }
+          abrirModalEdicion(herramienta);
+        } else if (target.classList.contains("accion-eliminar")) {
+          const id = Number(target.dataset.id);
+          solicitarConfirmacionEliminacion(id);
+        }
+      }
+
+      function abrirModalEdicion(herramienta) {
+        herramientaEditandoId = herramienta.id;
+        if (ui.modalTituloHerramienta) {
+          ui.modalTituloHerramienta.textContent = "EDITAR HERRAMIENTA DIGITAL";
+        }
+
+        if (ui.nombreHerramienta) {
+          ui.nombreHerramienta.value = herramienta.nombre || "";
+        }
+        if (ui.descripcionHerramienta) {
+          ui.descripcionHerramienta.value = herramienta.descripcion || "";
+          M.textareaAutoResize(ui.descripcionHerramienta);
+        }
+        establecerValorSelect(
+          ui.tipoHerramienta,
+          herramienta.id_tipo
+        );
+        establecerValorSelect(
+          ui.categoriaHerramienta,
+          herramienta.id_categoria
+        );
+        if (ui.recursoHerramienta) {
+          ui.recursoHerramienta.value = herramienta.recurso || "";
+        }
+        if (puedeEditarInstitucion) {
+          establecerInstitucionSeleccionadaPorId(
+            herramienta.id_institucion,
+            herramienta.institucion || ""
+          );
+        } else if (ui.institucionTag) {
+          ui.institucionTag.dataset.institucionId =
+            herramienta.id_institucion != null
+              ? String(herramienta.id_institucion)
+              : "";
+          ui.institucionTag.dataset.institucionNombre =
+            herramienta.institucion || ui.institucionTag.dataset.institucionNombre || "";
+          institucionBaseId = ui.institucionTag.dataset.institucionId || "";
+          institucionBaseNombre =
+            ui.institucionTag.dataset.institucionNombre || institucionBaseNombre;
+          restablecerInstitucionBase();
+        }
+
+        inicializarSelects();
+        inicializarBusquedaInstituciones();
+        M.updateTextFields();
+
+        const modal = obtenerInstanciaModal(ui.modalHerramienta);
+        modal?.open();
+      }
+
+      function establecerValorSelect(select, valor) {
+        if (!select) {
+          return;
+        }
+        select.value = valor == null ? "" : String(valor);
+        const instanciaExistente = M.FormSelect.getInstance(select);
+        if (instanciaExistente) {
+          instanciaExistente.destroy();
+        }
+        M.FormSelect.init(select);
+      }
+
+      function solicitarConfirmacionEliminacion(id) {
+        herramientaEliminandoId = id;
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.open();
+      }
+
+      async function confirmarEliminacion() {
+        if (!herramientaEliminandoId) {
+          cerrarModalConfirmacion();
+          return;
+        }
+        await eliminarHerramienta(herramientaEliminandoId);
+      }
+
+      function cerrarModalConfirmacion() {
+        const modal = obtenerInstanciaModal(ui.modalConfirmacion);
+        modal?.close();
+        herramientaEliminandoId = null;
+      }
+
+      function obtenerInstanciaModal(elemento) {
+        return elemento ? M.Modal.getInstance(elemento) : null;
+      }
+
+      function actualizarHintInstitucion(count) {
+        if (!ui.filtroInstitucion || ui.filtroInstitucion.disabled) return;
+        const texto = ui.filtroInstitucion.value.trim().toLowerCase();
+        const hint = document.getElementById("filtroInstitucionHint");
+        if (!hint) return;
+        if (!texto) { hint.textContent = ""; return; }
+        hint.textContent = count === 0
+          ? "Sin coincidencias"
+          : `${count} resultado${count !== 1 ? "s" : ""}`;
+      }
+
+      function actualizarTagsFiltros() {
+        if (!ui.tagsFiltros) return;
+        const tags = [];
+
+        const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
+        if (textoFiltro) {
+          tags.push({ tipo: "texto", label: `Nombre: ${textoFiltro}` });
+        }
+
+        const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
+        if (filtroTipo) {
+          const opt = ui.filtroTipo.querySelector(`option[value="${filtroTipo}"]`);
+          const tipoNombre = opt ? opt.textContent.trim() : filtroTipo;
+          tags.push({ tipo: "tipo", label: `Tipo: ${tipoNombre}` });
+        }
+
+        const filtroInstitucionTexto =
+          ui.filtroInstitucion && !ui.filtroInstitucion.disabled
+            ? ui.filtroInstitucion.value.trim()
+            : "";
+        if (filtroInstitucionTexto) {
+          tags.push({ tipo: "institucion", label: `Institución: ${filtroInstitucionTexto}` });
+        }
+
+        if (tags.length === 0) {
+          ui.tagsFiltros.innerHTML = '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+        } else {
+          ui.tagsFiltros.innerHTML = tags
+            .map(t => `<span class="filtro-tag" data-tipo="${t.tipo}" title="Clic para quitar">${t.label} ✕</span>`)
+            .join("");
+        }
+
+        if (ui.btnLimpiarFiltros) {
+          ui.btnLimpiarFiltros.disabled = !tags.length;
+        }
+      }
+
+      async function eliminarHerramienta(id) {
+        try {
+          const resp = await fetch(
+            `/herramientas_geograficas/${id}`,
+            crearOpcionesJson("DELETE")
+          );
+          const resultado = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(
+              resultado.message || "No se pudo eliminar la herramienta"
+            );
+          }
+
+          M.toast({ html: "Herramienta eliminada correctamente" });
+          cerrarModalConfirmacion();
+          cargarHerramientas();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar la herramienta" });
+        }
+      }
+    </script>
+  </body>
+</html>

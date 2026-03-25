@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GEOIDEP | Detalle de estado</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+      .seccion-gestion {
+        margin-bottom: 40px;
+      }
+      .acciones-col {
+        white-space: nowrap;
+        width: 80px;
+        text-align: center;
+      }
+      .icono-accion {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        margin-right: 4px;
+      }
+      .problema-col {
+        max-width: 320px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <div class="seccion-gestion">
+          <div class="row">
+            <div class="col s12">
+              <h4>
+                {{ titulo_tipo or ('Herramientas geográficas inoperativas' if
+                recurso == 'herramienta' else 'Servicios geográficos
+                inoperativos') }}
+              </h4>
+              <p class="grey-text text-darken-1">
+                Listado de recursos inoperativos del último monitoreo.
+              </p>
+            </div>
+            <div class="col s12 right-align" style="margin-bottom: 20px">
+              <a
+                href="javascript:history.back()"
+                class="btn waves-effect grey darken-1"
+              >
+                <i class="material-icons left">arrow_back</i>Volver
+              </a>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12">
+              <table class="highlight tabla-gestion">
+                <thead>
+                  <tr>
+                    <th style="width: 50px">N°</th>
+                    <th>Nombre</th>
+                    <th style="width: 120px">Institución</th>
+                    <th class="problema-col">Problema detectado</th>
+                    <th style="width: 90px">Código HTTP</th>
+                    <th class="acciones-col">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for f in filas %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ f.nombre }}</td>
+                    <td>{{ f.sigla }}</td>
+                    <td class="problema-col">{{ f.problema_detectado }}</td>
+                    <td>{{ f.codigo_problema }}</td>
+                    <td class="acciones-col">
+                      <i
+                        class="material-icons btn-reintentar"
+                        title="Ejecutar monitoreo"
+                        data-url="{{ f.ejecutar_url }}"
+                        data-id="{{ f.id_recurso }}"
+                        style="
+                          font-size: 26px;
+                          color: #00897b;
+                          vertical-align: middle;
+                          cursor: pointer;
+                        "
+                        >play_circle</i
+                      >
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="center-align grey-text">
+                      No hay recursos inoperativos para este filtro.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      function obtenerCookie(nombre) {
+        var prefijo = nombre + "=";
+        var partes = document.cookie ? document.cookie.split("; ") : [];
+        for (var i = 0; i < partes.length; i++) {
+          if (partes[i].indexOf(prefijo) === 0) {
+            return decodeURIComponent(partes[i].slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      document.querySelectorAll(".btn-reintentar").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var headers = { "Content-Type": "application/json" };
+          var csrfToken = obtenerCookie("csrf_access_token");
+          if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
+          fetch(btn.dataset.url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({ ids: [Number(btn.dataset.id)] }),
+          })
+            .then(function (resp) {
+              return resp.json().then(function (data) {
+                return { ok: resp.ok, data: data };
+              });
+            })
+            .then(function (result) {
+              if (result.ok) {
+                M.toast({ html: "Reejecución completada" });
+                setTimeout(function () {
+                  window.location.reload();
+                }, 900);
+              } else {
+                M.toast({
+                  html: result.data.message || "No se pudo reejecutar",
+                });
+              }
+            })
+            .catch(function () {
+              M.toast({ html: "Error de conexión" });
+            });
+        });
+      });
+    </script>
+  </body>
+</html>

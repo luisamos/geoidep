@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Restablecer contraseña - GEOIDEP</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/subsistema.css') }}"
+    />
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+  </head>
+  <body>
+    <div id="modal_login" class="modal__login">
+      <div class="modal__content">
+        <div class="content__controls center-align">
+          <h5>Restablecer contraseña</h5>
+          <div class="row">
+            <form method="POST">
+              {{ form.hidden_tag() }}
+              <div class="input-field col s12">
+                {{ form.password.label }} {{ form.password(class="validate") }}
+              </div>
+              <div class="input-field col s12">
+                {{ form.confirm_password.label }} {{
+                form.confirm_password(class="validate") }}
+              </div>
+              {{ form.submit(class="button__primary", type="submit") }}
+            </form>
+          </div>
+          <p>
+            <a href="{{ url_for('gestion.ingreso') }}"
+              >Volver al inicio de sesión</a
+            >
+          </p>
+        </div>
+        <div class="login__image"></div>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const msgs = {{ get_flashed_messages(with_categories = true) | tojson }};
+        msgs.forEach(([category, msg]) => {
+          const classes = category === 'success' ? 'green'
+            : category === 'error' ? 'red'
+              : category === 'warning' ? 'orange'
+                : '';
+          M.toast({ html: msg, classes });
+        });
+      });
+    </script>
+  </body>
+</html>

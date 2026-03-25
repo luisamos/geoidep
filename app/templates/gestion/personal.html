@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>GEOIDEP | Personal</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      .tabla-gestion {
+        background-color: #fff;
+        width: 100%;
+      }
+
+      .tabla-gestion th,
+      .tabla-gestion td {
+        vertical-align: middle;
+        word-break: break-word;
+      }
+
+      .tabla-gestion .col-indice   { width: 50px; }
+      .tabla-gestion .col-doc      { width: 180px; }
+      .tabla-gestion .col-celular  { width: 130px; }
+      .tabla-gestion .col-opciones { width: 130px; }
+
+      .estado-filtros-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        flex-wrap: wrap;
+      }
+
+      .filtros-aplicados {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .filtros-aplicados__label { font-weight: 600; }
+      .filtros-aplicados__tags  { display: flex; flex-wrap: wrap; gap: 8px; }
+
+      .filtro-tag {
+        border: 1px solid #90caf9;
+        border-radius: 16px;
+        padding: 2px 10px;
+        font-size: 0.85rem;
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        cursor: pointer;
+      }
+
+      .icono-accion {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        margin-right: 6px;
+      }
+
+      .badge-usuario {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <!-- Encabezado -->
+        <div class="row">
+          <div class="col s12">
+            <h3>Personal</h3>
+            <p class="flow-text">
+              Registra al personal disponible y asigna usuarios cuando corresponda.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row">
+          <div class="input-field col s12 m5 l4">
+            <i class="material-icons prefix">person</i>
+            <input id="filtroNombre" type="text" placeholder="Nombres y apellidos" />
+            <label for="filtroNombre">Buscar por nombre</label>
+          </div>
+          <div class="input-field col s12 m4 l3">
+            <i class="material-icons prefix">badge</i>
+            <input id="filtroDoc" type="text" placeholder="Número de documento" />
+            <label for="filtroDoc">Documento</label>
+          </div>
+          <div class="col s6 m2 l2" style="margin-top: 22px">
+            <button id="btnBuscar" class="btn btn-small blue waves-effect" type="button">
+              <i class="material-icons left">search</i>Buscar
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros aplicados + Nuevo -->
+        <div class="row">
+          <div class="col s12">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1">Sin filtros aplicados</span>
+              </div>
+              <button id="btnLimpiarFiltros" class="btn-flat" type="button" disabled>
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="estado-filtros-row">
+              <p class="grey-text" id="contadorResultados"></p>
+              <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
+                <i class="material-icons left">person_add</i>Nueva persona
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="row" style="max-height: 600px; overflow-y: auto">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaPersonas">
+              <thead>
+                <tr>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th class="col-doc">Tipo doc.</th>
+                  <th class="col-doc">N° documento</th>
+                  <th>Nombres y apellidos</th>
+                  <th class="col-celular">Celular</th>
+                  <th>Usuario</th>
+                  <th class="col-opciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Persona -->
+    <div id="modalPersona" class="modal">
+      <div class="modal-content">
+        <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
+          <h5 id="tituloModalPersona">PERSONA</h5>
+          <i
+            class="material-icons"
+            id="btnCerrarModal"
+            style="position:absolute;right:16px;top:16px;cursor:pointer;color:#757575"
+          >close</i>
+        </div>
+
+        <form id="formPersona">
+          <input type="hidden" id="personaId" />
+          <div class="row" style="margin-top: 16px">
+            <div class="input-field col s12 m6">
+              <select id="persona_tipo_documento" required>
+                <option value="" disabled selected>Seleccione tipo</option>
+                {% for tipo in tipos_documento %}
+                <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                {% endfor %}
+              </select>
+              <label>Tipo de documento</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="persona_numero_documento" type="text" maxlength="20" required />
+              <label for="persona_numero_documento">Número de documento</label>
+            </div>
+            <div class="input-field col s12">
+              <input id="persona_nombres" type="text" maxlength="255" required />
+              <label for="persona_nombres">Nombres y apellidos</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="persona_celular" type="text" maxlength="20" />
+              <label for="persona_celular">Celular</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardarPersona" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación -->
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align" style="padding: 32px 24px">
+        <i class="material-icons large red-text">warning</i>
+        <h6 id="mensajeConfirmacion" style="margin-top: 12px">
+          ¿Desea eliminar a la persona seleccionada?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">Cancelar</button>
+        <button id="btnConfirmarEliminar" class="btn red" type="button">
+          <i class="material-icons small left">delete</i>Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
+      const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const iconoDetalle  = "{{ url_for('static', filename='imagenes/detalles.png') }}";
+
+      function obtenerCookie(nombre) {
+        const prefijo = `${nombre}=`;
+        for (const parte of (document.cookie || "").split("; ")) {
+          if (parte.startsWith(prefijo))
+            return decodeURIComponent(parte.slice(prefijo.length));
+        }
+        return null;
+      }
+
+      function crearOpciones(method, payload) {
+        const headers = {};
+        const token = obtenerCookie("csrf_access_token");
+        if (token) headers["X-CSRF-Token"] = token;
+        const opciones = { method, headers };
+        if (payload !== undefined) {
+          headers["Content-Type"] = "application/json";
+          opciones.body = JSON.stringify(payload);
+        }
+        return opciones;
+      }
+
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+
+      const ui = {
+        tabla: null,
+        modal: null,
+        modalConf: null,
+        btnNuevo: null,
+        btnGuardar: null,
+        btnEliminar: null,
+        campos: {},
+      };
+
+      let cache = [];
+      let editandoId = null;
+      let eliminandoId = null;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla    = document.querySelector("#tablaPersonas tbody");
+        ui.modal    = M.Modal.init(document.getElementById("modalPersona"), { dismissible: false });
+        ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
+        ui.btnNuevo    = document.getElementById("btnNuevo");
+        ui.btnGuardar  = document.getElementById("btnGuardarPersona");
+        ui.btnEliminar = document.getElementById("btnConfirmarEliminar");
+        ui.campos = {
+          personaId:        document.getElementById("personaId"),
+          tipo_documento:   document.getElementById("persona_tipo_documento"),
+          numero_documento: document.getElementById("persona_numero_documento"),
+          nombres:          document.getElementById("persona_nombres"),
+          celular:          document.getElementById("persona_celular"),
+        };
+
+        M.FormSelect.init(document.querySelectorAll("select"));
+        document.getElementById("btnCerrarModal").addEventListener("click", () => ui.modal.close());
+        ui.btnNuevo.addEventListener("click", () => abrirModal());
+        ui.btnGuardar.addEventListener("click", guardar);
+        ui.btnEliminar.addEventListener("click", confirmarEliminacion);
+        ui.tabla.addEventListener("click", manejarTabla);
+
+        document.getElementById("btnBuscar").addEventListener("click", aplicarFiltros);
+        document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroDoc").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroNombre").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
+        document.getElementById("filtroDoc").addEventListener("keyup", (e) => { if (e.key === "Enter") aplicarFiltros(); });
+        document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
+        document.getElementById("tagsFiltros").addEventListener("click", (e) => {
+          const btn = e.target.closest(".filtro-tag");
+          if (!btn) return;
+          if (btn.dataset.filtro === "nombre") document.getElementById("filtroNombre").value = "";
+          if (btn.dataset.filtro === "doc")    document.getElementById("filtroDoc").value    = "";
+          aplicarFiltros();
+        });
+
+        cargar();
+      });
+
+      async function cargar() {
+        ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        try {
+          const resp = await fetch("/personal/personas");
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "Error al cargar");
+          cache = data.personas || [];
+          renderizar(cache);
+        } catch (err) {
+          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          M.toast({ html: err.message, classes: "red" });
+        }
+      }
+
+      function renderizar(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
+        if (!lista.length) {
+          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">No hay registros.</td></tr>';
+          return;
+        }
+        ui.tabla.innerHTML = lista.map((p, i) => {
+          const acciones = [];
+          if (!p.tiene_usuario) {
+            acciones.push(
+              `<img src="${iconoDetalle}" alt="Asignar usuario" class="icono-accion accion-asignar" data-id="${p.id}" title="Asignar usuario" />`
+            );
+          }
+          acciones.push(`<img src="${iconoEditar}"  alt="Editar"   class="icono-accion accion-editar"   data-id="${p.id}" />`);
+          acciones.push(`<img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${p.id}" />`);
+
+          return `
+            <tr>
+              <td style="padding-left:20px">${i + 1}</td>
+              <td>${escapar(p.tipo_documento_nombre) || '<span class="grey-text">—</span>'}</td>
+              <td>${escapar(p.numero_documento)      || '<span class="grey-text">—</span>'}</td>
+              <td>${escapar(p.nombres_apellidos)}</td>
+              <td>${escapar(p.celular) || '<span class="grey-text">—</span>'}</td>
+              <td>
+                ${p.tiene_usuario
+                  ? `<span class="badge-usuario"><i class="material-icons tiny">check_circle</i> Asignado</span>`
+                  : '<span class="grey-text">—</span>'}
+              </td>
+              <td>${acciones.join("")}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      function aplicarFiltros() {
+        const termNombre = document.getElementById("filtroNombre").value.trim().toLowerCase();
+        const termDoc    = document.getElementById("filtroDoc").value.trim().toLowerCase();
+
+        const filtradas = cache.filter((p) => {
+          const okNombre = termNombre ? (p.nombres_apellidos || "").toLowerCase().includes(termNombre) : true;
+          const okDoc    = termDoc    ? (p.numero_documento  || "").toLowerCase().includes(termDoc)    : true;
+          return okNombre && okDoc;
+        });
+
+        renderizar(filtradas);
+        actualizarTags(termNombre, termDoc);
+      }
+
+      function actualizarTags(termNombre, termDoc) {
+        const tags = [];
+        if (termNombre) tags.push({ tipo: "nombre", label: `Nombre: ${termNombre}` });
+        if (termDoc)    tags.push({ tipo: "doc",    label: `Documento: ${termDoc}` });
+
+        const cont = document.getElementById("tagsFiltros");
+        cont.innerHTML = tags.length
+          ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
+          : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+
+        document.getElementById("btnLimpiarFiltros").disabled = !tags.length;
+      }
+
+      function limpiarFiltros() {
+        document.getElementById("filtroNombre").value = "";
+        document.getElementById("filtroDoc").value    = "";
+        renderizar(cache);
+        actualizarTags("", "");
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        const id = Number(objetivo.dataset.id);
+        if (objetivo.classList.contains("accion-editar")) {
+          const persona = cache.find((p) => p.id === id);
+          if (persona) abrirModal(persona);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          eliminandoId = id;
+          ui.modalConf.open();
+        } else if (objetivo.classList.contains("accion-asignar")) {
+          M.toast({ html: "La asignación de usuario se implementará próximamente.", classes: "blue" });
+        }
+      }
+
+      function abrirModal(persona = null) {
+        editandoId = persona ? persona.id : null;
+        document.getElementById("tituloModalPersona").textContent = persona ? "EDITAR PERSONA" : "NUEVA PERSONA";
+        document.getElementById("formPersona").reset();
+
+        if (persona) {
+          ui.campos.personaId.value        = persona.id || "";
+          ui.campos.tipo_documento.value   = String(persona.id_tipo_documento || "");
+          ui.campos.numero_documento.value = persona.numero_documento || "";
+          ui.campos.nombres.value          = persona.nombres_apellidos || "";
+          ui.campos.celular.value          = persona.celular || "";
+        }
+
+        M.updateTextFields();
+        M.FormSelect.init(document.querySelectorAll("#formPersona select"));
+        ui.modal.open();
+      }
+
+      async function guardar() {
+        const tipoDoc  = ui.campos.tipo_documento.value;
+        const numDoc   = ui.campos.numero_documento.value.trim();
+        const nombres  = ui.campos.nombres.value.trim();
+        const celular  = ui.campos.celular.value.trim();
+
+        if (!tipoDoc || !numDoc || !nombres) {
+          M.toast({ html: "Complete tipo de documento, número y nombres.", classes: "orange" });
+          return;
+        }
+        const payload = {
+          id_tipo_documento: tipoDoc,
+          numero_documento:  numDoc,
+          nombres_apellidos: nombres,
+          celular:           celular || null,
+        };
+        const url    = editandoId ? `/personal/personas/${editandoId}` : "/personal/personas";
+        const metodo = editandoId ? "PUT" : "POST";
+        try {
+          const resp = await fetch(url, crearOpciones(metodo, payload));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
+          M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
+          ui.modal.close();
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar.", classes: "red" });
+        }
+      }
+
+      async function confirmarEliminacion() {
+        if (!eliminandoId) { ui.modalConf.close(); return; }
+        try {
+          const resp = await fetch(`/personal/personas/${eliminandoId}`, crearOpciones("DELETE"));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
+          M.toast({ html: data.message || "Persona eliminada.", classes: "green" });
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar.", classes: "red" });
+        } finally {
+          eliminandoId = null;
+          ui.modalConf.close();
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="keywords"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="description"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="author"
+      content="Secretaría de Gobierno Digital y Transformación Digital."
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+
+    <title>Geoportal IDEP</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-9NZG2MM9BE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-9NZG2MM9BE");
+    </script>
+
+    <script src="{{ url_for('static', filename='js/browser@4.js') }}"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+    />
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    {% include 'geoportal/cabecera.html' %}
+
+    <main>
+      <section class="bg-[#EEF3FB]">
+        <div class="max-w-screen-xl mx-auto px-6 py-[40px]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div class="flex flex-col gap-4">
+              <h1 class="text-[32px] leading-[40px] font-semibold text-black">
+                Infraestructura de Datos Espaciales del Perú
+              </h1>
+              <p class="text-gray-700 leading-relaxed">
+                Explora la información clave sobre la IDEP, sus actores,
+                estándares y el marco normativo que respaldan el uso de datos
+                georreferenciados en el país.
+              </p>
+
+              <div class="flex flex-wrap gap-3 mt-2">
+                <a
+                  href="{{ url_for('geoportal.principal') }}"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#184397] text-[#184397] font-semibold hover:bg-[#184397]/5"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                    >home</span
+                  >
+                  Ir al inicio
+                </a>
+                {% for seccion in secciones %} {% set destino =
+                seccion.get('enlace') if seccion.get('enlace') else '#' ~
+                seccion.id %}
+                <a
+                  href="{{ destino }}"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#184397] text-[#184397] font-semibold hover:bg-[#184397]/5"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                    >public</span
+                  >
+                  {{ seccion.titulo }}
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="w-full flex justify-center md:justify-end">
+              <img
+                src="{{ url_for('static', filename='imagenes/idep.png') }}"
+                alt="Ilustración de la Infraestructura de Datos Espaciales del Perú"
+                class="w-full max-w-[480px] h-[300px] object-contain rounded-2xl shadow"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {% for seccion in secciones %}
+      <section
+        id="{{ seccion.id }}"
+        class="{{ 'bg-white' if loop.index is odd else 'bg-[#EEF3FB]' }}"
+      >
+        <div class="max-w-screen-xl mx-auto px-6 py-[62px]">
+          <div
+            class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between"
+          >
+            <div class="flex-1">
+              <!--<p class="text-sm font-semibold text-[#184397] uppercase tracking-wide">
+                {{ '%02d' % loop.index }}
+              </p>-->
+              <h2 class="text-[22px] md:text-[26px] font-semibold text-black">
+                {{ seccion.titulo }}
+              </h2>
+              <p class="mt-3 text-gray-700 leading-relaxed max-w-3xl">
+                {{ seccion.descripcion }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {% for item in seccion.subsecciones %} {% set destino =
+            item.get('enlace') if item.get('enlace') else (seccion.get('enlace')
+            if seccion.get('enlace') else '#' ~ seccion.id) %}
+            <a href="{{ destino }}" class="block h-full">
+              <article
+                class="h-full bg-white rounded-2xl border border-[#E6EDF7] shadow-sm p-6 flex gap-4 items-start hover:shadow-md transition-shadow"
+              >
+                <div
+                  class="shrink-0 h-12 w-12 rounded-full bg-blue-100 grid place-items-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                  >
+                    {{ item.icono or 'info' }}
+                  </span>
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-[#184397] font-semibold leading-6">
+                    {{ item.titulo }}
+                  </h3>
+                  <p class="mt-2 text-gray-700 text-sm leading-6">
+                    {{ item.descripcion_corta }}
+                  </p>
+                </div>
+              </article>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+      {% endfor %}
+
+      <section class="bg-[#184397]">
+        <div class="max-w-screen-xl mx-auto px-6 py-[50px]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 class="text-white text-[24px] font-semibold">
+                ¿Necesitas más información?
+              </h2>
+              <p class="mt-3 text-gray-100 leading-relaxed">
+                Si tienes dudas o quieres conocer ejemplos prácticos, revisa el
+                catálogo del geoportal o comunícate con nuestro equipo para
+                acompañarte en tu implementación.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-3 md:justify-end">
+              <a
+                href="{{ url_for('geoportal.catalogo') }}"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-white text-[#184397] font-semibold hover:bg-gray-100"
+              >
+                <span
+                  class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                  >map</span
+                >
+                Ver catálogo de servicios
+              </a>
+              <a
+                href="mailto:idep@pcm.gob.pe"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md border-2 border-white text-white font-semibold hover:bg-white/10"
+              >
+                <span
+                  class="material-symbols-outlined text-[#000000] text-[20px] leading-none"
+                  >mail</span
+                >
+                Escríbenos tus consultas
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    {% include 'geoportal/pie_pagina.html' %}
+  </body>
+</html>

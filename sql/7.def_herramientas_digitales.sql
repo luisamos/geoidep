@@ -1,0 +1,1 @@
+--\copy ide.def_herramientas_geograficas (id,id_tipo, nombre, descripcion, estado, recurso, id_categoria, id_institucion, usuario_registro, fecha_registro) FROM 'C:\apps\python\flask\geoidep\sql\herramientas_geograficas.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"', NULL 'NULL', ENCODING 'UTF8');

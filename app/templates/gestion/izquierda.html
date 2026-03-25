@@ -1,0 +1,139 @@
+{% set usuario_menu = usuario_actual %}
+{% set rol = usuario_menu.nombre_perfil if usuario_menu else 'Administrador' %}
+{% set nombre_usuario = usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
+{% set seccion = seccion_activa|default('') %}
+
+{% set enlaces_por_rol = {
+  6:  url_for('documentos.listar'),
+  7:  url_for('seguimientos.listar'),
+  8:  url_for('herramientas_geograficas.inicio'),
+  9:  url_for('capas_geograficas.inicio'),
+  10: url_for('gestion.monitoreo_herramientas'),
+  11: url_for('gestion.monitoreo_servicios'),
+  12: url_for('instituciones.listar'),
+  13: url_for('personal.listar'),
+  14: url_for('usuarios.listar'),
+  15: url_for('roles.listar'),
+  16: url_for('mi_cuenta.inicio')
+} %}
+
+{% set roles_asignados = usuario_menu.usuarios|map(attribute='roles')|list if usuario_menu else [] %}
+{% set roles_hijo = roles_asignados|selectattr('id_padre', 'gt', 0)|unique(attribute='id')|sort(attribute='orden')|list %}
+{% set padres = usuario_menu.roles_padre_menu|default([]) if usuario_menu else [] %}
+{% set ids_padre_desde_hijos = roles_hijo|map(attribute='id_padre')|unique|list %}
+
+<!-- Barra superior -->
+<div
+  id="nav-superior"
+  class="z-depth-1"
+  style="background-color: #fff; padding: 10px"
+>
+  <div style="float: left; top: 10px; position: absolute; left: 10px">
+    <a
+      href="{{ url_for('gestion.principal') }}"
+      class="btn waves-effect green darken-1 white-text"
+    >
+      <i class="material-icons left white-text">home</i>Ir al principal
+    </a>
+    <a
+      href="{{ url_for('geoportal.principal') }}"
+      class="btn waves-effect blue darken-1 white-text"
+    >
+      <i class="material-icons left white-text">public</i>Ir al Geoportal
+    </a>
+  </div>
+  <div style="float: right; position: absolute; top: 10px; right: 10px">
+    <a
+      href="{{ url_for('gestion.logout') }}"
+      class="btn waves-effect red darken-1 white-text"
+    >
+      <i class="material-icons left white-text">exit_to_app</i>Salir
+    </a>
+  </div>
+</div>
+
+<style>
+  .sidenav li.menu-activo > a {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    font-weight: 600;
+    border-left: 4px solid #fff;
+  }
+</style>
+
+<!-- Menú lateral -->
+<ul id="slide-out" class="sidenav sidenav-fixed">
+  <li>
+    <div class="user-view">
+      <a href="#user">
+        <img
+          id="imgFotoPerfil"
+          class="circle"
+          src="{{ url_for('static', filename='imagenes/photo_init.png') }}"
+        />
+      </a>
+      <a href="#!">
+        <span id="spanUsuario" class="white-text">
+          <label
+            style="font-size: 20px; font-weight: 600; color: white"
+            id="lblUsuario"
+            >{{ nombre_usuario }}</label
+          >
+        </span>
+      </a>
+      <br />
+      <a href="#!">
+        <span id="spanRol" class="white-text">
+          <label
+            style="font-size: 14px; font-weight: 400; color: white"
+            id="lblRol"
+            >{{ rol }}</label
+          >
+        </span>
+      </a>
+    </div>
+  </li>
+
+  {% if roles_hijo %}
+    {% for id_padre in ids_padre_desde_hijos %}
+      {% set padre = (padres|selectattr('id', 'equalto', id_padre)|first) %}
+      {% set hijos = roles_hijo|selectattr('id_padre', 'equalto', id_padre)|sort(attribute='orden')|list %}
+      {% if hijos %}
+        {% if not loop.first %}<li><div class="divider"></div></li>{% endif %}
+        <li>
+          <a class="subheader white-text">
+            {{ (padre.nombre if padre else 'Sección')|upper }}
+          </a>
+        </li>
+        {% for hijo in hijos %}
+          <li id="rol{{ hijo.id }}" {% if seccion == ('rol' ~ hijo.id) %}class="menu-activo"{% endif %}>
+            <a href="{{ hijo.enlace or enlaces_por_rol.get(hijo.id, '#') }}" class="white-text">
+              <i class="material-icons white-text">{{ (hijo.logotipo or 'chevron_right')|trim }}</i> {{ hijo.nombre }}
+            </a>
+          </li>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <li><a class="subheader white-text">SIN ROLES ASIGNADOS</a></li>
+    <li>
+      <a href="#" class="white-text">
+        <i class="material-icons white-text">info</i> Contacte al administrador
+      </a>
+    </li>
+  {% endif %}
+</ul>
+
+<script>
+  (function () {
+    var _fetch = window.fetch;
+    window.fetch = function () {
+      return _fetch.apply(this, arguments).then(function (response) {
+        if (response.status === 401) {
+          window.location.href = "{{ url_for('gestion.ingreso') }}";
+          return new Promise(function () {});
+        }
+        return response;
+      });
+    };
+  })();
+</script>

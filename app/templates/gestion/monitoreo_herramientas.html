@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>GEOIDEP | Monitoreo de herramientas geográficas</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <style>
+      .dashboard-card {
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 130px;
+        position: relative;
+      }
+      .dashboard-card .card-title-label {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 4px;
+      }
+      .dashboard-card .card-value {
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .dashboard-card .card-detail {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-top: 8px;
+      }
+      .dashboard-card .material-icons.card-icon {
+        font-size: 48px;
+        opacity: 0.3;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+      }
+      .card-bg-teal {
+        background: linear-gradient(135deg, #00695c, #00897b);
+      }
+      .card-bg-orange {
+        background: linear-gradient(135deg, #e65100, #f57c00);
+      }
+      .card-bg-green {
+        background: linear-gradient(135deg, #2e7d32, #43a047);
+      }
+      .estado-badge {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .estado-badge.activo {
+        background-color: #43a047;
+      }
+      .estado-badge.inactivo {
+        background-color: #e53935;
+      }
+      .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+      .ultima-verificacion {
+        font-size: 0.9rem;
+        color: #616161;
+        margin-bottom: 20px;
+      }
+      .gestor-badge {
+        display: inline-block;
+        background: #e3f2fd;
+        color: #1565c0;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      /* Cuadro estadistico por tipo */
+      .stat-tipo-card {
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: #fff;
+        border-left: 4px solid #00897b;
+        margin-bottom: 10px;
+      }
+      .stat-tipo-card .stat-nombre {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.92rem;
+        margin-bottom: 4px;
+        line-height: 1.35;
+        text-align: left;
+      }
+      .stat-tipo-card .stat-nombre .icono-tipo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        min-width: 20px;
+        font-size: 18px;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .stat-tipo-card .stat-nombre .stat-nombre-texto {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        overflow-wrap: anywhere;
+      }
+      .stat-link {
+        display: block;
+        color: inherit;
+      }
+      .stat-link:hover {
+        opacity: 0.95;
+      }
+      .nodo-grid-card {
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: #fff;
+        border-left: 4px solid #5e35b1;
+        margin-bottom: 12px;
+      }
+      .nodo-grid-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .nodo-grid-stats {
+        font-size: 0.9rem;
+      }
+      .stat-tipo-card .stat-numeros {
+        font-size: 0.85rem;
+        color: #555;
+      }
+
+      .barra-disponibilidad {
+        height: 8px;
+        border-radius: 4px;
+        background: #e0e0e0;
+        overflow: hidden;
+      }
+      .barra-disponibilidad-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s;
+      }
+      .barra-verde {
+        background-color: #43a047;
+      }
+      .barra-amarilla {
+        background-color: #f9a825;
+      }
+      .barra-roja {
+        background-color: #e53935;
+      }
+
+      .logs-table {
+        font-size: 0.85rem;
+      }
+      .logs-table th {
+        padding: 8px 12px;
+        background-color: #f5f5f5;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .logs-table td {
+        padding: 6px 12px;
+        vertical-align: middle;
+      }
+      .error-msg {
+        font-size: 0.8rem;
+        color: #c62828;
+      }
+
+      .nodo-titulo {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 20px 0 10px 0;
+        padding: 8px 12px;
+        background: #f5f5f5;
+        border-radius: 6px;
+        border-left: 4px solid #00695c;
+      }
+      .nodo-tabla {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+      }
+
+      .btn-contacto {
+        font-size: 0.75rem !important;
+        padding: 0 10px !important;
+        height: 26px;
+        line-height: 26px;
+      }
+
+      /* Progreso monitoreo */
+      .progreso-container {
+        display: none;
+        margin-top: 8px;
+      }
+      .progreso-barra {
+        height: 20px;
+        border-radius: 10px;
+        background: #e0e0e0;
+        overflow: hidden;
+        position: relative;
+      }
+      .progreso-barra-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #00897b, #26a69a);
+        transition: width 0.4s;
+      }
+      .progreso-texto {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        line-height: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #fff;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <!-- Cabecera -->
+        <div class="row" style="margin-bottom: 8px">
+          <div
+            class="col s12"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              flex-wrap: wrap;
+            "
+          >
+            <div>
+              <h4 style="margin-bottom: 4px">
+                Monitoreo de herramientas geográficas {% if not es_vista_global %}
+                <span class="gestor-badge"
+                  >{{ usuario_actual.institucion.sigla or
+                  usuario_actual.institucion.nombre }}</span
+                >
+                {% endif %}
+              </h4>
+              <p class="ultima-verificacion">
+                {% if ultima_verificacion %} Último monitoreo: {{
+                ultima_verificacion.strftime('%d/%m/%Y %H:%M') }} {% else %} No
+                se ha ejecutado el monitoreo aún. {% endif %}
+              </p>
+            </div>
+            {% if es_vista_global %}
+            <div>
+              <button
+                id="btnMonitoreo"
+                class="btn waves-effect teal darken-1"
+                type="button"
+              >
+                <i class="material-icons left">refresh</i>Ejecutar monitoreo
+              </button>
+              <div class="progreso-container" id="progresoContainer">
+                <div class="progreso-barra">
+                  <div
+                    class="progreso-barra-fill"
+                    id="progresoFill"
+                    style="width: 0%"
+                  ></div>
+                  <div class="progreso-texto" id="progresoTexto">0%</div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Cards resumen -->
+        <div class="row">
+          <div class="col s12 m4">
+            <div class="dashboard-card card-bg-teal white-text z-depth-2">
+              <i class="material-icons card-icon">apps</i>
+              <div class="card-title-label">Total herramientas</div>
+              <div class="card-value">{{ hd_total }}</div>
+              <div class="card-detail">
+                <span class="estado-badge activo"></span> {{ hd_activos }}
+                operativas &nbsp;&middot;&nbsp;
+                <span class="estado-badge inactivo"></span> {{ hd_inactivos }}
+                inoperativas
+              </div>
+            </div>
+          </div>
+          <div class="col s12 m4">
+            <div class="dashboard-card card-bg-orange white-text z-depth-2">
+              <i class="material-icons card-icon">warning</i>
+              <div class="card-title-label">Problemas detectados</div>
+              <div class="card-value">{{ problemas|length }}</div>
+              <div class="card-detail">Del último monitoreo</div>
+            </div>
+          </div>
+          <div class="col s12 m4">
+            <div class="dashboard-card card-bg-green white-text z-depth-2">
+              <i class="material-icons card-icon">check_circle</i>
+              <div class="card-title-label">Tasa de disponibilidad</div>
+              <div class="card-value">
+                {% if hd_total > 0 %}{{ (hd_activos * 100 / hd_total) | round(1)
+                }}%{% else %}--{% endif %}
+              </div>
+              <div class="card-detail">
+                {{ hd_activos }} de {{ hd_total }} operativas
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estadisticas por tipo de herramienta -->
+        {% if stats_por_tipo %}
+        <div class="row" style="margin-top: 16px">
+          <div class="col s12">
+            <div class="section-title">
+              <i
+                class="material-icons"
+                style="vertical-align: middle; color: #00695c"
+                >bar_chart</i
+              >
+              Estado por tipo de herramienta
+            </div>
+          </div>
+          {% for st in stats_por_tipo %}
+          <div class="col s12 m6 l4">
+            <a class="stat-link" href="{{ st.detalle_url }}">
+              <div class="stat-tipo-card z-depth-1">
+                <div class="stat-nombre">
+                  <span class="material-symbols-outlined icono-tipo"
+                    >{{ st.logotipo }}</span
+                  >
+                  <span class="stat-nombre-texto">{{ st.nombre }}</span>
+                </div>
+                <div class="stat-numeros">
+                  Total: <strong>{{ st.total }}</strong> &nbsp;|&nbsp;
+                  <span class="green-text text-darken-2"
+                    >{{ st.activos }} operativas</span
+                  >
+                  &nbsp;|&nbsp;
+                  <span class="red-text text-darken-2"
+                    >{{ st.inactivos }} inoperativas</span
+                  >
+                </div>
+                {% set pct = (st.activos * 100 / st.total) if st.total > 0 else
+                0 %}
+                <div class="barra-disponibilidad" style="margin-top: 6px">
+                  <div
+                    class="barra-disponibilidad-fill {% if pct >= 80 %}barra-verde{% elif pct >= 50 %}barra-amarilla{% else %}barra-roja{% endif %}"
+                    style="width: {{ pct|round(0) }}%"
+                  ></div>
+                </div>
+                <span style="font-size: 0.75rem; color: #777"
+                  >{{ pct|round(1) }}% disponible</span
+                >
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Estado de los nodos -->
+        <div class="row" style="margin-top: 24px">
+          <div class="col s12">
+            <div class="section-title">
+              <i
+                class="material-icons"
+                style="vertical-align: middle; color: #4527a0"
+                >account_balance</i
+              >
+              Estado de los nodos
+            </div>
+          </div>
+          {% for nodo in nodos_estado %}
+          <div class="col s12 m6 l4">
+            <a class="stat-link" href="{{ nodo.detalle_url }}">
+              <div class="nodo-grid-card z-depth-1">
+                <div class="nodo-grid-title">{{ nodo.nombre }}</div>
+                <div class="nodo-grid-stats">
+                  Total: <strong>{{ nodo.total }}</strong> &nbsp;|&nbsp;
+                  <span class="green-text text-darken-2"
+                    >{{ nodo.operativos }} operativos</span
+                  >
+                  &nbsp;|&nbsp;
+                  <span class="red-text text-darken-2"
+                    >{{ nodo.inoperativos }} inoperativos</span
+                  >
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+
+        <br />
+      </div>
+    </div>
+
+    <div class="modal_wait">
+      <div class="ventana">
+        <img
+          alt="Cargando..."
+          src="{{ url_for('static', filename='imagenes/wait_geoperu.gif') }}"
+          height="150px"
+        />
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script>
+      function obtenerCookie(nombre) {
+        var prefijo = nombre + "=";
+        var partes = document.cookie ? document.cookie.split("; ") : [];
+        for (var i = 0; i < partes.length; i++) {
+          if (partes[i].indexOf(prefijo) === 0) {
+            return decodeURIComponent(partes[i].slice(prefijo.length));
+          }
+        }
+        return null;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        M.Tabs.init(document.querySelectorAll(".tabs"));
+
+        var btn = document.getElementById("btnMonitoreo");
+        if (!btn) return;
+
+        btn.addEventListener("click", function () {
+          btn.disabled = true;
+          btn.innerHTML =
+            '<i class="material-icons left">hourglass_empty</i>Analizando...';
+
+          var progresoContainer = document.getElementById("progresoContainer");
+          var progresoFill = document.getElementById("progresoFill");
+          var progresoTexto = document.getElementById("progresoTexto");
+          progresoContainer.style.display = "block";
+
+          var headers = { "Content-Type": "application/json" };
+          var csrfToken = obtenerCookie("csrf_access_token");
+          if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
+          /* Obtener total para calcular porcentaje */
+          fetch("/principal/monitoreo/total?tipo=herramientas_geograficas")
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (info) {
+              var totalRecursos = info.total || 1;
+              var progreso = 0;
+              var intervalo = setInterval(function () {
+                progreso += Math.random() * (90 / (totalRecursos * 0.8));
+                if (progreso > 95) progreso = 95;
+                progresoFill.style.width = progreso.toFixed(0) + "%";
+                progresoTexto.textContent = progreso.toFixed(0) + "% analizado";
+              }, 600);
+
+              fetch("/principal/monitoreo?tipo=herramientas_geograficas", {
+                method: "POST",
+                headers: headers,
+              })
+                .then(function (resp) {
+                  return resp.json().then(function (data) {
+                    return { ok: resp.ok, data: data };
+                  });
+                })
+                .then(function (result) {
+                  clearInterval(intervalo);
+                  progresoFill.style.width = "100%";
+                  progresoTexto.textContent = "100% completado";
+
+                  if (result.ok) {
+                    var d = result.data;
+                    M.toast({
+                      html:
+                        "Monitoreo completado: " +
+                        d.herramientas_geograficas.verificadas +
+                        " herramientas verificadas.",
+                    });
+                    setTimeout(function () {
+                      window.location.reload();
+                    }, 1200);
+                  } else {
+                    M.toast({
+                      html:
+                        result.data.message || "Error al ejecutar el monitoreo",
+                    });
+                    btn.disabled = false;
+                    btn.innerHTML =
+                      '<i class="material-icons left">refresh</i>Ejecutar monitoreo';
+                  }
+                })
+                .catch(function () {
+                  clearInterval(intervalo);
+                  M.toast({
+                    html: "Error de conexión al ejecutar el monitoreo",
+                  });
+                  btn.disabled = false;
+                  btn.innerHTML =
+                    '<i class="material-icons left">refresh</i>Ejecutar monitoreo';
+                  progresoContainer.style.display = "none";
+                });
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
