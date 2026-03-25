@@ -28,11 +28,13 @@ WHERE nombre ILIKE ('%Unidad Ofertada%');
 
 SELECT * FROM ide.def_servicios_geograficos WHERE direccion_web ILIKE '%https://ider.regionucayali.gob.pe/geoservicios/services/servicios_ogc/Peru_GRU_0802/MapServer/WMSServer?request=GetCapabilities&service=WMS%';
 
+SELECT * FROM ide.def_servicios_geograficos
+WHERE direccion_web ILIKE '%http://giserver.proviasnac.gob.pe/%';
 
-SELECT * FROM ide.def_herramientas_geograficas
-WHERE recurso ILIKE '%http://giserver.proviasnac.gob.pe/%';
+UPDATE ide.def_servicios_geograficos
+SET direccion_web = REPLACE(direccion_web, 'http://', 'https://')
+WHERE direccion_web ILIKE '%http://giserver.proviasnac.gob.pe/%';
 
-UPDATE ide.def_herramientas_geograficas
-SET recurso = REPLACE(recurso, 'http://', 'https://')
-WHERE recurso ILIKE '%http://giserver.proviasnac.gob.pe/%';
+
+
 

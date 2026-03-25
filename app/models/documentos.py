@@ -6,7 +6,7 @@ class Documento(db.Model):
   __table_args__ = {'schema': SCHEMA_IDE}
 
   id = db.Column(db.Integer, primary_key=True)
-  n_documento = db.Column(db.String(1000), nullable=False)
+  n_documento = db.Column(db.String(1000), nullable=False, unique=True)
   f_documento = db.Column(db.Date, nullable=False)
   cod_expediente = db.Column(db.String(100), nullable=True)
   f_recepcion = db.Column(db.Date, nullable=True)
