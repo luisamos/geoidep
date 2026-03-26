@@ -105,7 +105,7 @@ def datos():
         Actividad.query.options(
             joinedload(Actividad.documento),
             joinedload(Actividad.institucion),
-            joinedload(Actividad.actividad),
+            joinedload(Actividad.tipo_actividad),
         )
         .order_by(Actividad.id.desc())
     )
@@ -255,35 +255,10 @@ def eliminar(id_seg: int):
         return jsonify({'status': 'error', 'message': 'No se puede eliminar la actividad.'}), 400
     return jsonify({'status': 'success', 'message': 'Actividad eliminada correctamente.'})
 
-@bp.route('seguimiento/<int:id_seg>')
+@bp.route('seguimiento')
 @jwt_required()
-def seguimiento(id_seg: int):
-    seg = Actividad.query.options(
-        joinedload(Actividad.documento),
-        joinedload(Actividad.institucion),
-        joinedload(Actividad.actividad),
-    ).filter_by(id=id_seg).first()
-    if not seg:
-        return jsonify({'status': 'error', 'message': 'Actividad no encontrado.'}), 404
-    usuario = obtener_usuario_actual(requerido=True)
-    if (
-        usuario_restringido_a_su_entidad(usuario)
-        and act.id_institucion != usuario.id_institucion
-    ):
-        return jsonify({'status': 'error', 'message': 'No puedes ver seguimientos de otra institución.'}), 403
-
+def seguimiento():
     registro = {
-        'id': act.id,
-        'id_documento': act.id_documento,
-        'documento_numero': act.documento.n_documento if act.documento else '',
-        'id_institucion': act.id_institucion,
-        'institucion_nombre': act.institucion.nombre if act.institucion else '',
-        'institucion_sigla': act.institucion.sigla if act.institucion else '',
-        'id_actividad': act.id_actividad,
-        'actividad_nombre': act.actividad.nombre if act.actividad else '',
-        'descripcion': act.descripcion or '',
-        'estado': act.estado,
-        'estado_nombre': ESTADOS.get(act.estado, 'Desconocido'),
-        'f_atencion': act.f_atencion.strftime('%Y-%m-%d') if act.f_atencion else '',
+        'id': 11
     }
     return jsonify({'seguimiento': registro})

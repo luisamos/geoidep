@@ -35,62 +35,12 @@ from app.models.usuarios import Usuario
 from app.routes.helpers import obtener_usuario_actual, usuario_puede_ver_todas_entidades
 from app.services.monitoreo import RequestConfig, ejecutar_monitoreo
 
-NIVELES_GOBIERNO = {
-    1: 'Poder Ejecutivo',
-    2: 'Poder Legislativo',
-    3: 'Poder Judicial',
-    4: 'Organismos Autónomos',
-    5: 'Gobiernos Regionales',
-    6: 'Gobiernos Locales',
-    7: 'Organismos No Gubernamentales',
-    8: 'Organismos Internacionales',
-    9: 'Instituciones Privadas',
-}
-
-NODOS = [
-    {
-        'clave': 'institucionales',
-        'nombre': 'Nodos institucionales',
-        'ids_padre': [1, 2, 3, 4],
-    },
-    {
-        'clave': 'regionales_locales',
-        'nombre': 'Nodos regionales y locales',
-        'ids_padre': [5, 6],
-    },
-    {
-        'clave': 'no_gubernamentales',
-        'nombre': 'Nodos no gubernamentales',
-        'ids_padre': [7, 8, 9],
-    },
-]
-
 bp = Blueprint('gestion', __name__)
 
 def redirect_to_login():
   respuesta = redirect(url_for('gestion.ingreso'))
   unset_jwt_cookies(respuesta)
   return respuesta
-
-def ids_institucion_usuario(usuario):
-  return [usuario.id_institucion]
-
-def obtener_ids_servicios_por_institucion(ids_institucion):
-  if not ids_institucion:
-    return []
-  filas = (
-      db.session.query(ServicioGeografico.id)
-      .join(CapaGeografica, ServicioGeografico.id_capa_geografica == CapaGeografica.id)
-      .filter(CapaGeografica.id_institucion.in_(ids_institucion))
-      .all()
-  )
-  return [fila[0] for fila in filas]
-
-def ids_instituciones_por_nodo(nodo_ids_padre):
-  return [
-      inst.id for inst in
-      Institucion.query.filter(Institucion.id_padre.in_(nodo_ids_padre)).all()
-  ]
 
 @bp.route('/gestion', methods=['GET', 'POST'])
 def ingreso():

@@ -25,8 +25,8 @@ INSERT INTO ide.dom_roles(nombre, usuario_registro, fecha_registro, orden, id_pa
 ('Capas Geográficas',1,'20-03-2026',2,2,'layers','capas_geograficas.inicio'),
 
 -- Monitoreo (id_padre = 3)
-('Herramientas geográficas',1,'20-03-2026',1,3,'public','monitoreo.herramientas'),
-('Servicios geográficas',1,'20-03-2026',2,3,'layers','monitoreo.servicios'),
+('Herramientas geográficas',1,'20-03-2026',1,3,'public','monitoreos.herramientas'),
+('Servicios geográficas',1,'20-03-2026',2,3,'layers','monitoreos.servicios'),
 
 -- Reportes (id_padre = 4)
 ('Seguimiento de actividades',1,'20-03-2026',1,4,'timeline','actividades.seguimiento'),

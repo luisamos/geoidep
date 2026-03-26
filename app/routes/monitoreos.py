@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, render_template, request, url_for
 from flask_jwt_extended import jwt_required
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
@@ -20,6 +20,44 @@ from app.models import (
 )
 
 bp = Blueprint('monitoreos', __name__, url_prefix='/principal')
+
+NODOS = [
+    {
+        'clave': 'institucionales',
+        'nombre': 'Nodos institucionales',
+        'ids_padre': [1, 2, 3, 4],
+    },
+    {
+        'clave': 'regionales_locales',
+        'nombre': 'Nodos regionales y locales',
+        'ids_padre': [5, 6],
+    },
+    {
+        'clave': 'no_gubernamentales',
+        'nombre': 'Nodos no gubernamentales',
+        'ids_padre': [7, 8, 9],
+    },
+]
+
+def obtener_ids_servicios_por_institucion(ids_institucion):
+  if not ids_institucion:
+    return []
+  filas = (
+      db.session.query(ServicioGeografico.id)
+      .join(CapaGeografica, ServicioGeografico.id_capa_geografica == CapaGeografica.id)
+      .filter(CapaGeografica.id_institucion.in_(ids_institucion))
+      .all()
+  )
+  return [fila[0] for fila in filas]
+
+def ids_instituciones_por_nodo(nodo_ids_padre):
+  return [
+      inst.id for inst in
+      Institucion.query.filter(Institucion.id_padre.in_(nodo_ids_padre)).all()
+  ]
+
+def ids_institucion_usuario(usuario):
+  return [usuario.id_institucion]
 
 def ultima_verificacion():
   return db.session.query(
@@ -46,7 +84,7 @@ def build_estado_nodos_herramientas(es_vista_global, ids_inst_usuario):
         'total': total,
         'operativos': operativos,
         'inoperativos': total - operativos,
-        'detalle_url': url_for('gestion.detalle_monitoreo_estado', categoria='nodo', recurso='herramienta', nodo=nodo['clave']),
+        'detalle_url': url_for('monitoreos.detalles', categoria='nodo', recurso='herramienta', nodo=nodo['clave']),
     })
   return nodos_estado
 
@@ -74,7 +112,7 @@ def build_estado_nodos_servicios(es_vista_global, ids_inst_usuario):
         'total': total,
         'operativos': operativos,
         'inoperativos': total - operativos,
-        'detalle_url': url_for('gestion.detalle_monitoreo_estado', categoria='nodo', recurso='servicio', nodo=nodo['clave']),
+        'detalle_url': url_for('monitoreos.detalles', categoria='nodo', recurso='servicio', nodo=nodo['clave']),
     })
   return nodos_estado
 
@@ -108,7 +146,7 @@ def datos_monitoreo_herramientas(usuario):
           'total': total,
           'activos': activos,
           'inactivos': total - activos,
-          'detalle_url': url_for('gestion.detalle_monitoreo_estado', categoria='tipo', recurso='herramienta', id_tipo=tipo.id),
+          'detalle_url': url_for('monitoreos.detalles', categoria='tipo', recurso='herramienta', id_tipo=tipo.id),
       })
 
   problemas_query = LogMonitoreo.query.filter(
@@ -167,7 +205,7 @@ def datos_monitoreo_servicios(usuario):
           'total': total,
           'activos': activos,
           'inactivos': total - activos,
-          'detalle_url': url_for('gestion.detalle_monitoreo_estado', categoria='tipo', recurso='servicio', id_tipo=tipo.id),
+          'detalle_url': url_for('monitoreos.detalles', categoria='tipo', recurso='servicio', id_tipo=tipo.id),
       })
 
   problemas_query = LogMonitoreo.query.filter(

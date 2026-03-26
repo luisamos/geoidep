@@ -545,25 +545,25 @@
         }
       }
 
-      function abrirModal(seg = null) {
-        editandoId = seg ? seg.id : null;
+      function abrirModal(actividad = null) {
+        editandoId = actividad ? actividad.id : null;
         ui.instSugerencias.style.display = "none";
         ui.docSugerencias.style.display = "none";
         ui.segIdDocumento.value = "";
         ui.segIdInstitucion.value = "";
         ui.segFAtencion.value = new Date().toISOString().slice(0, 10);
 
-        if (seg) {
-          ui.segIdDocumento.value = seg.id_documento || "";
-          ui.segDocumentoTexto.value = seg.documento_numero || "";
-          ui.segIdInstitucion.value = seg.id_institucion || "";
-          ui.segInstitucionTexto.value = seg.institucion_sigla
-            ? `${seg.institucion_sigla} — ${seg.institucion_nombre}`
-            : seg.institucion_nombre || "";
-          ui.segActividad.value = seg.id_actividad || "";
-          ui.segEstado.value = String(seg.estado || "");
-          ui.segFAtencion.value = seg.f_atencion || new Date().toISOString().slice(0, 10);
-          ui.segDescripcion.value = seg.descripcion || "";
+        if (actividad) {
+          ui.segIdDocumento.value = actividad.id_documento || "";
+          ui.segDocumentoTexto.value = actividad.documento_numero || "";
+          ui.segIdInstitucion.value = actividad.id_institucion || "";
+          ui.segInstitucionTexto.value = actividad.institucion_sigla
+            ? `${actividad.institucion_sigla} — ${actividad.institucion_nombre}`
+            : actividad.institucion_nombre || "";
+          ui.segActividad.value = actividad.id_actividad || "";
+          ui.segEstado.value = String(actividad.estado || "");
+          ui.segFAtencion.value = actividad.f_atencion || new Date().toISOString().slice(0, 10);
+          ui.segDescripcion.value = actividad.descripcion || "";
         }
 
         M.updateTextFields();
