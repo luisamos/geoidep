@@ -2,20 +2,7 @@
 {% set rol = usuario_menu.nombre_perfil if usuario_menu else 'Administrador' %}
 {% set nombre_usuario = usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
 {% set seccion = seccion_activa|default('') %}
-
-{% set enlaces_por_rol = {
-  6:  url_for('documentos.listar'),
-  7:  url_for('seguimientos.listar'),
-  8:  url_for('herramientas_geograficas.inicio'),
-  9:  url_for('capas_geograficas.inicio'),
-  10: url_for('gestion.monitoreo_herramientas'),
-  11: url_for('gestion.monitoreo_servicios'),
-  12: url_for('instituciones.listar'),
-  13: url_for('personal.listar'),
-  14: url_for('usuarios.listar'),
-  15: url_for('roles.listar'),
-  16: url_for('mi_cuenta.inicio')
-} %}
+{% set ruta_actual = request.path.rstrip('/') if request.path != '/' else request.path %}
 
 {% set roles_asignados = usuario_menu.usuarios|map(attribute='roles')|list if usuario_menu else [] %}
 {% set roles_hijo = roles_asignados|selectattr('id_padre', 'gt', 0)|unique(attribute='id')|sort(attribute='orden')|list %}
@@ -106,7 +93,7 @@
         </li>
         {% for hijo in hijos %}
           <li id="rol{{ hijo.id }}" {% if seccion == ('rol' ~ hijo.id) %}class="menu-activo"{% endif %}>
-            <a href="{{ hijo.enlace or enlaces_por_rol.get(hijo.id, '#') }}" class="white-text">
+            <a href="{{ url_for(hijo.enlace) }}" class="white-text">
               <i class="material-icons white-text">{{ (hijo.logotipo or 'chevron_right')|trim }}</i> {{ hijo.nombre }}
             </a>
           </li>
