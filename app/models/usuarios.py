@@ -135,34 +135,6 @@ class Usuario(db.Model):
   def nombre_perfil(self) -> str:
       return self.perfil.nombre if self.perfil else ''
 
-  @property
-  def es_coordinador(self) -> bool:
-      return self.id_perfil == 2
-
-  @property
-  def es_especialista(self) -> bool:
-      return self.id_perfil == 3
-
-  @property
-  def es_gestor(self) -> bool:
-      return self.id_perfil == 4
-
-  @property
-  def tiene_perfil_gestion(self) -> bool:
-      return self.es_coordinador or self.es_especialista or self.es_gestor
-
-  @property
-  def tiene_roles_gestion(self) -> bool:
-      return any(asignacion.roles and asignacion.roles.id_padre > 0 for asignacion in self.usuarios)
-
-  @property
-  def tiene_acceso_gestion(self) -> bool:
-      return self.tiene_perfil_gestion or self.tiene_roles_gestion
-
-  @property
-  def puede_gestionar_multiples_instituciones(self) -> bool:
-      return self.es_coordinador or self.es_especialista
-
   def __repr__(self) -> str:
       return f"<Usuario {self.id} {self.correo_electronico!r}>"
 

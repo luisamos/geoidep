@@ -10,7 +10,7 @@ from app.models.seguimientos import Seguimiento
 from app.models.documentos import Documento
 from app.models.instituciones import Institucion, SECTOR_IDS
 from app.models.actividades import Actividad
-from .helpers import obtener_usuario_actual
+from .helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
 
 bp = Blueprint('seguimientos', __name__, url_prefix='/seguimientos')
 
@@ -19,7 +19,7 @@ EXCLUDED_PARENT_IDS = tuple(range(10))
 
 def _instituciones_para(usuario):
     consulta = Institucion.query
-    if usuario and usuario.es_gestor:
+    if usuario_restringido_a_su_entidad(usuario):
         consulta = consulta.filter(Institucion.id == usuario.id_institucion)
     else:
         consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
@@ -32,7 +32,12 @@ def listar():
     usuario = obtener_usuario_actual(requerido=True)
     actividades = Actividad.query.filter_by(estado=True).order_by(Actividad.orden.asc()).all()
     instituciones = _instituciones_para(usuario)
-    documentos = Documento.query.order_by(Documento.f_documento.desc()).all()
+    documentos_query = Documento.query
+    if usuario_restringido_a_su_entidad(usuario):
+        documentos_query = documentos_query.filter(
+            Documento.seguimientos.any(Seguimiento.id_institucion == usuario.id_institucion)
+        )
+    documentos = documentos_query.order_by(Documento.f_documento.desc()).all()
 
     instituciones_json = [
         {'id': inst.id, 'nombre': inst.nombre or '', 'sigla': inst.sigla or ''}
@@ -64,7 +69,7 @@ def datos():
         )
         .order_by(Seguimiento.id.desc())
     )
-    if usuario and usuario.es_gestor:
+    if usuario_restringido_a_su_entidad(usuario):
         consulta = consulta.filter(Seguimiento.id_institucion == usuario.id_institucion)
 
     registros = [
@@ -96,6 +101,11 @@ def guardar():
         return jsonify({'status': 'error', 'message': 'Documento, institución y actividad son obligatorios.'}), 400
 
     usuario = obtener_usuario_actual(requerido=True)
+    if (
+        usuario_restringido_a_su_entidad(usuario)
+        and int(id_institucion) != usuario.id_institucion
+    ):
+        return jsonify({'status': 'error', 'message': 'No puedes registrar seguimientos para otra institución.'}), 403
     seg = Seguimiento(
         id_documento=int(id_documento),
         id_institucion=int(id_institucion),
@@ -119,6 +129,12 @@ def actualizar(id_seg: int):
     seg = Seguimiento.query.get(id_seg)
     if not seg:
         return jsonify({'status': 'error', 'message': 'Seguimiento no encontrado.'}), 404
+    usuario = obtener_usuario_actual(requerido=True)
+    if (
+        usuario_restringido_a_su_entidad(usuario)
+        and seg.id_institucion != usuario.id_institucion
+    ):
+        return jsonify({'status': 'error', 'message': 'No puedes modificar seguimientos de otra institución.'}), 403
 
     payload = request.get_json(silent=True) or {}
     id_documento = payload.get('id_documento')
@@ -127,8 +143,15 @@ def actualizar(id_seg: int):
     if not id_documento or not id_institucion or not id_actividad:
         return jsonify({'status': 'error', 'message': 'Documento, institución y actividad son obligatorios.'}), 400
 
+    nuevo_id_institucion = int(id_institucion)
+    if (
+        usuario_restringido_a_su_entidad(usuario)
+        and nuevo_id_institucion != usuario.id_institucion
+    ):
+        return jsonify({'status': 'error', 'message': 'No puedes mover seguimientos a otra institución.'}), 403
+
     seg.id_documento = int(id_documento)
-    seg.id_institucion = int(id_institucion)
+    seg.id_institucion = nuevo_id_institucion
     seg.id_actividad = int(id_actividad)
     seg.observacion = (payload.get('observacion') or '').strip() or None
     seg.estado = bool(payload.get('estado', True))
@@ -146,6 +169,12 @@ def eliminar(id_seg: int):
     seg = Seguimiento.query.get(id_seg)
     if not seg:
         return jsonify({'status': 'error', 'message': 'Seguimiento no encontrado.'}), 404
+    usuario = obtener_usuario_actual(requerido=True)
+    if (
+        usuario_restringido_a_su_entidad(usuario)
+        and seg.id_institucion != usuario.id_institucion
+    ):
+        return jsonify({'status': 'error', 'message': 'No puedes eliminar seguimientos de otra institución.'}), 403
     db.session.delete(seg)
     try:
         db.session.commit()

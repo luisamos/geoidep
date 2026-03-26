@@ -22,8 +22,9 @@ class Seguimiento(db.Model):
       db.ForeignKey(f"{SCHEMA_IDE}.dom_actividades.id"),
       nullable=False,
   )
-  observacion = db.Column(db.Text, nullable=True)
+  f_atencion = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
   estado = db.Column(db.Integer, nullable=False)
+  observacion = db.Column(db.Text, nullable=True)
   usuario_registro = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_registro = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
 

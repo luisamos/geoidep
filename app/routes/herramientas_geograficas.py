@@ -11,7 +11,7 @@ from app.models.categorias import Categoria
 from app.models.herramientas_geograficas import HerramientaGeografica
 from app.models.instituciones import Institucion
 from app.models.tipos import Tipo
-from app.routes.helpers import obtener_usuario_actual
+from app.routes.helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
 
 bp = Blueprint('herramientas_geograficas', __name__, url_prefix='/herramientas_geograficas')
 
@@ -39,7 +39,7 @@ def obtener_instituciones_para(usuario):
   if not usuario:
     return []
   consulta = Institucion.query
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   else:
     consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
@@ -69,7 +69,7 @@ def inicio():
     for institucion in instituciones
   ]
   institucion_usuario = usuario.institucion if usuario else None
-  puede_editar_institucion = usuario.puede_gestionar_multiples_instituciones if usuario else False
+  puede_editar_institucion = not usuario_restringido_a_su_entidad(usuario) if usuario else False
   return render_template(
     'gestion/herramientas_geograficas.html',
     categorias=categorias,
@@ -99,7 +99,7 @@ def listar():
     .order_by(HerramientaGeografica.nombre)
   )
 
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(
       HerramientaGeografica.id_institucion == usuario.id_institucion
     )
@@ -183,7 +183,7 @@ def guardar():
         400,
       )
 
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     id_institucion = usuario.id_institucion
     if id_institucion_payload and id_institucion_payload != id_institucion:
       return (
@@ -343,7 +343,10 @@ def actualizar(id):
     if not herramienta:
       return jsonify({'status': 'error', 'message': 'Herramienta no encontrada.'}), 404
 
-    if usuario.es_gestor and herramienta.id_institucion not in (None, usuario.id_institucion):
+    if (
+      usuario_restringido_a_su_entidad(usuario)
+      and herramienta.id_institucion not in (None, usuario.id_institucion)
+    ):
         return (
           jsonify(
             {
@@ -360,7 +363,7 @@ def actualizar(id):
         return error
 
     institucion_payload = payload.get('id_institucion')
-    if institucion_payload not in (None, '') and not usuario.es_gestor:
+    if institucion_payload not in (None, '') and not usuario_restringido_a_su_entidad(usuario):
       try:
         herramienta.id_institucion = int(institucion_payload)
       except (TypeError, ValueError):
@@ -421,7 +424,10 @@ def eliminar(id):
   if not herramienta:
     return jsonify({'status': 'error', 'message': 'Herramienta no encontrada.'}), 404
 
-  if usuario.es_gestor and herramienta.id_institucion not in (None, usuario.id_institucion):
+  if (
+    usuario_restringido_a_su_entidad(usuario)
+    and herramienta.id_institucion not in (None, usuario.id_institucion)
+  ):
     return (
       jsonify(
           {

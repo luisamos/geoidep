@@ -32,7 +32,7 @@ from app.models import (
     Tipo,
 )
 from app.models.usuarios import Usuario
-from app.routes.helpers import obtener_usuario_actual
+from app.routes.helpers import obtener_usuario_actual, usuario_puede_ver_todas_entidades
 from app.services.monitoreo import RequestConfig, ejecutar_monitoreo
 
 NIVELES_GOBIERNO = {
@@ -187,7 +187,7 @@ def ingreso():
       flash('Correo o contraseña inválidos', 'error')
     elif not usuario.estado:
       flash('La cuenta se encuentra deshabilitada. Contacta al administrador.', 'error')
-    elif not usuario.idep or not usuario.tiene_acceso_gestion:
+    elif not usuario.idep:
       flash('Tu usuario no cuenta con acceso a la geoIDEP.', 'error')
     else:
       access_token = create_access_token(
@@ -226,7 +226,7 @@ def principal():
   if not usuario:
     return redirect_to_login()
 
-  es_vista_global = usuario.puede_gestionar_multiples_instituciones
+  es_vista_global = usuario_puede_ver_todas_entidades(usuario)
 
   if es_vista_global:
     sg_total = ServicioGeografico.query.count()
@@ -265,7 +265,7 @@ def principal():
 # ---------------------------------------------------------------------------
 
 def _datos_monitoreo_herramientas(usuario):
-  es_vista_global = usuario.puede_gestionar_multiples_instituciones
+  es_vista_global = usuario_puede_ver_todas_entidades(usuario)
   ids_inst_usuario = ids_institucion_usuario(usuario)
 
   if es_vista_global:
@@ -343,7 +343,7 @@ def monitoreo_herramientas():
 # ---------------------------------------------------------------------------
 
 def _datos_monitoreo_servicios(usuario):
-  es_vista_global = usuario.puede_gestionar_multiples_instituciones
+  es_vista_global = usuario_puede_ver_todas_entidades(usuario)
   ids_inst_usuario = ids_institucion_usuario(usuario)
 
   if es_vista_global:
@@ -425,7 +425,7 @@ def detalle_monitoreo_estado():
   if not usuario:
     return redirect_to_login()
 
-  es_vista_global = usuario.puede_gestionar_multiples_instituciones
+  es_vista_global = usuario_puede_ver_todas_entidades(usuario)
   ids_inst_usuario = ids_institucion_usuario(usuario)
 
   categoria = request.args.get('categoria', 'tipo')

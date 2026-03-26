@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models import Institucion, SECTOR_IDS
-from .helpers import obtener_usuario_actual
+from .helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
 
 bp = Blueprint('instituciones', __name__, url_prefix='/instituciones')
 
@@ -15,11 +15,14 @@ bp = Blueprint('instituciones', __name__, url_prefix='/instituciones')
 @jwt_required()
 def listar():
   usuario = obtener_usuario_actual(requerido=True)
-  sectores = (
-    Institucion.query.filter(Institucion.id.in_(SECTOR_IDS))
-    .order_by(Institucion.orden.asc(), Institucion.nombre.asc())
-    .all()
-  )
+  if usuario_restringido_a_su_entidad(usuario):
+    sectores = []
+  else:
+    sectores = (
+      Institucion.query.filter(Institucion.id.in_(SECTOR_IDS))
+      .order_by(Institucion.orden.asc(), Institucion.nombre.asc())
+      .all()
+    )
   return render_template(
     'gestion/instituciones.html',
     sectores=sectores,
@@ -30,14 +33,16 @@ def listar():
 @bp.route('/datos')
 @jwt_required()
 def datos():
+  usuario = obtener_usuario_actual(requerido=True)
   sector_alias = aliased(Institucion)
   consulta = (
     db.session.query(Institucion, sector_alias.nombre.label('sector_nombre'))
     .outerjoin(sector_alias, Institucion.id_padre == sector_alias.id)
-    #.filter(Institucion.id_padre.in_(SECTOR_IDS))
     .filter(Institucion.id >= 45)
     .order_by(Institucion.nombre.asc())
   )
+  if usuario_restringido_a_su_entidad(usuario):
+    consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   instituciones = [
     {
       'id': institucion.id,
@@ -103,6 +108,8 @@ def guardar():
     return error
 
   usuario = obtener_usuario_actual(requerido=True)
+  if usuario_restringido_a_su_entidad(usuario):
+    return jsonify({'status': 'error', 'message': 'No cuentas con permisos para registrar instituciones.'}), 403
   institucion = Institucion(
     codigo=datos['codigo'],
     nombre=datos['nombre'],
@@ -132,13 +139,15 @@ def actualizar(id_institucion: int):
   institucion = Institucion.query.get(id_institucion)
   if not institucion:
     return jsonify({'status': 'error', 'message': 'Institución no encontrada.'}), 404
+  usuario = obtener_usuario_actual(requerido=True)
+  if usuario_restringido_a_su_entidad(usuario) and institucion.id != usuario.id_institucion:
+    return jsonify({'status': 'error', 'message': 'No puedes actualizar otra institución.'}), 403
 
   payload = request.get_json(silent=True) or {}
   datos, error = _obtener_datos_institucion(payload)
   if error:
     return error
 
-  usuario = obtener_usuario_actual(requerido=True)
   institucion.codigo = datos['codigo']
   institucion.nombre = datos['nombre']
   institucion.sigla = datos['sigla']
@@ -165,6 +174,9 @@ def eliminar(id_institucion: int):
   institucion = Institucion.query.get(id_institucion)
   if not institucion:
     return jsonify({'status': 'error', 'message': 'Institución no encontrada.'}), 404
+  usuario = obtener_usuario_actual(requerido=True)
+  if usuario_restringido_a_su_entidad(usuario):
+    return jsonify({'status': 'error', 'message': 'No cuentas con permisos para eliminar instituciones.'}), 403
 
   db.session.delete(institucion)
   try:

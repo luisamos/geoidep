@@ -9,7 +9,9 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.documentos import Documento
+from app.models.seguimientos import Seguimiento
 from .helpers import obtener_usuario_actual
+from .helpers import usuario_restringido_a_su_entidad
 
 bp = Blueprint('documentos', __name__, url_prefix='/documentos')
 
@@ -42,36 +44,43 @@ def listar():
 @bp.route('/datos')
 @jwt_required()
 def datos():
-    n_documento = (request.args.get('n_documento') or '').strip()
-    cod_expediente = (request.args.get('cod_expediente') or '').strip()
-    termino = (request.args.get('q') or '').strip()
+  usuario = obtener_usuario_actual(requerido=True)
+  n_documento = (request.args.get('n_documento') or '').strip()
+  cod_expediente = (request.args.get('cod_expediente') or '').strip()
+  termino = (request.args.get('q') or '').strip()
 
-    consulta = Documento.query
-    if n_documento:
-        consulta = consulta.filter(Documento.n_documento.ilike(f'%{n_documento}%'))
-    if cod_expediente:
-        consulta = consulta.filter(Documento.cod_expediente.ilike(f'%{cod_expediente}%'))
-    if termino:
-        consulta = consulta.filter(
-            or_(
-                Documento.n_documento.ilike(f'%{termino}%'),
-                Documento.cod_expediente.ilike(f'%{termino}%'),
-            )
+  consulta = Documento.query
+  if usuario_restringido_a_su_entidad(usuario):
+    consulta = consulta.filter(
+        Documento.seguimientos.any(
+            Seguimiento.id_institucion == usuario.id_institucion
         )
+    )
+  if n_documento:
+      consulta = consulta.filter(Documento.n_documento.ilike(f'%{n_documento}%'))
+  if cod_expediente:
+      consulta = consulta.filter(Documento.cod_expediente.ilike(f'%{cod_expediente}%'))
+  if termino:
+      consulta = consulta.filter(
+          or_(
+              Documento.n_documento.ilike(f'%{termino}%'),
+              Documento.cod_expediente.ilike(f'%{termino}%'),
+          )
+      )
 
-    consulta = consulta.order_by(Documento.f_documento.desc(), Documento.id.desc()).all()
-    registros = [
-        {
-            'id': doc.id,
-            'n_documento': doc.n_documento or '',
-            'f_documento': doc.f_documento.isoformat() if doc.f_documento else '',
-            'cod_expediente': doc.cod_expediente or '',
-            'f_recepcion': doc.f_recepcion.isoformat() if doc.f_recepcion else '',
-            'url_documento': doc.url_documento or '',
-        }
-        for doc in consulta
-    ]
-    return jsonify({'documentos': registros})
+  consulta = consulta.order_by(Documento.f_documento.desc(), Documento.id.desc()).all()
+  registros = [
+      {
+          'id': doc.id,
+          'n_documento': doc.n_documento or '',
+          'f_documento': doc.f_documento.isoformat() if doc.f_documento else '',
+          'cod_expediente': doc.cod_expediente or '',
+          'f_recepcion': doc.f_recepcion.isoformat() if doc.f_recepcion else '',
+          'url_documento': doc.url_documento or '',
+      }
+      for doc in consulta
+  ]
+  return jsonify({'documentos': registros})
 
 
 @bp.route('/guardar', methods=['POST'])

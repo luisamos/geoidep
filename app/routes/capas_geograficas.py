@@ -20,7 +20,7 @@ from app.models import CapaGeografica, ServicioGeografico
 from app.models import Categoria
 from app.models import Institucion
 from app.models import Tipo
-from .helpers import obtener_usuario_actual
+from .helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
 
 bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
 
@@ -51,7 +51,7 @@ def sincronizar_secuencia(modelo):
 
 def obtener_instituciones_para(usuario):
   consulta = Institucion.query.filter(Institucion.id >= 45)
-  if usuario and usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   return consulta.order_by(Institucion.id.asc()).all()
 
@@ -286,7 +286,7 @@ def inicio():
     for institucion in instituciones
   ]
   puede_editar_institucion = (
-    usuario.puede_gestionar_multiples_instituciones if usuario else False
+    not usuario_restringido_a_su_entidad(usuario) if usuario else False
   )
   return render_template(
     'gestion/capas_geograficas.html',
@@ -323,7 +323,7 @@ def listar():
     CapaGeografica.nombre.asc(),
   )
 
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(CapaGeografica.id_institucion == usuario.id_institucion)
 
   activos = []
@@ -420,7 +420,7 @@ def detalle(id_capa):
   if not capa:
     return jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}), 404
 
-  if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
+  if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
     return (
       jsonify(
         {
@@ -489,7 +489,7 @@ def guardar():
   except (TypeError, ValueError):
     institucion_payload = None
 
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     id_institucion = usuario.id_institucion
     if institucion_payload and institucion_payload != id_institucion:
       return (
@@ -574,7 +574,7 @@ def guardar():
         jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}),
         404,
       )
-    if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
+    if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
       return (
         jsonify(
           {
@@ -983,7 +983,7 @@ def eliminar(id_capa: int):
   if not capa:
     return jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}), 404
 
-  if usuario.es_gestor and capa.id_institucion != usuario.id_institucion:
+  if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
     return (
       jsonify(
         {

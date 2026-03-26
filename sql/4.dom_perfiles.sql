@@ -42,3 +42,5 @@ INSERT INTO ide.dom_roles(nombre, usuario_registro, fecha_registro, orden, id_pa
 SELECT * FROM ide.dom_roles WHERE id_padre = 4;
 
 UPDATE ide.dom_roles SET enlace = 'seguimientos.listar' WHERE id = 13;
+
+SELECT * FROM ide.aso_usuarios_roles;

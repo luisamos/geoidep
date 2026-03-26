@@ -9,6 +9,26 @@ from sqlalchemy.orm import joinedload
 from app.models import Rol, Usuario
 from app.models.usuarios import UsuarioRol
 
+def obtener_nivel_datos_usuario(usuario: Optional[Usuario]) -> int:
+  if not usuario:
+    return 1
+  niveles = [
+    int(asignacion.nivel)
+    for asignacion in (usuario.usuarios or [])
+    if asignacion and asignacion.nivel is not None
+  ]
+  if not niveles:
+    return 1
+  return max(niveles)
+
+
+def usuario_puede_ver_todas_entidades(usuario: Optional[Usuario]) -> bool:
+  return obtener_nivel_datos_usuario(usuario) >= 2
+
+
+def usuario_restringido_a_su_entidad(usuario: Optional[Usuario]) -> bool:
+  return not usuario_puede_ver_todas_entidades(usuario)
+
 def obtener_id_desde_identidad(identity):
   if isinstance(identity, dict):
     return identity.get('id_usuario')
@@ -48,6 +68,9 @@ def obtener_usuario_actual(*, requerido: bool = False) -> Optional[Usuario]:
   )
 
   if usuario:
+    usuario.nivel_datos = obtener_nivel_datos_usuario(usuario)
+    usuario.puede_ver_todas_entidades = usuario_puede_ver_todas_entidades(usuario)
+    usuario.restringido_a_su_entidad = not usuario.puede_ver_todas_entidades
     roles_asignados = [asignacion.roles for asignacion in usuario.usuarios if asignacion.roles]
     ids_padre = sorted({rol.id_padre for rol in roles_asignados if rol.id_padre and rol.id_padre > 0})
     if ids_padre:
@@ -63,7 +86,6 @@ def obtener_usuario_actual(*, requerido: bool = False) -> Optional[Usuario]:
     not usuario
     or not usuario.estado
     or not usuario.idep
-    or not usuario.tiene_acceso_gestion
   ):
     g.usuario_actual = None
     return None

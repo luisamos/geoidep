@@ -8,7 +8,7 @@ from app.forms import BuscarUsuarioForm, DeleteUsuarioForm, UsuarioForm
 from app.models import Institucion
 from app.models import Perfil
 from app.models import Persona, Usuario
-from .helpers import obtener_usuario_actual
+from .helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
@@ -30,7 +30,7 @@ def obtener_admin_actual():
 
 def obtener_instituciones_para(usuario: Usuario):
   consulta = Institucion.query
-  if usuario.es_gestor:
+  if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(Institucion.id == usuario.id_institucion)
   else:
     consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
@@ -78,6 +78,8 @@ def datos_usuarios():
       Usuario.correo_electronico,
     )
   )
+  if usuario_restringido_a_su_entidad(usuario):
+    consulta = consulta.filter(Usuario.id_institucion == usuario.id_institucion)
 
   lista = [
     {
