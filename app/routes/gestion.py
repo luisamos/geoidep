@@ -96,7 +96,7 @@ def ids_instituciones_por_nodo(nodo_ids_padre):
 def ingreso():
   usuario_actual = obtener_usuario_actual()
   if usuario_actual:
-    return redirect(url_for('gestion.principal'))
+    return redirect(url_for('monitoreos.principal'))
 
   form = LoginForm()
   if form.validate_on_submit():
@@ -118,7 +118,7 @@ def ingreso():
           'id_institucion': usuario.id_institucion,
         },
       )
-      respuesta = redirect(url_for('gestion.principal'))
+      respuesta = redirect(url_for('monitoreos.principal'))
       set_access_cookies(respuesta, access_token)
       return respuesta
   elif form.is_submitted():

@@ -13,4 +13,4 @@ class TipoActividad(db.Model):
   usuario_registro = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_registro = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
 
-  actividades = db.relationship('Actividad', back_populates='tipoActividad')
+  actividades = db.relationship('Actividad', back_populates='tipo_actividad')

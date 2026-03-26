@@ -25,7 +25,7 @@ def obtener_admin_actual():
     return None, redirect_to_login()
   if not usuario.es_coordinador:
     flash('No cuentas con permisos para acceder a esta sección.', 'error')
-    return None, redirect(url_for('gestion.principal'))
+    return None, redirect(url_for('monitoreos.principal'))
   return usuario, None
 
 def obtener_instituciones_para(usuario: Usuario):

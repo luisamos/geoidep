@@ -6,8 +6,20 @@ from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 from app.services.monitoreo import RequestConfig, ejecutar_monitoreo
+from app.routes.helpers import obtener_usuario_actual, usuario_puede_ver_todas_entidades
 
-bp = Blueprint('monitoreos', __name__, url_prefix='/monitoreos')
+from app.extensions import db
+
+from app.models import (
+    CapaGeografica,
+    HerramientaGeografica,
+    Institucion,
+    LogMonitoreo,
+    ServicioGeografico,
+    Tipo,
+)
+
+bp = Blueprint('monitoreos', __name__, url_prefix='/principal')
 
 def ultima_verificacion():
   return db.session.query(
