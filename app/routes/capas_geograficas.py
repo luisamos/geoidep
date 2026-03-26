@@ -296,7 +296,6 @@ def inicio():
     institucion_usuario=usuario.institucion if usuario else None,
     puede_editar_institucion=puede_editar_institucion,
     usuario_actual=usuario,
-    seccion_activa='rol9',
   )
 
 

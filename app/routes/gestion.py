@@ -249,7 +249,6 @@ def principal():
   return render_template(
       'gestion/principal.html',
       usuario_actual=usuario,
-      seccion_activa='',
       es_vista_global=es_vista_global,
       sg_total=sg_total,
       sg_activos=sg_activos,
@@ -335,7 +334,6 @@ def monitoreo_herramientas():
   return render_template(
       'gestion/monitoreo_herramientas.html',
       usuario_actual=usuario,
-      seccion_activa='rol10',
       **datos,
   )
 
@@ -412,7 +410,6 @@ def monitoreo_servicios():
   return render_template(
       'gestion/monitoreo_servicios.html',
       usuario_actual=usuario,
-      seccion_activa='rol11',
       **datos,
   )
 
@@ -515,12 +512,9 @@ def detalle_monitoreo_estado():
     if tipo_obj:
       titulo_tipo = tipo_obj.nombre
 
-  seccion_activa = 'rol11' if recurso == 'servicio' else 'rol10'
-
   return render_template(
       'gestion/monitoreo_detalle_estado.html',
       usuario_actual=usuario,
-      seccion_activa=seccion_activa,
       categoria=categoria,
       recurso=recurso,
       titulo_tipo=titulo_tipo,

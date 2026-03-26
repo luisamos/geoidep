@@ -24,7 +24,6 @@ def listar():
     'gestion/instituciones.html',
     sectores=sectores,
     usuario_actual=usuario,
-    seccion_activa='rol12',
   )
 
 

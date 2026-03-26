@@ -49,7 +49,6 @@ def listar():
         instituciones=instituciones_json,
         documentos=documentos_json,
         usuario_actual=usuario,
-        seccion_activa='rol7',
     )
 
 

@@ -1,7 +1,6 @@
 {% set usuario_menu = usuario_actual %}
 {% set rol = usuario_menu.nombre_perfil if usuario_menu else 'Administrador' %}
 {% set nombre_usuario = usuario_menu.nombre_completo if usuario_menu else 'Usuario' %}
-{% set seccion = seccion_activa|default('') %}
 {% set ruta_actual = request.path.rstrip('/') if request.path != '/' else request.path %}
 
 {% set roles_asignados = usuario_menu.usuarios|map(attribute='roles')|list if usuario_menu else [] %}
@@ -92,7 +91,13 @@
           </a>
         </li>
         {% for hijo in hijos %}
-          <li id="rol{{ hijo.id }}" {% if seccion == ('rol' ~ hijo.id) %}class="menu-activo"{% endif %}>
+          {% set ruta_hijo = url_for(hijo.enlace).rstrip('/') if url_for(hijo.enlace) != '/' else url_for(hijo.enlace) %}
+          {% if seccion %}
+            {% set esta_activo = (seccion == ('rol' ~ hijo.id)) %}
+          {% else %}
+            {% set esta_activo = (request.endpoint == hijo.enlace) or (ruta_actual == ruta_hijo) %}
+          {% endif %}
+          <li id="rol{{ hijo.id }}" {% if esta_activo %}class="menu-activo"{% endif %}>
             <a href="{{ url_for(hijo.enlace) }}" class="white-text">
               <i class="material-icons white-text">{{ (hijo.logotipo or 'chevron_right')|trim }}</i> {{ hijo.nombre }}
             </a>

@@ -56,7 +56,6 @@ def usuarios():
     instituciones=instituciones_json,
     perfiles=perfiles,
     usuario_actual=usuario,
-    seccion_activa='rol14',
   )
 
 

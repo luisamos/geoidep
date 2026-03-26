@@ -23,7 +23,7 @@ class Seguimiento(db.Model):
       nullable=False,
   )
   observacion = db.Column(db.Text, nullable=True)
-  estado = db.Column(db.Boolean, default=True, nullable=False)
+  estado = db.Column(db.Integer, nullable=False)
   usuario_registro = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_registro = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
 

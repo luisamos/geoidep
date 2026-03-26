@@ -38,3 +38,7 @@ INSERT INTO ide.dom_roles(nombre, usuario_registro, fecha_registro, orden, id_pa
 
 -- Configuración (id_padre = 6)
 ('Mi cuenta',1,'20-03-2026',1,6,'account_circle','mi_cuenta.inicio');
+
+SELECT * FROM ide.dom_roles WHERE id_padre = 4;
+
+UPDATE ide.dom_roles SET enlace = 'seguimientos.listar' WHERE id = 13;

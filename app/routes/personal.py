@@ -26,7 +26,6 @@ def listar():
     'gestion/personal.html',
     tipos_documento=TIPOS_DOCUMENTO,
     usuario_actual=usuario,
-    seccion_activa='rol13',
   )
 
 @bp.route('/catalogo')

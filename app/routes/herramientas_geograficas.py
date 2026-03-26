@@ -78,7 +78,6 @@ def inicio():
     instituciones_disponibles=instituciones_disponibles,
     puede_editar_institucion=puede_editar_institucion,
     usuario_actual=usuario,
-    seccion_activa='rol8',
   )
 
 @bp.route('/listar')

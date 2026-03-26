@@ -16,7 +16,6 @@ def inicio():
     return render_template(
         'gestion/mi_cuenta.html',
         usuario_actual=usuario,
-        seccion_activa='rol16',
     )
 
 

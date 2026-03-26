@@ -21,7 +21,6 @@ def listar():
         'gestion/roles.html',
         roles_padre=roles_padre,
         usuario_actual=usuario,
-        seccion_activa='rol15',
     )
 
 

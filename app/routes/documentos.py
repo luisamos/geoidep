@@ -36,7 +36,6 @@ def listar():
     return render_template(
         'gestion/documentos.html',
         usuario_actual=usuario,
-        seccion_activa='rol6',
     )
 
 
