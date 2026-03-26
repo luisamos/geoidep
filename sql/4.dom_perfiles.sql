@@ -18,18 +18,18 @@ INSERT INTO ide.dom_roles(nombre, usuario_registro, fecha_registro, orden, id_pa
 
 -- Gestión de Información (id_padre = 1)
 ('Documentos',1,'20-03-2026',1,1,'description','documentos.listar'),
-('Seguimiento',1,'20-03-2026',2,1,'timeline','seguimientos.listar'),
+('Actividades',1,'20-03-2026',2,1,'timeline','actividades.listar'),
 
 -- Plataformas tecnológicas (id_padre = 2)
 ('Herramientas Geográficas',1,'20-03-2026',1,2,'public','herramientas_geograficas.inicio'),
 ('Capas Geográficas',1,'20-03-2026',2,2,'layers','capas_geograficas.inicio'),
 
 -- Monitoreo (id_padre = 3)
-('Herramientas geográficas',1,'20-03-2026',1,3,'public','gestion.monitoreo_herramientas'),
-('Servicios geográficas',1,'20-03-2026',2,3,'layers','gestion.monitoreo_servicios'),
+('Herramientas geográficas',1,'20-03-2026',1,3,'public','monitoreo.herramientas'),
+('Servicios geográficas',1,'20-03-2026',2,3,'layers','monitoreo.servicios'),
 
 -- Reportes (id_padre = 4)
-('Seguimiento',1,'20-03-2026',1,4,'timeline','seguimientos.reportes'),
+('Seguimiento de actividades',1,'20-03-2026',1,4,'timeline','actividades.seguimiento'),
 
 -- Entidades (id_padre = 5)
 ('Instituciones',1,'20-03-2026',1,5,'domain','instituciones.listar'),
@@ -39,8 +39,4 @@ INSERT INTO ide.dom_roles(nombre, usuario_registro, fecha_registro, orden, id_pa
 -- Configuración (id_padre = 6)
 ('Mi cuenta',1,'20-03-2026',1,6,'account_circle','mi_cuenta.inicio');
 
-SELECT * FROM ide.dom_roles WHERE id_padre = 4;
-
-UPDATE ide.dom_roles SET enlace = 'seguimientos.listar' WHERE id = 13;
-
-SELECT * FROM ide.aso_usuarios_roles;
+SELECT * FROM ide.dom_roles WHERE id > 6;

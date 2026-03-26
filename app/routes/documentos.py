@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.documentos import Documento
-from app.models.seguimientos import Seguimiento
+from app.models.actividades import Actividad
 from .helpers import obtener_usuario_actual
 from .helpers import usuario_restringido_a_su_entidad
 
@@ -34,12 +34,11 @@ def parsear_fecha(valor, *, requerido=False, campo='fecha'):
 @bp.route('/', endpoint='listar')
 @jwt_required()
 def listar():
-    usuario = obtener_usuario_actual(requerido=True)
-    return render_template(
-        'gestion/documentos.html',
-        usuario_actual=usuario,
-    )
-
+  usuario = obtener_usuario_actual(requerido=True)
+  return render_template(
+      'gestion/documentos.html',
+      usuario_actual=usuario,
+  )
 
 @bp.route('/datos')
 @jwt_required()
@@ -52,8 +51,8 @@ def datos():
   consulta = Documento.query
   if usuario_restringido_a_su_entidad(usuario):
     consulta = consulta.filter(
-        Documento.seguimientos.any(
-            Seguimiento.id_institucion == usuario.id_institucion
+        Documento.actividades.any(
+            Actividad.id_institucion == usuario.id_institucion
         )
     )
   if n_documento:
@@ -81,7 +80,6 @@ def datos():
       for doc in consulta
   ]
   return jsonify({'documentos': registros})
-
 
 @bp.route('/guardar', methods=['POST'])
 @jwt_required()
@@ -117,7 +115,6 @@ def guardar():
         return jsonify({'status': 'error', 'message': 'No se pudo registrar el documento.'}), 400
     return jsonify({'status': 'success', 'message': 'Documento registrado correctamente.'})
 
-
 @bp.route('/<int:id_documento>', methods=['PUT'])
 @jwt_required()
 def actualizar(id_documento: int):
@@ -150,7 +147,6 @@ def actualizar(id_documento: int):
         db.session.rollback()
         return jsonify({'status': 'error', 'message': 'No se pudo actualizar el documento.'}), 400
     return jsonify({'status': 'success', 'message': 'Documento actualizado correctamente.'})
-
 
 @bp.route('/<int:id_documento>', methods=['DELETE'])
 @jwt_required()

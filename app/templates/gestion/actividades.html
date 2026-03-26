@@ -8,7 +8,7 @@
       type="image/x-icon"
       href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
     />
-    <title>GEOIDEP | Seguimiento</title>
+    <title>GEOIDEP | Actividades</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/materialize.min.css') }}"
@@ -19,7 +19,7 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/seguimientos.css') }}"
+      href="{{ url_for('static', filename='css/actividades.css') }}"
     />
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -35,9 +35,9 @@
         <!-- Encabezado -->
         <div class="row">
           <div class="col s12">
-            <h3>Seguimiento</h3>
+            <h3>Actividades</h3>
             <p class="flow-text">
-              Registra y administra el seguimiento de documentos por institución
+              Registra y administra las actividades realizadas de acuerdo a los documentos remitidos por las institucións publicas.
               y actividad.
             </p>
           </div>
@@ -101,7 +101,7 @@
         <!-- Tabla -->
         <div class="row" style="max-height: 600px; overflow-y: auto">
           <div class="col s12">
-            <table class="highlight tabla-gestion" id="tablaSeguimientos">
+            <table class="highlight tabla-gestion" id="tablaActividades">
               <thead>
                 <tr>
                   <th class="col-indice" style="padding-left: 20px">N°</th>
@@ -121,11 +121,11 @@
       </div>
     </div>
 
-    <!-- Modal Seguimiento -->
-    <div id="modalSeguimiento" class="modal">
+    <!-- Modal Actividad -->
+    <div id="modalActividad" class="modal">
       <div class="modal-content">
         <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
-          <h5 id="modalTitulo">SEGUIMIENTO</h5>
+          <h5 id="modalTitulo">ACTIVIDAD</h5>
           <i
             class="material-icons"
             id="btnCerrarModal"
@@ -133,43 +133,43 @@
           >close</i>
         </div>
 
-        <form id="formSeguimiento">
-          <input type="hidden" id="segId" />
+        <form id="formActividad">
+          <input type="hidden" id="actId" />
           <div class="row" style="margin-top: 16px">
 
             <!-- Documento: buscador -->
             <div class="input-field col s12 doc-search-wrapper">
-              <input type="hidden" id="seg_id_documento" />
+              <input type="hidden" id="act_id_documento" />
               <input
-                id="seg_documento_texto"
+                id="act_documento_texto"
                 type="text"
                 autocomplete="off"
                 required
               />
-              <label for="seg_documento_texto">Número de documento</label>
+              <label for="act_documento_texto">Número de documento</label>
               <ul id="docSugerencias" class="inst-suggestions" style="display:none"></ul>
               <span class="helper-text" data-error="Seleccione un documento válido"></span>
             </div>
 
             <!-- Institución: buscador por sigla -->
             <div class="input-field col s12 inst-search-wrapper">
-              <input type="hidden" id="seg_id_institucion" />
+              <input type="hidden" id="act_id_institucion" />
               <i class="material-icons prefix">business</i>
               <input
-                id="seg_institucion_texto"
+                id="act_institucion_texto"
                 type="text"
                 autocomplete="off"
                 placeholder="Escriba sigla o nombre"
                 required
               />
-              <label for="seg_institucion_texto">Institución</label>
+              <label for="act_institucion_texto">Institución</label>
               <ul id="instSugerencias" class="inst-suggestions" style="display:none"></ul>
               <span class="helper-text" data-error="Seleccione una institución válida"></span>
             </div>
 
             <!-- Actividad -->
             <div class="input-field col s12 m4">
-              <select id="seg_actividad" required>
+              <select id="act_actividad" required>
                 <option value="" disabled selected>Seleccione actividad</option>
                 {% for act in actividades %}
                 <option value="{{ act.id }}">{{ act.nombre }}</option>
@@ -180,7 +180,7 @@
 
             <!-- Estado -->
             <div class="input-field col s12 m4">
-              <select id="seg_estado" required>
+              <select id="act_estado" required>
                 <option value="" disabled selected>Seleccione estado</option>
                 <option value="1">Pendiente</option>
                 <option value="2">En proceso</option>
@@ -191,14 +191,14 @@
 
             <!-- Fecha de atención -->
             <div class="input-field col s12 m4">
-              <input id="seg_f_atencion" type="date" required />
-              <label class="active" for="seg_f_atencion">Fecha de atención</label>
+              <input id="act_f_atencion" type="date" required />
+              <label class="active" for="act_f_atencion">Fecha de atención</label>
             </div>
 
             <!-- Observación -->
             <div class="input-field col s12">
-              <textarea id="seg_observacion" class="materialize-textarea" maxlength="2000"></textarea>
-              <label for="seg_observacion">Observación (opcional)</label>
+              <textarea id="act_descripcion" class="materialize-textarea" maxlength="2000"></textarea>
+              <label for="act_descripcion">Descripción (opcional)</label>
             </div>
           </div>
         </form>
@@ -218,7 +218,7 @@
       <div class="modal-content center-align" style="padding: 32px 24px">
         <i class="material-icons large red-text">warning</i>
         <h6 id="mensajeConfirmacion" style="margin-top: 12px">
-          ¿Desea eliminar el seguimiento seleccionado?
+          ¿Desea eliminar la actividad seleccionada?
         </h6>
       </div>
       <div class="modal-footer">
@@ -238,6 +238,15 @@
       const documentos    = {{ documentos    | tojson | safe }};
       const estados       = {{ estados       | tojson | safe }};
       const crearOpcionesJson = window.GestionHttp.crearOpcionesJson;
+
+      function escapar(valor) {
+        return String(valor ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
 
       function obtenerClaseEstado(estado) {
         if (Number(estado) === 1) return "badge-estado--pendiente";
@@ -347,8 +356,8 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        ui.tablaBody = document.querySelector("#tablaSeguimientos tbody");
-        ui.modal    = M.Modal.init(document.getElementById("modalSeguimiento"), { dismissible: false });
+        ui.tablaBody = document.querySelector("#tablaActividades tbody");
+        ui.modal    = M.Modal.init(document.getElementById("modalActividad"), { dismissible: false });
         ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
         ui.btnNuevo    = document.getElementById("btnNuevo");
         ui.btnGuardar  = document.getElementById("btnGuardar");
@@ -359,16 +368,16 @@
         ui.tagsFiltros = document.getElementById("tagsFiltros");
         ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
         ui.contadorResultados = document.getElementById("contadorResultados");
-        ui.segIdDocumento = document.getElementById("seg_id_documento");
-        ui.segDocumentoTexto = document.getElementById("seg_documento_texto");
+        ui.segIdDocumento = document.getElementById("act_id_documento");
+        ui.segDocumentoTexto = document.getElementById("act_documento_texto");
         ui.docSugerencias = document.getElementById("docSugerencias");
-        ui.segIdInstitucion = document.getElementById("seg_id_institucion");
-        ui.segInstitucionTexto = document.getElementById("seg_institucion_texto");
+        ui.segIdInstitucion = document.getElementById("act_id_institucion");
+        ui.segInstitucionTexto = document.getElementById("act_institucion_texto");
         ui.instSugerencias = document.getElementById("instSugerencias");
-        ui.segActividad = document.getElementById("seg_actividad");
-        ui.segEstado = document.getElementById("seg_estado");
-        ui.segFAtencion = document.getElementById("seg_f_atencion");
-        ui.segObservacion = document.getElementById("seg_observacion");
+        ui.segActividad = document.getElementById("act_actividad");
+        ui.segEstado = document.getElementById("act_estado");
+        ui.segFAtencion = document.getElementById("act_f_atencion");
+        ui.segDescripcion = document.getElementById("act_descripcion");
         ui.filtroInstitucionHint = document.getElementById("filtroInstitucionHint");
 
         M.FormSelect.init(document.querySelectorAll("select"));
@@ -406,10 +415,10 @@
       async function cargar() {
         ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
         try {
-          const resp = await fetch("/seguimientos/datos");
+          const resp = await fetch("/actividades/datos");
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "Error al cargar");
-          cache = data.seguimientos || [];
+          cache = data.actividades || [];
           renderizar(cache);
         } catch (err) {
           ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align red-text">Error al cargar los datos.</td></tr>';
@@ -429,7 +438,7 @@
               <td>${escapar(s.documento_numero)}</td>
               <td>${escapar(s.institucion_sigla || s.institucion_nombre)}</td>
               <td>${escapar(s.actividad_nombre)}</td>
-              <td>${escapar(s.observacion) || '<span class="grey-text">—</span>'}</td>
+              <td>${escapar(s.descripcion) || '<span class="grey-text">—</span>'}</td>
               <td class="center-align">
                 <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
                   ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
@@ -474,7 +483,6 @@
             <td>${escapar(s.documento_numero)}</td>
             <td>${escapar(s.institucion_sigla || s.institucion_nombre)}</td>
             <td>${escapar(s.actividad_nombre)}</td>
-            <td>${escapar(s.observacion) || '<span class="grey-text">—</span>'}</td>
             <td class="center-align">
               <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
                 ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
@@ -555,11 +563,11 @@
           ui.segActividad.value = seg.id_actividad || "";
           ui.segEstado.value = String(seg.estado || "");
           ui.segFAtencion.value = seg.f_atencion || new Date().toISOString().slice(0, 10);
-          ui.segObservacion.value = seg.observacion || "";
+          ui.segDescripcion.value = seg.descripcion || "";
         }
 
         M.updateTextFields();
-        M.FormSelect.init(document.querySelectorAll("#formSeguimiento select"));
+        M.FormSelect.init(document.querySelectorAll("#formActividad select"));
         ui.modal.open();
       }
 
@@ -579,9 +587,9 @@
           id_actividad:   Number(idAct),
           estado:         Number(estado),
           f_atencion:     fAtencion,
-          observacion: ui.segObservacion.value.trim() || null,
+          descripcion: ui.segDescripcion.value.trim() || null,
         };
-        const url    = editandoId ? `/seguimientos/${editandoId}` : "/seguimientos/guardar";
+        const url    = editandoId ? `/actividades/${editandoId}` : "/actividades/guardar";
         const metodo = editandoId ? "PUT" : "POST";
         try {
          const resp = await fetch(url, crearOpcionesJson(metodo, payload));
@@ -598,10 +606,10 @@
       async function confirmarEliminacion() {
         if (!eliminandoId) { ui.modalConf.close(); return; }
         try {
-          const resp = await fetch(`/seguimientos/${eliminandoId}`, crearOpcionesJson("DELETE"));
+          const resp = await fetch(`/actividades/${eliminandoId}`, crearOpcionesJson("DELETE"));
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
-          M.toast({ html: data.message || "Seguimiento eliminado.", classes: "green" });
+          M.toast({ html: data.message || "Actividad eliminada.", classes: "green" });
           cargar();
         } catch (err) {
           M.toast({ html: err.message || "Error al eliminar.", classes: "red" });

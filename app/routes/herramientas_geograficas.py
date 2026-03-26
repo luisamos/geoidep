@@ -45,6 +45,90 @@ def obtener_instituciones_para(usuario):
     consulta = consulta.filter(~Institucion.id_padre.in_(EXCLUDED_PARENT_IDS))
   return consulta.order_by(Institucion.id.asc()).all()
 
+def validar_payload_herramienta(payload, *, requiere_nombre=True):
+  nombre = (payload.get('nombre') or '').strip()
+  if requiere_nombre and not nombre:
+    return None, (
+      jsonify({'status': 'error', 'message': 'El nombre es obligatorio.'}),
+      400,
+    )
+
+  try:
+    id_tipo = int(payload.get('id_tipo'))
+    id_categoria = int(payload.get('id_categoria'))
+  except (TypeError, ValueError):
+    return None, (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'Los identificadores enviados no son válidos.',
+        }
+      ),
+      400,
+    )
+
+  tipo = Tipo.query.get(id_tipo)
+  categoria = Categoria.query.get(id_categoria)
+  if not tipo or not categoria:
+    return None, (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se encontró la información seleccionada.',
+        }
+      ),
+      404,
+    )
+
+  descripcion = payload.get('descripcion')
+  if descripcion is not None:
+    descripcion = descripcion.strip()
+    if len(descripcion) > 1000:
+      return None, (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'La descripción no puede superar los 1000 caracteres.',
+          }
+        ),
+        400,
+      )
+    if not descripcion:
+      descripcion = None
+
+  estado_incluido = 'estado' in payload
+  estado = payload.get('estado')
+  if estado in ('', None):
+      estado = None
+  elif estado_incluido:
+    try:
+      estado = int(estado)
+    except (TypeError, ValueError):
+      return None, (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'El estado debe ser un número entero.',
+            }
+          ),
+          400,
+      )
+
+  recurso = payload.get('recurso')
+  if recurso is not None:
+    recurso = recurso.strip() or None
+
+  datos = {
+    'nombre': nombre,
+    'tipo': tipo,
+    'categoria': categoria,
+    'descripcion': descripcion,
+    'estado': estado,
+    'estado_incluido': estado_incluido,
+    'recurso': recurso,
+  }
+  return datos, None
+
 @bp.route('/')
 @jwt_required()
 def inicio():
@@ -240,90 +324,6 @@ def guardar():
 
   return jsonify({'status': 'success', 'herramienta_id': herramienta.id}), 201
 
-def validar_payload_herramienta(payload, *, requiere_nombre=True):
-  nombre = (payload.get('nombre') or '').strip()
-  if requiere_nombre and not nombre:
-    return None, (
-      jsonify({'status': 'error', 'message': 'El nombre es obligatorio.'}),
-      400,
-    )
-
-  try:
-    id_tipo = int(payload.get('id_tipo'))
-    id_categoria = int(payload.get('id_categoria'))
-  except (TypeError, ValueError):
-    return None, (
-      jsonify(
-        {
-          'status': 'error',
-          'message': 'Los identificadores enviados no son válidos.',
-        }
-      ),
-      400,
-    )
-
-  tipo = Tipo.query.get(id_tipo)
-  categoria = Categoria.query.get(id_categoria)
-  if not tipo or not categoria:
-    return None, (
-      jsonify(
-        {
-          'status': 'error',
-          'message': 'No se encontró la información seleccionada.',
-        }
-      ),
-      404,
-    )
-
-  descripcion = payload.get('descripcion')
-  if descripcion is not None:
-    descripcion = descripcion.strip()
-    if len(descripcion) > 1000:
-      return None, (
-        jsonify(
-          {
-            'status': 'error',
-            'message': 'La descripción no puede superar los 1000 caracteres.',
-          }
-        ),
-        400,
-      )
-    if not descripcion:
-      descripcion = None
-
-  estado_incluido = 'estado' in payload
-  estado = payload.get('estado')
-  if estado in ('', None):
-      estado = None
-  elif estado_incluido:
-    try:
-      estado = int(estado)
-    except (TypeError, ValueError):
-      return None, (
-          jsonify(
-            {
-              'status': 'error',
-              'message': 'El estado debe ser un número entero.',
-            }
-          ),
-          400,
-      )
-
-  recurso = payload.get('recurso')
-  if recurso is not None:
-    recurso = recurso.strip() or None
-
-  datos = {
-    'nombre': nombre,
-    'tipo': tipo,
-    'categoria': categoria,
-    'descripcion': descripcion,
-    'estado': estado,
-    'estado_incluido': estado_incluido,
-    'recurso': recurso,
-  }
-  return datos, None
-
 @bp.route('/<int:id>', methods=['PUT'])
 @jwt_required()
 def actualizar(id):
@@ -403,7 +403,6 @@ def actualizar(id):
       )
 
     return jsonify({'status': 'success'})
-
 
 @bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()

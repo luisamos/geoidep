@@ -32,7 +32,7 @@ class Institucion(db.Model):
   herramientas_geograficas = db.relationship('HerramientaGeografica', back_populates='institucion')
   capas = db.relationship('CapaGeografica', back_populates='institucion')
   usuarios = db.relationship('Usuario', back_populates='institucion')
-  seguimientos = db.relationship('Seguimiento', back_populates='institucion')
+  actividades = db.relationship('Actividad', back_populates='institucion')
 
   @property
   def es_sector(self) -> bool:

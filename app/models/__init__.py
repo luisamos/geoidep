@@ -6,8 +6,9 @@ from .herramientas_geograficas import HerramientaGeografica, HHerramientaGeograf
 from .capas_geograficas import CapaGeografica, ServicioGeografico, HCapaGeografica, HServicioGeografico
 
 from .documentos import Documento
+
+from .tipos_actividades import TipoActividad
 from .actividades import Actividad
-from .seguimientos import Seguimiento, HSeguimiento
 
 from .perfiles import Perfil
 from .roles import Rol
@@ -20,7 +21,8 @@ __all__ = [
   'Categoria', 'Tipo', 'Institucion', 'SECTOR_IDS'
   'HerramientaGeografica', 'HHerramientaGeografica',
   'CapaGeografica', 'ServicioGeografico', 'HCapaGeografica', 'HServicioGeografico',
-  'Documento', 'Actividad', 'Seguimiento', 'HSeguimiento',
+  'Documento',
+  'TipoActividad', 'Actividad', 'HActividad',
   'Perfil',
   'Rol',
   'Persona', 'Usuario', 'UsuarioRol', 'HPersona', 'HUsuario',
