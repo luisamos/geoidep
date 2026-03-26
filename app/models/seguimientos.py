@@ -1,10 +1,19 @@
 from app import db
 from app.config import SCHEMA_IDE
 from app.models import Documento, Institucion, Actividad
+from sqlalchemy import UniqueConstraint
 
 class Seguimiento(db.Model):
   __tablename__ = 'def_seguimientos'
-  __table_args__ = {'schema': SCHEMA_IDE}
+  __table_args__ = (
+      UniqueConstraint(
+          'id_documento',
+          'id_actividad',
+          'estado',
+          name='uq_seguimiento_documento_actividad_estado',
+      ),
+      {'schema': SCHEMA_IDE},
+  )
 
   id = db.Column(db.Integer, primary_key=True)
   id_documento = db.Column(
@@ -31,3 +40,21 @@ class Seguimiento(db.Model):
   documento = db.relationship(Documento, back_populates='seguimientos')
   institucion = db.relationship(Institucion, back_populates='seguimientos')
   actividad = db.relationship(Actividad, back_populates='seguimientos')
+
+class HSeguimiento(db.Model):
+  __tablename__ = 'his_seguimientos'
+  __table_args__ = {'schema': SCHEMA_IDE}
+
+  id = db.Column(db.Integer, primary_key=True)
+  id_documento = db.Column(db.Integer, nullable=False)
+  id_institucion = db.Column(db.Integer, nullable=False)
+  id_actividad = db.Column(db.Integer, nullable=False)
+  f_atencion = db.Column(db.DateTime(timezone=True), nullable=False)
+  estado = db.Column(db.Integer, nullable=False)
+  observacion = db.Column(db.Text, nullable=True)
+  usuario_registro = db.Column(db.Integer, nullable=False, default=1, server_default='1')
+  fecha_registro = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
+
+  accion = db.Column(db.String(length=10), nullable=False)
+  usuario_accion = db.Column(db.Integer(), nullable=True)
+  fecha_accion = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)

@@ -360,37 +360,11 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
       const instituciones = {{ instituciones | tojson | safe }};
-
-      function obtenerCookie(nombre) {
-        const prefijo = `${nombre}=`;
-        for (const parte of (document.cookie || "").split("; ")) {
-          if (parte.startsWith(prefijo))
-            return decodeURIComponent(parte.slice(prefijo.length));
-        }
-        return null;
-      }
-
-      function crearOpciones(method, payload) {
-        const headers = {};
-        const token = obtenerCookie("csrf_access_token");
-        if (token) headers["X-CSRF-Token"] = token;
-        const opciones = { method, headers };
-        if (payload !== undefined) {
-          headers["Content-Type"] = "application/json";
-          opciones.body = JSON.stringify(payload);
-        }
-        return opciones;
-      }
-
-      function escapar(t) {
-        const d = document.createElement("div");
-        d.textContent = t || "";
-        return d.innerHTML;
-      }
 
       const ui = {
         tabla: null,

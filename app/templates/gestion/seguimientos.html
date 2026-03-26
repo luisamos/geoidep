@@ -18,87 +18,13 @@
       href="{{ url_for('static', filename='css/index.css') }}"
     />
     <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/seguimientos.css') }}"
+    />
+    <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
-    <style>
-      .tabla-gestion {
-        background-color: #fff;
-        width: 100%;
-      }
-
-      .tabla-gestion th,
-      .tabla-gestion td {
-        vertical-align: middle;
-        word-break: break-word;
-      }
-
-      .tabla-gestion .col-indice   { width: 50px; }
-      .tabla-gestion .col-estado   { width: 100px; text-align: center; }
-      .tabla-gestion .col-opciones { width: 110px; }
-
-      .estado-filtros-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 0;
-        flex-wrap: wrap;
-      }
-
-      .filtros-aplicados {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 8px;
-      }
-      .filtros-aplicados__label { font-weight: 600; }
-      .filtros-aplicados__tags  { display: flex; flex-wrap: wrap; gap: 8px; }
-
-      .filtro-tag {
-        border: 1px solid #90caf9;
-        border-radius: 16px;
-        padding: 2px 10px;
-        font-size: 0.85rem;
-        background-color: #e3f2fd;
-        color: #0d47a1;
-        cursor: pointer;
-      }
-
-      .badge-estado {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.82rem;
-        font-weight: 600;
-      }
-      .badge-estado--activo   { background: #e8f5e9; color: #2e7d32; }
-      .badge-estado--inactivo { background: #ffebee; color: #c62828; }
-
-      .inst-search-wrapper {
-        position: relative;
-      }
-      .inst-suggestions {
-        position: absolute;
-        z-index: 100;
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        max-height: 180px;
-        overflow-y: auto;
-        width: 100%;
-      }
-      .inst-suggestions li {
-        padding: 8px 14px;
-        cursor: pointer;
-        font-size: 0.9rem;
-      }
-      .inst-suggestions li:hover {
-        background-color: #e3f2fd;
-      }
-    </style>
   </head>
 
   <body>
@@ -155,13 +81,14 @@
         <div class="row">
           <div class="col s12">
             <div class="estado-filtros-row">
-              <div class="switch">
-                <label>
-                  Inactivo
-                  <input type="checkbox" id="switchEstados" checked />
-                  <span class="lever"></span>
-                  Activo
-                </label>
+              <div class="input-field" style="min-width: 230px; margin: 0">
+                <select id="filtroEstado">
+                  <option value="">Todos los estados</option>
+                  <option value="1">Pendiente</option>
+                  <option value="2">En proceso</option>
+                  <option value="3">Culminado</option>
+                </select>
+                <label>Estado</label>
               </div>
               <p class="grey-text" id="contadorResultados"></p>
               <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
@@ -181,6 +108,7 @@
                   <th>Documento</th>
                   <th>Institución</th>
                   <th>Actividad</th>
+                  <th>Fecha</th>
                   <th>Observación</th>
                   <th class="col-estado">Estado</th>
                   <th class="col-opciones">Acciones</th>
@@ -210,16 +138,16 @@
           <div class="row" style="margin-top: 16px">
 
             <!-- Documento: buscador -->
-            <div class="input-field col s12">
+            <div class="input-field col s12 doc-search-wrapper">
               <input type="hidden" id="seg_id_documento" />
               <input
                 id="seg_documento_texto"
                 type="text"
-                class="autocomplete"
                 autocomplete="off"
                 required
               />
               <label for="seg_documento_texto">Número de documento</label>
+              <ul id="docSugerencias" class="inst-suggestions" style="display:none"></ul>
               <span class="helper-text" data-error="Seleccione un documento válido"></span>
             </div>
 
@@ -240,7 +168,7 @@
             </div>
 
             <!-- Actividad -->
-            <div class="input-field col s12 m6">
+            <div class="input-field col s12 m4">
               <select id="seg_actividad" required>
                 <option value="" disabled selected>Seleccione actividad</option>
                 {% for act in actividades %}
@@ -251,15 +179,20 @@
             </div>
 
             <!-- Estado -->
-            <div class="col s12 m6" style="margin-top: 12px">
-              <div class="switch">
-                <label>
-                  Inactivo
-                  <input type="checkbox" id="seg_estado" checked />
-                  <span class="lever"></span>
-                  Activo
-                </label>
-              </div>
+            <div class="input-field col s12 m4">
+              <select id="seg_estado" required>
+                <option value="" disabled selected>Seleccione estado</option>
+                <option value="1">Pendiente</option>
+                <option value="2">En proceso</option>
+                <option value="3">Culminado</option>
+              </select>
+              <label>Estado</label>
+            </div>
+
+            <!-- Fecha de atención -->
+            <div class="input-field col s12 m4">
+              <input id="seg_f_atencion" type="date" required />
+              <label class="active" for="seg_f_atencion">Fecha de atención</label>
             </div>
 
             <!-- Observación -->
@@ -297,47 +230,46 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
       const instituciones = {{ instituciones | tojson | safe }};
       const documentos    = {{ documentos    | tojson | safe }};
+      const estados       = {{ estados       | tojson | safe }};
+      const crearOpcionesJson = window.GestionHttp.crearOpcionesJson;
 
-      function obtenerCookie(nombre) {
-        const prefijo = `${nombre}=`;
-        for (const parte of (document.cookie || "").split("; ")) {
-          if (parte.startsWith(prefijo))
-            return decodeURIComponent(parte.slice(prefijo.length));
-        }
-        return null;
-      }
-
-      function crearOpciones(method, payload) {
-        const headers = {};
-        const token = obtenerCookie("csrf_access_token");
-        if (token) headers["X-CSRF-Token"] = token;
-        const opciones = { method, headers };
-        if (payload !== undefined) {
-          headers["Content-Type"] = "application/json";
-          opciones.body = JSON.stringify(payload);
-        }
-        return opciones;
-      }
-
-      function escapar(t) {
-        const d = document.createElement("div");
-        d.textContent = t || "";
-        return d.innerHTML;
+      function obtenerClaseEstado(estado) {
+        if (Number(estado) === 1) return "badge-estado--pendiente";
+        if (Number(estado) === 2) return "badge-estado--proceso";
+        if (Number(estado) === 3) return "badge-estado--culminado";
+        return "";
       }
 
       const ui = {
-        tabla: null,
+        tablaBody: null,
         modal: null,
         modalConf: null,
         btnNuevo: null,
         btnGuardar: null,
         btnEliminar: null,
-        campos: {},
+        txtBuscarDoc: null,
+        filtroInstitucion: null,
+        filtroEstado: null,
+        tagsFiltros: null,
+        btnLimpiarFiltros: null,
+        contadorResultados: null,
+        segIdDocumento: null,
+        segDocumentoTexto: null,
+        docSugerencias: null,
+        segIdInstitucion: null,
+        segInstitucionTexto: null,
+        instSugerencias: null,
+        segActividad: null,
+        segEstado: null,
+        segFAtencion: null,
+        segObservacion: null,
+        filtroInstitucionHint: null,
       };
 
       let cache = [];
@@ -346,9 +278,9 @@
 
       // ---- Buscador institución en modal ----
       function inicializarBuscadorInstitucion() {
-        const input = document.getElementById("seg_institucion_texto");
-        const lista = document.getElementById("instSugerencias");
-        const hidden = document.getElementById("seg_id_institucion");
+        const input = ui.segInstitucionTexto;
+        const lista = ui.instSugerencias;
+        const hidden = ui.segIdInstitucion;
 
         input.addEventListener("input", () => {
           hidden.value = "";
@@ -381,57 +313,90 @@
         });
       }
 
-      // ---- Autocomplete documento en modal ----
-      function inicializarAutocompleteDocumento() {
-        const data = {};
-        documentos.forEach((doc) => {
-          if (doc.n_documento) data[doc.n_documento] = null;
-        });
-        const input = document.getElementById("seg_documento_texto");
-        M.Autocomplete.init(input, {
-          data,
-          minLength: 1,
-          limit: 6,
-          onAutocomplete: (seleccion) => {
-            const doc = documentos.find((d) => d.n_documento === seleccion);
-            if (doc) document.getElementById("seg_id_documento").value = doc.id;
-          },
-        });
+      // ---- Buscador documento en modal ----
+      function inicializarBuscadorDocumento() {
+        const input = ui.segDocumentoTexto;
+        const lista = ui.docSugerencias;
+        const hidden = ui.segIdDocumento;
+
         input.addEventListener("input", () => {
-          document.getElementById("seg_id_documento").value = "";
+          hidden.value = "";
+          const texto = input.value.trim().toLowerCase();
+          if (!texto) { lista.style.display = "none"; return; }
+          const coincidencias = documentos
+            .filter((doc) => (doc.n_documento || "").toLowerCase().includes(texto))
+            .slice(0, 8);
+          if (!coincidencias.length) { lista.style.display = "none"; return; }
+          lista.innerHTML = coincidencias
+            .map((doc) => `<li data-id="${doc.id}" data-label="${escapar(doc.n_documento)}">${escapar(doc.n_documento)}</li>`)
+            .join("");
+          lista.style.display = "block";
+        });
+        lista.addEventListener("click", (e) => {
+          const li = e.target.closest("li");
+          if (!li) return;
+          hidden.value = li.dataset.id;
+          input.value = li.dataset.label;
+          lista.style.display = "none";
+        });
+        document.addEventListener("click", (e) => {
+          if (!input.contains(e.target) && !lista.contains(e.target)) {
+            lista.style.display = "none";
+          }
         });
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        ui.tabla = document.querySelector("#tablaSeguimientos tbody");
+        ui.tablaBody = document.querySelector("#tablaSeguimientos tbody");
         ui.modal    = M.Modal.init(document.getElementById("modalSeguimiento"), { dismissible: false });
         ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
         ui.btnNuevo    = document.getElementById("btnNuevo");
         ui.btnGuardar  = document.getElementById("btnGuardar");
         ui.btnEliminar = document.getElementById("btnEliminar");
+        ui.txtBuscarDoc = document.getElementById("txtBuscarDoc");
+        ui.filtroInstitucion = document.getElementById("filtroInstitucion");
+        ui.filtroEstado = document.getElementById("filtroEstado");
+        ui.tagsFiltros = document.getElementById("tagsFiltros");
+        ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
+        ui.contadorResultados = document.getElementById("contadorResultados");
+        ui.segIdDocumento = document.getElementById("seg_id_documento");
+        ui.segDocumentoTexto = document.getElementById("seg_documento_texto");
+        ui.docSugerencias = document.getElementById("docSugerencias");
+        ui.segIdInstitucion = document.getElementById("seg_id_institucion");
+        ui.segInstitucionTexto = document.getElementById("seg_institucion_texto");
+        ui.instSugerencias = document.getElementById("instSugerencias");
+        ui.segActividad = document.getElementById("seg_actividad");
+        ui.segEstado = document.getElementById("seg_estado");
+        ui.segFAtencion = document.getElementById("seg_f_atencion");
+        ui.segObservacion = document.getElementById("seg_observacion");
+        ui.filtroInstitucionHint = document.getElementById("filtroInstitucionHint");
 
         M.FormSelect.init(document.querySelectorAll("select"));
         inicializarBuscadorInstitucion();
-        inicializarAutocompleteDocumento();
+        inicializarBuscadorDocumento();
 
         document.getElementById("btnCerrarModal").addEventListener("click", () => ui.modal.close());
         ui.btnNuevo.addEventListener("click", () => abrirModal());
         ui.btnGuardar.addEventListener("click", guardar);
         ui.btnEliminar.addEventListener("click", confirmarEliminacion);
-        ui.tabla.addEventListener("click", manejarTabla);
+        ui.tablaBody.addEventListener("click", manejarTabla);
 
-        document.getElementById("txtBuscarDoc").addEventListener("input", aplicarFiltros);
-        document.getElementById("filtroInstitucion").addEventListener("input", () => {
+        ui.txtBuscarDoc.addEventListener("input", aplicarFiltros);
+        ui.filtroInstitucion.addEventListener("input", () => {
           actualizarHintInstitucion();
           aplicarFiltros();
         });
-        document.getElementById("switchEstados").addEventListener("change", aplicarFiltros);
-        document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
-        document.getElementById("tagsFiltros").addEventListener("click", (e) => {
+        ui.filtroEstado.addEventListener("change", aplicarFiltros);
+        ui.btnLimpiarFiltros.addEventListener("click", limpiarFiltros);
+        ui.tagsFiltros.addEventListener("click", (e) => {
           const btn = e.target.closest(".filtro-tag");
           if (!btn) return;
-          if (btn.dataset.filtro === "documento")    document.getElementById("txtBuscarDoc").value = "";
-          if (btn.dataset.filtro === "institucion")  document.getElementById("filtroInstitucion").value = "";
+          if (btn.dataset.filtro === "documento") ui.txtBuscarDoc.value = "";
+          if (btn.dataset.filtro === "institucion") ui.filtroInstitucion.value = "";
+          if (btn.dataset.filtro === "estado") {
+            ui.filtroEstado.value = "";
+            M.FormSelect.init(document.querySelectorAll("#filtroEstado"));
+          }
           aplicarFiltros();
         });
 
@@ -439,7 +404,7 @@
       });
 
       async function cargar() {
-        ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
         try {
           const resp = await fetch("/seguimientos/datos");
           const data = await resp.json();
@@ -447,21 +412,17 @@
           cache = data.seguimientos || [];
           renderizar(cache);
         } catch (err) {
-          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align red-text">Error al cargar los datos.</td></tr>';
           M.toast({ html: err.message, classes: "red" });
         }
       }
 
       function renderizar(lista) {
         if (!lista.length) {
-          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">No hay registros.</td></tr>';
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text">No hay registros.</td></tr>';
           return;
         }
-        const switchEl = document.getElementById("switchEstados");
-        const soloActivos = switchEl ? switchEl.checked : true;
-
-        ui.tabla.innerHTML = lista
-          .filter((s) => (soloActivos ? s.estado : !s.estado))
+        ui.tablaBody.innerHTML = lista
           .map((s, i) => `
             <tr>
               <td style="padding-left:20px">${i + 1}</td>
@@ -470,8 +431,8 @@
               <td>${escapar(s.actividad_nombre)}</td>
               <td>${escapar(s.observacion) || '<span class="grey-text">—</span>'}</td>
               <td class="center-align">
-                <span class="badge-estado ${s.estado ? 'badge-estado--activo' : 'badge-estado--inactivo'}">
-                  ${s.estado ? 'Activo' : 'Inactivo'}
+                <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
+                  ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
                 </span>
               </td>
               <td>
@@ -483,10 +444,9 @@
       }
 
       function aplicarFiltros() {
-        const termDoc  = document.getElementById("txtBuscarDoc").value.trim().toLowerCase();
-        const termInst = document.getElementById("filtroInstitucion").value.trim().toLowerCase();
-        const switchEl = document.getElementById("switchEstados");
-        const soloActivos = switchEl ? switchEl.checked : true;
+        const termDoc  = ui.txtBuscarDoc.value.trim().toLowerCase();
+        const termInst = ui.filtroInstitucion.value.trim().toLowerCase();
+        const estadoFiltro = ui.filtroEstado.value;
 
         const filtradas = cache.filter((s) => {
           const coincideDoc  = termDoc  ? (s.documento_numero || "").toLowerCase().includes(termDoc) : true;
@@ -494,22 +454,21 @@
             ? (s.institucion_sigla  || "").toLowerCase().includes(termInst) ||
               (s.institucion_nombre || "").toLowerCase().includes(termInst)
             : true;
-          const coincideEstado = soloActivos ? s.estado : !s.estado;
+          const coincideEstado = estadoFiltro ? String(s.estado) === String(estadoFiltro) : true;
           return coincideDoc && coincideInst && coincideEstado;
         });
 
         renderizarFiltrada(filtradas);
-        actualizarTags(termDoc, termInst);
+        actualizarTags(termDoc, termInst, estadoFiltro);
       }
 
       function renderizarFiltrada(lista) {
-        const contador = document.getElementById("contadorResultados");
-        if (contador) contador.textContent = `${lista.length} registro(s)`;
+        if (ui.contadorResultados) ui.contadorResultados.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
-          ui.tabla.innerHTML = '<tr><td colspan="7" class="center-align grey-text">Sin resultados para los filtros aplicados.</td></tr>';
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text">Sin resultados para los filtros aplicados.</td></tr>';
           return;
         }
-        ui.tabla.innerHTML = lista.map((s, i) => `
+        ui.tablaBody.innerHTML = lista.map((s, i) => `
           <tr>
             <td style="padding-left:20px">${i + 1}</td>
             <td>${escapar(s.documento_numero)}</td>
@@ -517,8 +476,8 @@
             <td>${escapar(s.actividad_nombre)}</td>
             <td>${escapar(s.observacion) || '<span class="grey-text">—</span>'}</td>
             <td class="center-align">
-              <span class="badge-estado ${s.estado ? 'badge-estado--activo' : 'badge-estado--inactivo'}">
-                ${s.estado ? 'Activo' : 'Inactivo'}
+              <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
+                ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
               </span>
             </td>
             <td>
@@ -530,10 +489,9 @@
       }
 
       function actualizarHintInstitucion() {
-        const texto = document.getElementById("filtroInstitucion").value.trim().toLowerCase();
-        const hint  = document.getElementById("filtroInstitucionHint");
-        if (!hint) return;
-        if (!texto) { hint.textContent = ""; return; }
+        const texto = ui.filtroInstitucion.value.trim().toLowerCase();
+        if (!ui.filtroInstitucionHint) return;
+        if (!texto) { ui.filtroInstitucionHint.textContent = ""; return; }
         const ids = new Set();
         cache.forEach((s) => {
           if (
@@ -541,29 +499,30 @@
             (s.institucion_nombre || "").toLowerCase().includes(texto)
           ) ids.add(s.id_institucion);
         });
-        hint.textContent = ids.size ? `${ids.size} institución(es) encontrada(s)` : "Sin coincidencias";
+        ui.filtroInstitucionHint.textContent = ids.size ? `${ids.size} institución(es) encontrada(s)` : "Sin coincidencias";
       }
 
-      function actualizarTags(termDoc, termInst) {
+      function actualizarTags(termDoc, termInst, estadoFiltro = "") {
         const tags = [];
         if (termDoc)  tags.push({ tipo: "documento",   label: `Documento: ${termDoc}` });
         if (termInst) tags.push({ tipo: "institucion", label: `Institución: ${termInst}` });
+        if (estadoFiltro) tags.push({ tipo: "estado", label: `Estado: ${estados[estadoFiltro] || estadoFiltro}` });
 
-        const contenedor = document.getElementById("tagsFiltros");
-        contenedor.innerHTML = tags.length
+        ui.tagsFiltros.innerHTML = tags.length
           ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
           : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
 
-        document.getElementById("btnLimpiarFiltros").disabled = !tags.length;
+        ui.btnLimpiarFiltros.disabled = !tags.length;
       }
 
       function limpiarFiltros() {
-        document.getElementById("txtBuscarDoc").value = "";
-        document.getElementById("filtroInstitucion").value = "";
-        const hint = document.getElementById("filtroInstitucionHint");
-        if (hint) hint.textContent = "";
+        ui.txtBuscarDoc.value = "";
+        ui.filtroInstitucion.value = "";
+        ui.filtroEstado.value = "";
+        M.FormSelect.init(document.querySelectorAll("#filtroEstado"));
+        if (ui.filtroInstitucionHint) ui.filtroInstitucionHint.textContent = "";
         renderizar(cache);
-        actualizarTags("", "");
+        actualizarTags("", "", "");
       }
 
       function manejarTabla(evento) {
@@ -580,22 +539,23 @@
 
       function abrirModal(seg = null) {
         editandoId = seg ? seg.id : null;
-        document.getElementById("modalTitulo").textContent = seg ? "EDITAR SEGUIMIENTO" : "NUEVO SEGUIMIENTO";
-        document.getElementById("formSeguimiento").reset();
-        document.getElementById("instSugerencias").style.display = "none";
-        document.getElementById("seg_id_documento").value   = "";
-        document.getElementById("seg_id_institucion").value = "";
+        ui.instSugerencias.style.display = "none";
+        ui.docSugerencias.style.display = "none";
+        ui.segIdDocumento.value = "";
+        ui.segIdInstitucion.value = "";
+        ui.segFAtencion.value = new Date().toISOString().slice(0, 10);
 
         if (seg) {
-          document.getElementById("seg_id_documento").value   = seg.id_documento   || "";
-          document.getElementById("seg_documento_texto").value = seg.documento_numero || "";
-          document.getElementById("seg_id_institucion").value = seg.id_institucion  || "";
-          document.getElementById("seg_institucion_texto").value = seg.institucion_sigla
+          ui.segIdDocumento.value = seg.id_documento || "";
+          ui.segDocumentoTexto.value = seg.documento_numero || "";
+          ui.segIdInstitucion.value = seg.id_institucion || "";
+          ui.segInstitucionTexto.value = seg.institucion_sigla
             ? `${seg.institucion_sigla} — ${seg.institucion_nombre}`
             : seg.institucion_nombre || "";
-          document.getElementById("seg_actividad").value     = seg.id_actividad    || "";
-          document.getElementById("seg_estado").checked      = Boolean(seg.estado);
-          document.getElementById("seg_observacion").value   = seg.observacion     || "";
+          ui.segActividad.value = seg.id_actividad || "";
+          ui.segEstado.value = String(seg.estado || "");
+          ui.segFAtencion.value = seg.f_atencion || new Date().toISOString().slice(0, 10);
+          ui.segObservacion.value = seg.observacion || "";
         }
 
         M.updateTextFields();
@@ -604,24 +564,27 @@
       }
 
       async function guardar() {
-        const idDoc  = document.getElementById("seg_id_documento").value;
-        const idInst = document.getElementById("seg_id_institucion").value;
-        const idAct  = document.getElementById("seg_actividad").value;
-        if (!idDoc || !idInst || !idAct) {
-          M.toast({ html: "Seleccione documento, institución y actividad.", classes: "orange" });
+        const idDoc = ui.segIdDocumento.value;
+        const idInst = ui.segIdInstitucion.value;
+        const idAct = ui.segActividad.value;
+        const estado = ui.segEstado.value;
+        const fAtencion = ui.segFAtencion.value;
+        if (!idDoc || !idInst || !idAct || !estado || !fAtencion) {
+          M.toast({ html: "Complete documento, institución, actividad, estado y fecha.", classes: "orange" });
           return;
         }
         const payload = {
           id_documento:   Number(idDoc),
           id_institucion: Number(idInst),
           id_actividad:   Number(idAct),
-          estado:         document.getElementById("seg_estado").checked,
-          observacion:    document.getElementById("seg_observacion").value.trim() || null,
+          estado:         Number(estado),
+          f_atencion:     fAtencion,
+          observacion: ui.segObservacion.value.trim() || null,
         };
         const url    = editandoId ? `/seguimientos/${editandoId}` : "/seguimientos/guardar";
         const metodo = editandoId ? "PUT" : "POST";
         try {
-          const resp = await fetch(url, crearOpciones(metodo, payload));
+         const resp = await fetch(url, crearOpcionesJson(metodo, payload));
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
           M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
@@ -635,7 +598,7 @@
       async function confirmarEliminacion() {
         if (!eliminandoId) { ui.modalConf.close(); return; }
         try {
-          const resp = await fetch(`/seguimientos/${eliminandoId}`, crearOpciones("DELETE"));
+          const resp = await fetch(`/seguimientos/${eliminandoId}`, crearOpcionesJson("DELETE"));
           const data = await resp.json();
           if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
           M.toast({ html: data.message || "Seguimiento eliminado.", classes: "green" });

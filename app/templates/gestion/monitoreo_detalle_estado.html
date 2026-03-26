@@ -125,18 +125,8 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
-      function obtenerCookie(nombre) {
-        var prefijo = nombre + "=";
-        var partes = document.cookie ? document.cookie.split("; ") : [];
-        for (var i = 0; i < partes.length; i++) {
-          if (partes[i].indexOf(prefijo) === 0) {
-            return decodeURIComponent(partes[i].slice(prefijo.length));
-          }
-        }
-        return null;
-      }
-
       document.querySelectorAll(".btn-reintentar").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var headers = { "Content-Type": "application/json" };

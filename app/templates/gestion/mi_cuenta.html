@@ -401,28 +401,8 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
-      function obtenerCookie(nombre) {
-        const prefijo = `${nombre}=`;
-        for (const parte of (document.cookie || "").split("; ")) {
-          if (parte.startsWith(prefijo))
-            return decodeURIComponent(parte.slice(prefijo.length));
-        }
-        return null;
-      }
-
-      function crearOpciones(method, payload) {
-        const headers = {};
-        const token = obtenerCookie("csrf_access_token");
-        if (token) headers["X-CSRF-Token"] = token;
-        const opciones = { method, headers };
-        if (payload !== undefined) {
-          headers["Content-Type"] = "application/json";
-          opciones.body = JSON.stringify(payload);
-        }
-        return opciones;
-      }
-
       /* ---- Fortaleza de contraseña ---- */
       function evaluarFortaleza(pwd) {
         let puntaje = 0;
