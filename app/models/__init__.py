@@ -9,7 +9,8 @@ from .documentos import Documento
 from .actividades import Actividad
 from .seguimientos import Seguimiento
 
-from .perfiles import Perfil, Rol
+from .perfiles import Perfil
+from .roles import Rol
 from .usuarios import Persona, Usuario, UsuarioRol, HPersona, HUsuario
 
 
@@ -20,7 +21,8 @@ __all__ = [
   'HerramientaGeografica', 'HHerramientaGeografica',
   'CapaGeografica', 'ServicioGeografico', 'HCapaGeografica', 'HServicioGeografico',
   'Documento', 'Actividad', 'Seguimiento',
-  'Perfil', 'Rol',
+  'Perfil',
+  'Rol',
   'Persona', 'Usuario', 'UsuarioRol', 'HPersona', 'HUsuario',
   'LogMonitoreo', 'HLogMonitoreo',
   ]

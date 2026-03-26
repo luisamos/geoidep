@@ -181,6 +181,7 @@ class UsuarioRol(db.Model):
       db.ForeignKey(f"{SCHEMA_IDE}.dom_roles.id"),
       nullable=False,
   )
+  nivel = db.Column(db.Integer, nullable=False)
   usuario_registro = db.Column(db.Integer, nullable=False, default=1, server_default='1')
   fecha_registro = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), nullable=False)
 

@@ -9,19 +9,22 @@ INSERT INTO ide.def_usuarios(correo_electronico, contrasena, estado, cnd, idep, 
 
 SELECT * FROM ide.def_usuarios;
 
-SELECT * FROM ide.dom_roles WHERE id > 5;
+SELECT * FROM ide.dom_roles WHERE id > 6;
 
-INSERT INTO ide.aso_usuarios_roles(id_usuario, id_rol, usuario_registro, fecha_registro) VALUES
-(2, 6, 1, '20-03-2026'),
-(2, 7, 1, '20-03-2026'),
-(2, 8, 1, '20-03-2026'),
-(2, 9, 1, '20-03-2026'),
-(2, 10, 1, '20-03-2026'),
-(2, 11, 1, '20-03-2026'),
-(2, 12, 1, '20-03-2026'),
-(2, 13, 1, '20-03-2026'),
-(2, 14, 1, '20-03-2026'),
-(2, 15, 1, '20-03-2026');
+INSERT INTO ide.aso_usuarios_roles(id_usuario, id_rol, usuario_registro, fecha_registro, nivel) VALUES
+(2, 7, 1, '20-03-2026',2),
+(2, 8, 1, '20-03-2026',1),
+(2, 9, 1, '20-03-2026',2),
+(2, 10, 1, '20-03-2026',2),
+(2, 11, 1, '20-03-2026',2),
+(2, 12, 1, '20-03-2026',2),
+(2, 13, 1, '20-03-2026',2),
+(2, 14, 1, '20-03-2026',2),
+(2, 15, 1, '20-03-2026',2),
+(2, 16, 1, '20-03-2026',1),
+(2, 17, 1, '20-03-2026',1);
+
+SELECT * FROM ide.aso_usuarios_roles;
 
 
 

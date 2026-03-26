@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
-from app.models.perfiles import Rol
+from app.models.roles import Rol
 from .helpers import obtener_usuario_actual
 
 bp = Blueprint('roles', __name__, url_prefix='/roles')
