@@ -4,6 +4,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -255,10 +256,70 @@ def eliminar(id_seg: int):
         return jsonify({'status': 'error', 'message': 'No se puede eliminar la actividad.'}), 400
     return jsonify({'status': 'success', 'message': 'Actividad eliminada correctamente.'})
 
-@bp.route('seguimiento')
+@bp.route('/seguimiento', endpoint='seguimiento')
 @jwt_required()
 def seguimiento():
-    registro = {
-        'id': 11
-    }
-    return jsonify({'seguimiento': registro})
+    usuario = obtener_usuario_actual(requerido=True)
+    tipos = (TipoActividad.query
+             .filter_by(estado=True)
+             .order_by(TipoActividad.orden.asc())
+             .all())
+    return render_template(
+        'gestion/seguimiento_actividades.html',
+        tipos_actividad=tipos,
+        usuario_actual=usuario,
+    )
+
+@bp.route('/seguimiento/datos', endpoint='seguimiento_datos')
+@jwt_required()
+def seguimiento_datos():
+    usuario = obtener_usuario_actual(requerido=True)
+
+    # Subquery: max orden de tipo_actividad por (institucion, documento)
+    subq = (
+        db.session.query(
+            Actividad.id_institucion,
+            Actividad.id_documento,
+            func.max(TipoActividad.orden).label('max_orden'),
+        )
+        .join(TipoActividad, Actividad.id_tipo_actividad == TipoActividad.id)
+        .group_by(Actividad.id_institucion, Actividad.id_documento)
+        .subquery()
+    )
+
+    # Consulta principal: actividad con la etapa más avanzada por inst/doc
+    rows = (
+        db.session.query(Actividad, TipoActividad, Institucion, Documento)
+        .join(TipoActividad, Actividad.id_tipo_actividad == TipoActividad.id)
+        .join(Institucion, Actividad.id_institucion == Institucion.id)
+        .join(Documento, Actividad.id_documento == Documento.id)
+        .join(
+            subq,
+            (Actividad.id_institucion == subq.c.id_institucion)
+            & (Actividad.id_documento == subq.c.id_documento)
+            & (TipoActividad.orden == subq.c.max_orden),
+        )
+        .order_by(TipoActividad.orden.asc(), Institucion.nombre.asc())
+        .all()
+    )
+
+    if usuario_restringido_a_su_entidad(usuario):
+        rows = [r for r in rows if r[2].id == usuario.id_institucion]
+
+    data = [
+        {
+            'id':           act.id,
+            'nro_ruc':      inst.nro_ruc or '—',
+            'institucion':  inst.nombre or '—',
+            'sigla':        inst.sigla or '—',
+            'documento':    doc.n_documento or '—',
+            'estado':       act.estado,
+            'estado_nombre': ESTADOS.get(act.estado, '—'),
+            'etapa_id':     tipo.id,
+            'etapa_orden':  tipo.orden,
+            'etapa_nombre': tipo.nombre or '—',
+            'fecha':        act.f_atencion.strftime('%d/%m/%Y') if act.f_atencion else '—',
+        }
+        for act, tipo, inst, doc in rows
+    ]
+    return jsonify({'registros': data})
