@@ -629,7 +629,7 @@
 
         btn.addEventListener("click", function () {
           var headers = { "Content-Type": "application/json" };
-          var csrfToken = obtenerCookie("csrf_access_token");
+          var csrfToken = GestionHttp.obtenerCookie("csrf_access_token");
           if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
           fetch("/principal/ejecutar?tipo=" + TIPO, {
