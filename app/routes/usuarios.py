@@ -103,6 +103,21 @@ def datos_usuarios():
   ]
   return jsonify({'usuarios': lista})
 
+def _aplicar_campos_usuario(usuario, payload, admin_id):
+  """Aplica los campos del payload JSON a la instancia de Usuario."""
+  nombres = (payload.get('nombres_apellidos') or '').strip() or None
+  if nombres is not None and usuario.persona:
+    usuario.persona.nombres_apellidos = nombres
+  usuario.cargo         = (payload.get('cargo') or '').strip() or None
+  usuario.id_institucion = int(payload['id_institucion'])
+  usuario.id_perfil      = int(payload['id_perfil'])
+  usuario.estado         = bool(payload.get('estado', True))
+  usuario.cnd            = bool(payload.get('cnd', False))
+  usuario.idep           = bool(payload.get('idep', False))
+  usuario.geoperu        = bool(payload.get('geoperu', False))
+  usuario.pnda           = bool(payload.get('pnda', False))
+  usuario.cnm            = bool(payload.get('cnm', False))
+
 @bp.route('/guardar', methods=['POST'], endpoint='guardar')
 @jwt_required()
 def guardar_usuario():
@@ -110,81 +125,57 @@ def guardar_usuario():
   if respuesta:
     return respuesta
 
-  instituciones = obtener_instituciones_para(admin)
-  choices_institucion = [(inst.id, inst.nombre) for inst in instituciones]
+  payload = request.get_json(silent=True) or {}
+  nombres_apellidos = (payload.get('nombres_apellidos') or '').strip()
+  correo = (payload.get('correo_electronico') or '').strip().lower()
+  password = (payload.get('password') or '').strip()
 
-  perfiles = (
-    Perfil.query.filter_by(estado=True)
-    .order_by(Perfil.id.asc())
-    .all()
-  )
-  choices_perfil = [(perfil.id, perfil.nombre) for perfil in perfiles]
+  if not nombres_apellidos or not correo:
+    return jsonify({'status': 'error', 'message': 'El nombre y el correo son obligatorios.'}), 400
+  if not payload.get('id_institucion') or not payload.get('id_perfil'):
+    return jsonify({'status': 'error', 'message': 'Institución y perfil son obligatorios.'}), 400
+  if not password:
+    return jsonify({'status': 'error', 'message': 'Ingrese una contraseña para el nuevo usuario.'}), 400
+  if Usuario.query.filter(func.lower(Usuario.correo_electronico) == correo).first():
+    return jsonify({'status': 'error', 'message': 'El correo electrónico ya está registrado.'}), 400
 
-  form = UsuarioForm()
-  form.id_institucion.choices = choices_institucion
-  form.id_perfil.choices = choices_perfil
+  persona = Persona(nombres_apellidos=nombres_apellidos, usuario_registro=admin.id)
+  usuario = Usuario(correo_electronico=correo, usuario_registro=admin.id, contrasena='')
+  usuario.persona = persona
+  db.session.add(persona)
+  db.session.add(usuario)
+  _aplicar_campos_usuario(usuario, payload, admin.id)
+  usuario.set_password(password)
+  db.session.commit()
+  return jsonify({'status': 'success', 'message': 'Usuario creado correctamente.'})
 
-  if form.validate_on_submit():
-    email = form.email.data.strip().lower()
-    usuario = None
-    if form.id.data:
-      usuario = (
-        Usuario.query.options(joinedload(Usuario.persona))
-        .filter_by(id=int(form.id.data))
-        .first_or_404()
-      )
-      existe = (
-        Usuario.query.filter(func.lower(Usuario.correo_electronico) == email)
-        .filter(Usuario.id != usuario.id)
-        .first()
-      )
-      if existe:
-        flash('El correo electrónico ya está asociado a otro usuario.', 'error')
-        return redirect(url_for('usuarios.listar', editar=usuario.id))
-  else:
-    if Usuario.query.filter(func.lower(Usuario.correo_electronico) == email).first():
-      flash('El correo electrónico ya está registrado.', 'error')
-      return redirect(url_for('usuarios.listar'))
-    if not form.password.data:
-      flash('Debes ingresar una contraseña para el nuevo usuario.', 'error')
-      return redirect(url_for('usuarios.listar'))
-    usuario = Usuario(correo_electronico=email)
-    usuario.usuario_registro = admin.id
-    persona = Persona(
-      nombres=form.nombres.data.strip() or None,
-      apellidos=form.apellidos.data.strip() or None,
-      numero_documento=form.numero_documento.data.strip() or None,
-      usuario_registro=admin.id,
-    )
-    usuario.persona = persona
-    db.session.add(persona)
-    db.session.add(usuario)
+@bp.route('/<int:id_usuario>', methods=['PUT'], endpoint='actualizar')
+@jwt_required()
+def actualizar_usuario(id_usuario: int):
+  admin, respuesta = obtener_admin_actual()
+  if respuesta:
+    return respuesta
 
-    usuario.email = email
-    usuario.nombres = form.nombres.data
-    usuario.apellidos = form.apellidos.data
-    usuario.numero_documento = form.numero_documento.data
-    usuario.id_institucion = form.id_institucion.data
-    usuario.id_perfil = form.id_perfil.data
-    usuario.estado = form.estado.data
-    usuario.geoidep = form.geoidep.data
-    usuario.geoperu = form.geoperu.data
+  usuario = Usuario.query.options(joinedload(Usuario.persona)).filter_by(id=id_usuario).first()
+  if not usuario:
+    return jsonify({'status': 'error', 'message': 'Usuario no encontrado.'}), 404
 
-    if usuario.persona:
-      usuario.persona.usuario_registra = admin.id
-    if form.password.data:
-      usuario.set_password(form.password.data)
+  payload = request.get_json(silent=True) or {}
+  correo = (payload.get('correo_electronico') or '').strip().lower()
 
-    db.session.commit()
-    flash('Usuario guardado correctamente.', 'success')
-    return redirect(url_for('usuarios.listar'))
+  if correo and correo != usuario.correo_electronico:
+    if Usuario.query.filter(func.lower(Usuario.correo_electronico) == correo).filter(Usuario.id != id_usuario).first():
+      return jsonify({'status': 'error', 'message': 'El correo ya está asociado a otro usuario.'}), 400
+    usuario.correo_electronico = correo
 
-  for campo, errores in form.errors.items():
-    etiqueta = getattr(form, campo).label.text
-    for error in errores:
-      flash(f"{etiqueta}: {error}", 'error')
+  _aplicar_campos_usuario(usuario, payload, admin.id)
 
-  return redirect(url_for('usuarios.listar'))
+  password = (payload.get('password') or '').strip()
+  if password:
+    usuario.set_password(password)
+
+  db.session.commit()
+  return jsonify({'status': 'success', 'message': 'Usuario actualizado correctamente.'})
 
 @bp.route('/<int:id_usuario>/eliminar', methods=['POST'], endpoint='eliminar')
 @jwt_required()

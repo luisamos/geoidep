@@ -209,8 +209,11 @@
                   <th>Correo</th>
                   <th>Perfil</th>
                   <th>Institución</th>
-                  <th>GeoIDEP</th>
-                  <th>GeoPerú</th>
+                  <th>CND</th>
+                  <th>IDEP</th>
+                  <th>GEOPERU</th>
+                  <th>PNDA</th>
+                  <th>CNM</th>
                   <th class="col-estado">Estado</th>
                   <th class="col-opciones">Acciones</th>
                 </tr>
@@ -302,26 +305,9 @@
               </span>
             </div>
 
-            <!-- Flags acceso -->
-            <div class="col s12">
-              <p class="grey-text text-darken-1" style="font-size:0.85rem;font-weight:600;margin:8px 0 4px">
-                ACCESOS
-              </p>
-            </div>
-            <div class="col s12 m4">
-              <label>
-                <input type="checkbox" id="usu_geoidep" />
-                <span>GeoIDEP</span>
-              </label>
-            </div>
-            <div class="col s12 m4">
-              <label>
-                <input type="checkbox" id="usu_geoperu" />
-                <span>GeoPerú</span>
-              </label>
-            </div>
-            <div class="col s12 m4">
-              <div class="switch" style="margin-top: 4px">
+            <!-- Estado de cuenta -->
+            <div class="col s12" style="margin-top:8px">
+              <div class="switch">
                 <label>
                   Inactivo
                   <input type="checkbox" id="usu_estado" checked />
@@ -329,6 +315,42 @@
                   Activo
                 </label>
               </div>
+            </div>
+            <!-- Flags acceso -->
+            <div class="col s12" style="margin-top:12px">
+              <p class="grey-text text-darken-1" style="font-size:0.85rem;font-weight:600;margin:8px 0 4px">
+                ACCESOS AL SISTEMA
+              </p>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_cnd" />
+                <span>CND</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_idep" />
+                <span>IDEP</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_geoperu" />
+                <span>GEOPERU</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_pnda" />
+                <span>PNDA</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_cnm" />
+                <span>CNM</span>
+              </label>
             </div>
           </div>
         </form>
@@ -471,7 +493,7 @@
       });
 
       async function cargar() {
-        ui.tabla.innerHTML = '<tr><td colspan="9" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
         try {
           const resp = await fetch("/usuarios/datos");
           const data = await resp.json();
@@ -479,7 +501,7 @@
           cache = data.usuarios || [];
           aplicarFiltros();
         } catch (err) {
-          ui.tabla.innerHTML = '<tr><td colspan="9" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align red-text">Error al cargar los datos.</td></tr>';
           M.toast({ html: err.message, classes: "red" });
         }
       }
@@ -488,7 +510,7 @@
         const contador = document.getElementById("contadorResultados");
         if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
-          ui.tabla.innerHTML = '<tr><td colspan="9" class="center-align grey-text">No hay registros.</td></tr>';
+          ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align grey-text">No hay registros.</td></tr>';
           return;
         }
         ui.tabla.innerHTML = lista.map((u, i) => `
@@ -499,13 +521,28 @@
             <td>${escapar(u.perfil_nombre) || '<span class="grey-text">—</span>'}</td>
             <td>${escapar(u.institucion_sigla || u.institucion_nombre) || '<span class="grey-text">—</span>'}</td>
             <td class="center-align">
-              <span class="badge-bool ${u.geoidep ? 'badge-bool--si' : 'badge-bool--no'}">
-                <i class="material-icons tiny">${u.geoidep ? 'check_circle' : 'cancel'}</i>
+              <span class="badge-bool ${u.cnd ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.cnd ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.idep ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.idep ? 'check_circle' : 'cancel'}</i>
               </span>
             </td>
             <td class="center-align">
               <span class="badge-bool ${u.geoperu ? 'badge-bool--si' : 'badge-bool--no'}">
                 <i class="material-icons tiny">${u.geoperu ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.pnda ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.pnda ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.cnm ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.cnm ? 'check_circle' : 'cancel'}</i>
               </span>
             </td>
             <td class="center-align">
@@ -615,8 +652,11 @@
             ? `${usu.institucion_sigla} — ${usu.institucion_nombre}`
             : usu.institucion_nombre || "";
           document.getElementById("usu_perfil").value              = usu.id_perfil           || "";
-          document.getElementById("usu_geoidep").checked           = Boolean(usu.geoidep);
+          document.getElementById("usu_cnd").checked               = Boolean(usu.cnd);
+          document.getElementById("usu_idep").checked              = Boolean(usu.idep);
           document.getElementById("usu_geoperu").checked           = Boolean(usu.geoperu);
+          document.getElementById("usu_pnda").checked              = Boolean(usu.pnda);
+          document.getElementById("usu_cnm").checked               = Boolean(usu.cnm);
           document.getElementById("usu_estado").checked            = Boolean(usu.estado);
         }
 
@@ -655,8 +695,11 @@
           cargo:              document.getElementById("usu_cargo").value.trim() || null,
           id_institucion:     Number(idInst),
           id_perfil:          Number(idPerfil),
-          geoidep:            document.getElementById("usu_geoidep").checked,
+          cnd:                document.getElementById("usu_cnd").checked,
+          idep:               document.getElementById("usu_idep").checked,
           geoperu:            document.getElementById("usu_geoperu").checked,
+          pnda:               document.getElementById("usu_pnda").checked,
+          cnm:                document.getElementById("usu_cnm").checked,
           estado:             document.getElementById("usu_estado").checked,
         };
         if (password) payload.password = password;

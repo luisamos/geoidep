@@ -294,20 +294,41 @@
                 </div>
                 <div class="col s12">
                   <div class="dato-info">
+                    <span class="dato-info__etiqueta">Estado de cuenta</span>
+                    <span class="dato-info__valor">
+                      {% if usuario_actual %}
+                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.estado else 'badge-acceso--inactivo' }}">
+                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.estado else 'cancel' }}</i>
+                          {{ 'Activa' if usuario_actual.estado else 'Inactiva' }}
+                        </span>
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+                <div class="col s12">
+                  <div class="dato-info">
                     <span class="dato-info__etiqueta">Accesos al sistema</span>
                     <div style="margin-top: 4px">
                       {% if usuario_actual %}
-                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.geoidep else 'badge-acceso--inactivo' }}">
-                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.geoidep else 'cancel' }}</i>
-                          GeoIDEP
+                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.cnd else 'badge-acceso--inactivo' }}">
+                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.cnd else 'cancel' }}</i>
+                          CND
+                        </span>
+                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.idep else 'badge-acceso--inactivo' }}">
+                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.idep else 'cancel' }}</i>
+                          IDEP
                         </span>
                         <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.geoperu else 'badge-acceso--inactivo' }}">
                           <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.geoperu else 'cancel' }}</i>
-                          GeoPerú
+                          GEOPERU
                         </span>
-                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.estado else 'badge-acceso--inactivo' }}">
-                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.estado else 'cancel' }}</i>
-                          {{ 'Cuenta activa' if usuario_actual.estado else 'Cuenta inactiva' }}
+                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.pnda else 'badge-acceso--inactivo' }}">
+                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.pnda else 'cancel' }}</i>
+                          PNDA
+                        </span>
+                        <span class="badge-acceso {{ 'badge-acceso--activo' if usuario_actual.cnm else 'badge-acceso--inactivo' }}">
+                          <i class="material-icons tiny">{{ 'check_circle' if usuario_actual.cnm else 'cancel' }}</i>
+                          CNM
                         </span>
                       {% endif %}
                     </div>
@@ -385,16 +406,6 @@
               </form>
             </div>
 
-            <!-- Últimas sesiones (solo visual) -->
-            <div class="seccion-card">
-              <h2 class="seccion-card__titulo">
-                <i class="material-icons">history</i> Actividad reciente
-              </h2>
-              <p class="grey-text center-align" style="padding: 16px 0">
-                <i class="material-icons medium grey-text">schedule</i><br />
-                La información de sesiones se implementará próximamente.
-              </p>
-            </div>
           </div>
         </div>
       </div>
