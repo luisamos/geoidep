@@ -90,7 +90,7 @@ def listar():
 
     return render_template(
         'gestion/actividades.html',
-        tipo_actividad=tipo_actividad,
+        actividades=tipo_actividad,
         instituciones=instituciones_json,
         documentos=documentos_json,
         estados=ESTADOS,
