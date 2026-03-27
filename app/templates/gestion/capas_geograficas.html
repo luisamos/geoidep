@@ -1985,6 +1985,12 @@
           tags.push({ tipo: "institucion", label: `Institución: ${filtroInstitucionTextoTag}` });
         }
 
+        const filtroEstadoVal = ui.filtroEstado ? ui.filtroEstado.value : "";
+        if (filtroEstadoVal) {
+          const estadoLabel = filtroEstadoVal === "activo" ? "Activos" : "Inactivos";
+          tags.push({ tipo: "estado", label: `Estado: ${estadoLabel}` });
+        }
+
         if (!tags.length) {
           ui.tagsFiltros.innerHTML =
             '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
@@ -2271,6 +2277,10 @@
               const hint = document.getElementById("filtroInstitucionHint");
               if (hint) { hint.textContent = ""; }
             }
+            if (ui.filtroEstado) {
+              ui.filtroEstado.value = "";
+              M.FormSelect.init(ui.filtroEstado);
+            }
             actualizarFiltroInstituciones();
             aplicarFiltros();
           });
@@ -2300,6 +2310,10 @@
               ui.filtroInstitucion.value = "";
               const hint = document.getElementById("filtroInstitucionHint");
               if (hint) { hint.textContent = ""; }
+            }
+            if (tipo === "estado" && ui.filtroEstado) {
+              ui.filtroEstado.value = "";
+              M.FormSelect.init(ui.filtroEstado);
             }
             aplicarFiltros();
           });

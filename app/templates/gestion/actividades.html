@@ -427,6 +427,7 @@
       }
 
       function renderizar(lista) {
+        if (ui.contadorResultados) ui.contadorResultados.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
           ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text">No hay registros.</td></tr>';
           return;

@@ -269,6 +269,12 @@
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
 

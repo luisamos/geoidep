@@ -362,6 +362,12 @@
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
       const instituciones = {{ instituciones | tojson | safe }};
@@ -452,6 +458,11 @@
             sel.value = "";
             M.FormSelect.init(sel);
           }
+          if (btn.dataset.filtro === "estado") {
+            const sel = document.getElementById("filtroEstado");
+            sel.value = "";
+            M.FormSelect.init(sel);
+          }
           aplicarFiltros();
         });
 
@@ -530,10 +541,10 @@
         });
 
         renderizar(filtradas);
-        actualizarTags(termNombre, termEmail, termPerfil);
+        actualizarTags(termNombre, termEmail, termPerfil, filtroEstadoVal);
       }
 
-      function actualizarTags(termNombre, termEmail, termPerfil) {
+      function actualizarTags(termNombre, termEmail, termPerfil, filtroEstadoVal) {
         const tags = [];
         if (termNombre) tags.push({ tipo: "nombre", label: `Nombre: ${termNombre}` });
         if (termEmail)  tags.push({ tipo: "email",  label: `Correo: ${termEmail}` });
@@ -541,6 +552,10 @@
           const sel = document.getElementById("filtroPerfil");
           const txt = sel.options[sel.selectedIndex]?.textContent || termPerfil;
           tags.push({ tipo: "perfil", label: `Perfil: ${txt}` });
+        }
+        if (filtroEstadoVal) {
+          const estadoLabel = filtroEstadoVal === "activo" ? "Activos" : "Inactivos";
+          tags.push({ tipo: "estado", label: `Estado: ${estadoLabel}` });
         }
 
         const cont = document.getElementById("tagsFiltros");

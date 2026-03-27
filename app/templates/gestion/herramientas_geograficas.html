@@ -527,6 +527,10 @@
               ui.filtroTipo.value = "";
               M.FormSelect.init(ui.filtroTipo);
             }
+            if (ui.filtroEstado) {
+              ui.filtroEstado.value = "";
+              M.FormSelect.init(ui.filtroEstado);
+            }
             renderHerramientas();
           });
         }
@@ -545,6 +549,9 @@
             } else if (tipo === "tipo" && ui.filtroTipo) {
               ui.filtroTipo.value = "";
               M.FormSelect.init(ui.filtroTipo);
+            } else if (tipo === "estado" && ui.filtroEstado) {
+              ui.filtroEstado.value = "";
+              M.FormSelect.init(ui.filtroEstado);
             }
             renderHerramientas();
           });
@@ -1283,6 +1290,12 @@
             : "";
         if (filtroInstitucionTexto) {
           tags.push({ tipo: "institucion", label: `Institución: ${filtroInstitucionTexto}` });
+        }
+
+        const filtroEstadoVal = ui.filtroEstado ? ui.filtroEstado.value : "";
+        if (filtroEstadoVal) {
+          const estadoLabel = filtroEstadoVal === "activo" ? "Activos" : "Inactivos";
+          tags.push({ tipo: "estado", label: `Estado: ${estadoLabel}` });
         }
 
         if (tags.length === 0) {

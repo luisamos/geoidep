@@ -367,7 +367,7 @@ def detalles():
       })
   else:
     consulta = ServicioGeografico.query.options(
-        joinedload(ServicioGeografico.capa).joinedload(CapaGeografica.institucion),
+        joinedload(ServicioGeografico.capa_geografica).joinedload(CapaGeografica.institucion),
         joinedload(ServicioGeografico.tipo),
     )
     if not es_vista_global:
@@ -385,14 +385,14 @@ def detalles():
 
     items = consulta.order_by(ServicioGeografico.id.desc()).all()
     for item in items:
-      institucion = item.capa.institucion if item.capa else None
+      institucion = item.capa_geografica.institucion if item.capa_geografica else None
       log = LogMonitoreo.query.filter_by(
           tipo_recurso='servicio_geografico',
           id_recurso=item.id,
       ).order_by(LogMonitoreo.fecha_verificacion.desc()).first()
       filas.append({
           'id_recurso': item.id,
-          'nombre': (item.titulo_capa or item.nombre_capa or (item.capa.nombre if item.capa else '-')),
+          'nombre': (item.titulo_capa or item.nombre_capa or (item.capa_geografica.nombre if item.capa_geografica else '-')),
           'institucion': (institucion.nombre if institucion else '-'),
           'sigla': (institucion.sigla if institucion else '-'),
           'problema_detectado': (log.mensaje_error if log and log.mensaje_error else ('Servicio no disponible' if not item.estado else '-')),
