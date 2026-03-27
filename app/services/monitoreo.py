@@ -320,6 +320,8 @@ async def actualizar_herramientas_geograficas(
     resultado: ResultadoMonitoreo,
     limite: Optional[int] = None,
     ids: Optional[list[int]] = None,
+    progress_callback=None,
+    progress_offset: int = 0,
 ) -> None:
     query = HerramientaGeografica.query.filter(
         HerramientaGeografica.recurso.isnot(None)
@@ -362,6 +364,9 @@ async def actualizar_herramientas_geograficas(
             if error_msg:
                 resultado.errores.append(f"[HD #{herramienta.id}] {error_msg}")
 
+        if progress_callback:
+            progress_callback(progress_offset + resultado.herramientas_verificadas)
+
         logging.info(
             "Herramienta %s | URL: %s | Estado: %s -> %s",
             herramienta.id,
@@ -379,6 +384,8 @@ async def actualizar_servicios_geograficos(
     resultado: ResultadoMonitoreo,
     limite: Optional[int] = None,
     ids: Optional[list[int]] = None,
+    progress_callback=None,
+    progress_offset: int = 0,
 ) -> None:
     query = ServicioGeografico.query.order_by(ServicioGeografico.id)
     if ids:
@@ -410,6 +417,9 @@ async def actualizar_servicios_geograficos(
             if error_msg:
                 resultado.errores.append(f"[SG #{servicio.id}] {error_msg}")
 
+        if progress_callback:
+            progress_callback(progress_offset + resultado.servicios_verificados)
+
         logging.info(
             "Servicio %s | URL: %s | Estado: %s -> %s",
             servicio.id,
@@ -431,8 +441,15 @@ async def ejecutar_monitoreo(
     limite: Optional[int] = None,
     ids: Optional[list[int]] = None,
     dry_run: bool = False,
+    progress_callback=None,
 ) -> ResultadoMonitoreo:
-    """Ejecuta el monitoreo completo. Debe llamarse dentro de un app_context."""
+    """Ejecuta el monitoreo completo. Debe llamarse dentro de un app_context.
+
+    Args:
+        progress_callback: callable(verificados: int) llamado tras verificar
+            cada recurso. Permite que el caller actualice el progreso en tiempo
+            real (e.g. desde un hilo de fondo).
+    """
     if config is None:
         config = RequestConfig()
 
@@ -441,11 +458,21 @@ async def ejecutar_monitoreo(
     async with aiohttp.ClientSession() as session:
         if tipo in ("todos", "servicios_geograficos"):
             logging.info("=== Verificando servicios geográficos ===")
-            await actualizar_servicios_geograficos(session, config, resultado, limite, ids)
+            await actualizar_servicios_geograficos(
+                session, config, resultado, limite, ids,
+                progress_callback=progress_callback,
+                progress_offset=0,
+            )
 
         if tipo in ("todos", "herramientas_geograficas"):
             logging.info("=== Verificando herramientas geográficas ===")
-            await actualizar_herramientas_geograficas(session, config, resultado, limite, ids)
+            # El offset acumula los servicios ya verificados para que el
+            # progreso sea global y no reinicie al cambiar de categoría.
+            await actualizar_herramientas_geograficas(
+                session, config, resultado, limite, ids,
+                progress_callback=progress_callback,
+                progress_offset=resultado.servicios_verificados,
+            )
 
     if dry_run:
         db.session.rollback()

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, render_template, request, url_for
+import asyncio
+import logging
+import threading
+
+from flask import Blueprint, current_app, jsonify, render_template, request, url_for
 from flask_jwt_extended import jwt_required
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 from app.services.monitoreo import RequestConfig, ejecutar_monitoreo
+from app.services import tarea_monitoreo
 from app.routes.helpers import obtener_usuario_actual, usuario_puede_ver_todas_entidades
 
 from app.extensions import db
@@ -413,54 +418,131 @@ def detalles():
       filas=filas,
   )
 
+def _calcular_total_recursos(tipo: str) -> int:
+  total = 0
+  if tipo in ('todos', 'servicios_geograficos'):
+    total += ServicioGeografico.query.count()
+  if tipo in ('todos', 'herramientas_geograficas'):
+    total += HerramientaGeografica.query.filter(
+        HerramientaGeografica.recurso.isnot(None)
+    ).count()
+  return total
+
+
+def _run_monitoreo_background(app, tipo: str, ids, usuario_nombre: str) -> None:
+  """Ejecuta el monitoreo completo en un hilo de fondo independiente.
+
+  El hilo es daemon (muere con el proceso principal) y mantiene su propio
+  app_context de Flask para acceder a la BD sin conflictos de sesión.
+  """
+  with app.app_context():
+    try:
+      config = RequestConfig(timeout=30.0, delay=0.5)
+      resultado = asyncio.run(
+          ejecutar_monitoreo(
+              config=config,
+              tipo=tipo,
+              ids=ids,
+              progress_callback=tarea_monitoreo.tarea.actualizar_progreso,
+          )
+      )
+      tarea_monitoreo.tarea.completar({
+          'servicios_geograficos': {
+              'verificados': resultado.servicios_verificados,
+              'activos': resultado.servicios_activos,
+              'inactivos': resultado.servicios_inactivos,
+          },
+          'herramientas_geograficas': {
+              'verificadas': resultado.herramientas_verificadas,
+              'activas': resultado.herramientas_activas,
+              'inactivas': resultado.herramientas_inactivas,
+          },
+          'total_errores': len(resultado.errores),
+      })
+      logging.info(
+          "Monitoreo '%s' completado por '%s': %d servicios, %d herramientas.",
+          tipo, usuario_nombre,
+          resultado.servicios_verificados,
+          resultado.herramientas_verificadas,
+      )
+    except Exception as exc:
+      logging.exception("Error en el hilo de monitoreo ('%s')", tipo)
+      tarea_monitoreo.tarea.marcar_error(str(exc))
+
+
 @bp.route('/ejecutar', methods=['POST'])
 @jwt_required()
 def ejecutar_monitoreo_endpoint():
+  """Inicia el monitoreo como proceso de fondo (no-bloqueante).
+
+  - Si ya hay un proceso en ejecución, responde 409 con el estado actual.
+  - Si se inicia correctamente, responde 202 de inmediato y el proceso
+    continúa en segundo plano.  El frontend puede consultar /principal/estado
+    para conocer el progreso sin mantener la conexión abierta.
+  """
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
     return jsonify({"message": "No autorizado"}), 401
 
   tipo = request.args.get('tipo', 'todos')
   if tipo not in ('todos', 'servicios_geograficos', 'herramientas_geograficas'):
-    return jsonify({"message": "Tipo inválido. Use: todos, servicios_geograficos, herramientas_geograficas"}), 400
-
-  try:
-    payload = request.get_json(silent=True) or {}
-    ids = payload.get('ids') if isinstance(payload.get('ids'), list) else None
-    config = RequestConfig(timeout=30.0, delay=0.5)
-    resultado = asyncio.run(ejecutar_monitoreo(config=config, tipo=tipo, ids=ids))
-
     return jsonify({
-        "message": "Monitoreo completado",
-        "servicios_geograficos": {
-            "verificados": resultado.servicios_verificados,
-            "activos": resultado.servicios_activos,
-            "inactivos": resultado.servicios_inactivos,
-        },
-        "herramientas_geograficas": {
-            "verificadas": resultado.herramientas_verificadas,
-            "activas": resultado.herramientas_activas,
-            "inactivas": resultado.herramientas_inactivas,
-        },
-        "total_errores": len(resultado.errores),
-    }), 200
-  except Exception as exc:
-    logging.exception("Error al ejecutar el monitoreo de servicios")
-    return jsonify({"message": f"Error durante el monitoreo: {str(exc)}"}), 500
+        "message": "Tipo inválido. Use: todos, servicios_geograficos, herramientas_geograficas"
+    }), 400
+
+  # Si ya está en ejecución, devolver estado actual en lugar de lanzar otro
+  if tarea_monitoreo.tarea.esta_ejecutando():
+    return jsonify({
+        "message": "El monitoreo ya está en ejecución",
+        "tarea": tarea_monitoreo.tarea.to_dict(),
+    }), 409
+
+  payload = request.get_json(silent=True) or {}
+  ids = payload.get('ids') if isinstance(payload.get('ids'), list) else None
+
+  total = _calcular_total_recursos(tipo)
+  usuario_nombre = usuario.nombre_completo or usuario.correo_electronico or f"Usuario #{usuario.id}"
+
+  # Registrar inicio (con lock interno — si otro request ganó la carrera, rechazar)
+  if not tarea_monitoreo.tarea.iniciar(tipo, total, usuario_nombre):
+    return jsonify({
+        "message": "El monitoreo ya está en ejecución",
+        "tarea": tarea_monitoreo.tarea.to_dict(),
+    }), 409
+
+  # Lanzar hilo daemon independiente del ciclo de vida del request
+  app = current_app._get_current_object()
+  hilo = threading.Thread(
+      target=_run_monitoreo_background,
+      args=(app, tipo, ids, usuario_nombre),
+      daemon=True,
+      name=f"monitoreo-{tipo}",
+  )
+  hilo.start()
+
+  return jsonify({
+      "message": "Monitoreo iniciado en segundo plano",
+      "tarea": tarea_monitoreo.tarea.to_dict(),
+  }), 202
+
+
+@bp.route('/estado')
+@jwt_required()
+def estado_monitoreo():
+  """Retorna el estado actual del proceso de monitoreo (para polling del frontend)."""
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return jsonify({"message": "No autorizado"}), 401
+  return jsonify(tarea_monitoreo.tarea.to_dict())
+
 
 @bp.route('/total')
 @jwt_required()
 def total_recursos():
-  """Retorna la cantidad total de recursos a verificar para calcular el progreso."""
+  """Retorna la cantidad total de recursos a verificar."""
   usuario = obtener_usuario_actual(requerido=True)
   if not usuario:
     return jsonify({"message": "No autorizado"}), 401
 
   tipo = request.args.get('tipo', 'todos')
-  total = 0
-  if tipo in ('todos', 'servicios_geograficos'):
-    total += ServicioGeografico.query.count()
-  if tipo in ('todos', 'herramientas_geograficas'):
-    total += HerramientaGeografica.query.filter(HerramientaGeografica.recurso.isnot(None)).count()
-
-  return jsonify({"total": total})
+  return jsonify({"total": _calcular_total_recursos(tipo)})

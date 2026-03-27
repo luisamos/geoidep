@@ -230,6 +230,7 @@
       .progreso-container {
         display: none;
         margin-top: 8px;
+        min-width: 260px;
       }
       .progreso-barra {
         height: 20px;
@@ -242,7 +243,7 @@
         height: 100%;
         border-radius: 10px;
         background: linear-gradient(90deg, #00897b, #26a69a);
-        transition: width 0.4s;
+        transition: width 0.5s ease;
       }
       .progreso-texto {
         position: absolute;
@@ -253,6 +254,22 @@
         font-weight: 600;
         color: #fff;
         top: 0;
+      }
+      .progreso-detalle {
+        font-size: 0.78rem;
+        color: #555;
+        margin-top: 3px;
+        text-align: center;
+      }
+      .banner-ejecutando {
+        display: none;
+        background: #e8f5e9;
+        border-left: 4px solid #43a047;
+        border-radius: 6px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: #2e7d32;
       }
     </style>
   </head>
@@ -296,6 +313,7 @@
               >
                 <i class="material-icons left">refresh</i>Ejecutar monitoreo
               </button>
+              <!-- Barra de progreso (visible mientras el proceso esté activo) -->
               <div class="progreso-container" id="progresoContainer">
                 <div class="progreso-barra">
                   <div
@@ -305,6 +323,12 @@
                   ></div>
                   <div class="progreso-texto" id="progresoTexto">0%</div>
                 </div>
+                <div class="progreso-detalle" id="progresoDetalle"></div>
+              </div>
+              <!-- Banner informativo cuando otro usuario ya inició el proceso -->
+              <div class="banner-ejecutando" id="bannerEjecutando">
+                <i class="material-icons" style="vertical-align:middle;font-size:16px">sync</i>
+                <span id="bannerTexto">Monitoreo en ejecución…</span>
               </div>
             </div>
             {% endif %}
@@ -453,83 +477,154 @@
       document.addEventListener("DOMContentLoaded", function () {
         M.Tabs.init(document.querySelectorAll(".tabs"));
 
-        var btn = document.getElementById("btnMonitoreo");
+        var btn             = document.getElementById("btnMonitoreo");
+        var progresoContainer = document.getElementById("progresoContainer");
+        var progresoFill    = document.getElementById("progresoFill");
+        var progresoTexto   = document.getElementById("progresoTexto");
+        var progresoDetalle = document.getElementById("progresoDetalle");
+        var bannerEjecutando = document.getElementById("bannerEjecutando");
+        var bannerTexto     = document.getElementById("bannerTexto");
+
+        var pollingInterval = null;
+        var TIPO = "herramientas_geograficas";
+
+        /* ------------------------------------------------------------------ */
+        /* Helpers de UI                                                        */
+        /* ------------------------------------------------------------------ */
+        function mostrarProgreso(tarea, lanzadoPorEsteUsuario) {
+          var pct = tarea.porcentaje || 0;
+          progresoFill.style.width = pct + "%";
+          progresoTexto.textContent = pct + "%";
+          progresoDetalle.textContent =
+            tarea.verificados + " de " + tarea.total + " verificados";
+
+          if (lanzadoPorEsteUsuario) {
+            progresoContainer.style.display = "block";
+            bannerEjecutando.style.display  = "none";
+          } else {
+            progresoContainer.style.display = "none";
+            bannerEjecutando.style.display  = "block";
+            bannerTexto.textContent =
+              "Monitoreo en ejecución por " +
+              (tarea.iniciado_por || "otro usuario") +
+              " — " + pct + "% (" +
+              tarea.verificados + "/" + tarea.total + ")";
+          }
+
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML =
+              '<i class="material-icons left">hourglass_empty</i>En ejecución…';
+          }
+        }
+
+        function ocultarProgreso() {
+          progresoContainer.style.display = "none";
+          bannerEjecutando.style.display  = "none";
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML =
+              '<i class="material-icons left">refresh</i>Ejecutar monitoreo';
+          }
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Polling del estado                                                   */
+        /* ------------------------------------------------------------------ */
+        var _lanzadoPorEsteUsuario = false;
+
+        function iniciarPolling() {
+          if (pollingInterval) return;
+          pollingInterval = setInterval(consultarEstado, 2000);
+        }
+
+        function detenerPolling() {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+          }
+        }
+
+        function consultarEstado() {
+          fetch("/principal/estado")
+            .then(function (r) { return r.json(); })
+            .then(function (tarea) {
+              if (tarea.estado === "ejecutando") {
+                mostrarProgreso(tarea, _lanzadoPorEsteUsuario);
+              } else {
+                detenerPolling();
+                ocultarProgreso();
+                if (tarea.estado === "completado" && _lanzadoPorEsteUsuario) {
+                  var res = tarea.resultado || {};
+                  var hd  = res.herramientas_geograficas || {};
+                  M.toast({
+                    html: "Monitoreo completado: " +
+                          (hd.verificadas || 0) + " herramientas verificadas.",
+                    displayLength: 4000,
+                  });
+                  _lanzadoPorEsteUsuario = false;
+                  setTimeout(function () { window.location.reload(); }, 1500);
+                } else if (tarea.estado === "error" && _lanzadoPorEsteUsuario) {
+                  M.toast({ html: "Error en el monitoreo: " + tarea.error });
+                  _lanzadoPorEsteUsuario = false;
+                }
+              }
+            })
+            .catch(function () { /* ignorar errores de red transitorios */ });
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Al cargar la página: verificar si ya hay un proceso activo          */
+        /* ------------------------------------------------------------------ */
+        fetch("/principal/estado")
+          .then(function (r) { return r.json(); })
+          .then(function (tarea) {
+            if (tarea.estado === "ejecutando") {
+              mostrarProgreso(tarea, false);
+              iniciarPolling();
+            }
+          })
+          .catch(function () {});
+
+        /* ------------------------------------------------------------------ */
+        /* Botón Ejecutar                                                       */
+        /* ------------------------------------------------------------------ */
         if (!btn) return;
 
         btn.addEventListener("click", function () {
-          btn.disabled = true;
-          btn.innerHTML =
-            '<i class="material-icons left">hourglass_empty</i>Analizando...';
-
-          var progresoContainer = document.getElementById("progresoContainer");
-          var progresoFill = document.getElementById("progresoFill");
-          var progresoTexto = document.getElementById("progresoTexto");
-          progresoContainer.style.display = "block";
-
           var headers = { "Content-Type": "application/json" };
           var csrfToken = obtenerCookie("csrf_access_token");
           if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
-          /* Obtener total para calcular porcentaje */
-          fetch("/principal/monitoreo/total?tipo=herramientas_geograficas")
-            .then(function (r) {
-              return r.json();
+          fetch("/principal/ejecutar?tipo=" + TIPO, {
+            method: "POST",
+            headers: headers,
+          })
+            .then(function (resp) {
+              return resp.json().then(function (data) {
+                return { status: resp.status, data: data };
+              });
             })
-            .then(function (info) {
-              var totalRecursos = info.total || 1;
-              var progreso = 0;
-              var intervalo = setInterval(function () {
-                progreso += Math.random() * (90 / (totalRecursos * 0.8));
-                if (progreso > 95) progreso = 95;
-                progresoFill.style.width = progreso.toFixed(0) + "%";
-                progresoTexto.textContent = progreso.toFixed(0) + "% analizado";
-              }, 600);
-
-              fetch("/principal/monitoreo?tipo=herramientas_geograficas", {
-                method: "POST",
-                headers: headers,
-              })
-                .then(function (resp) {
-                  return resp.json().then(function (data) {
-                    return { ok: resp.ok, data: data };
-                  });
-                })
-                .then(function (result) {
-                  clearInterval(intervalo);
-                  progresoFill.style.width = "100%";
-                  progresoTexto.textContent = "100% completado";
-
-                  if (result.ok) {
-                    var d = result.data;
-                    M.toast({
-                      html:
-                        "Monitoreo completado: " +
-                        d.herramientas_geograficas.verificadas +
-                        " herramientas verificadas.",
-                    });
-                    setTimeout(function () {
-                      window.location.reload();
-                    }, 1200);
-                  } else {
-                    M.toast({
-                      html:
-                        result.data.message || "Error al ejecutar el monitoreo",
-                    });
-                    btn.disabled = false;
-                    btn.innerHTML =
-                      '<i class="material-icons left">refresh</i>Ejecutar monitoreo';
-                  }
-                })
-                .catch(function () {
-                  clearInterval(intervalo);
-                  M.toast({
-                    html: "Error de conexión al ejecutar el monitoreo",
-                  });
-                  btn.disabled = false;
-                  btn.innerHTML =
-                    '<i class="material-icons left">refresh</i>Ejecutar monitoreo';
-                  progresoContainer.style.display = "none";
+            .then(function (result) {
+              if (result.status === 202) {
+                /* Proceso iniciado correctamente */
+                _lanzadoPorEsteUsuario = true;
+                mostrarProgreso(result.data.tarea, true);
+                iniciarPolling();
+              } else if (result.status === 409) {
+                /* Ya hay un proceso en ejecución */
+                _lanzadoPorEsteUsuario = false;
+                mostrarProgreso(result.data.tarea, false);
+                iniciarPolling();
+                M.toast({ html: result.data.message || "Ya hay un monitoreo en curso." });
+              } else {
+                M.toast({
+                  html: result.data.message || "Error al iniciar el monitoreo",
                 });
+              }
+            })
+            .catch(function () {
+              M.toast({ html: "Error de conexión al iniciar el monitoreo" });
             });
         });
       });
