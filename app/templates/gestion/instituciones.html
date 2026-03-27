@@ -274,6 +274,7 @@
         d.textContent = t || "";
         return d.innerHTML;
       }
+      const crearOpciones = GestionHttp.crearOpcionesJson;
 
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";

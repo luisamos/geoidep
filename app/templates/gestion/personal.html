@@ -232,6 +232,13 @@
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script>
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+      const crearOpciones = GestionHttp.crearOpcionesJson;
+
       const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
       const iconoDetalle  = "{{ url_for('static', filename='imagenes/detalles.png') }}";
