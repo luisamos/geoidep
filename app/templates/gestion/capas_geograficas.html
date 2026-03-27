@@ -287,7 +287,7 @@
             </select>
             <label>Tipo de servicio</label>
           </div>
-          <div class="input-field col s12 m6 l3">
+          <div class="input-field col s12 m4 l3">
             <i class="material-icons prefix" style="font-size:1.5rem;top:0.6rem">business</i>
             <input
               id="filtroInstitucion"
@@ -301,6 +301,14 @@
             />
             <label for="filtroInstitucion">Buscar institución por sigla</label>
             <span class="helper-text" id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
+          </div>
+          <div class="input-field col s12 m3 l3">
+            <select id="filtroEstado">
+              <option value="">Todos</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
+            </select>
+            <label>Estado</label>
           </div>
         </div>
 
@@ -328,17 +336,7 @@
         <div class="row">
           <div class="col s12">
             <div class="estado-filtros-row">
-              <div class="estado-filtros">
-                <div class="switch">
-                  <label>
-                    Inactivo
-                    <input type="checkbox" id="switchEstados" checked />
-                    <span class="lever"></span>
-                    Activo
-                  </label>
-                </div>
-                <p class="grey-text" id="contadorResultados"></p>
-              </div>
+              <p class="grey-text" id="contadorResultados"></p>
               <div class="estado-filtros-acciones">
                 <button
                   id="btnAgregar"
@@ -570,7 +568,7 @@
         filtroInstitucion: null,
         tagsFiltros: null,
         btnLimpiarFiltros: null,
-        switchEstados: null,
+        filtroEstado: null,
         btnAgregar: null,
         btnGuardar: null,
         modalCapa: null,
@@ -1879,12 +1877,16 @@
             ? ui.filtroInstitucion.value.trim().toLowerCase()
             : "";
 
-        const switchEstados = ui.switchEstados;
-        const mostrarActivos = switchEstados ? switchEstados.checked : true;
+        const filtroEstadoVal = ui.filtroEstado ? ui.filtroEstado.value : "";
 
-        let base = mostrarActivos
-          ? (capasCache.activos || []).slice()
-          : (capasCache.inactivos || []).slice();
+        let base;
+        if (filtroEstadoVal === "inactivo") {
+          base = (capasCache.inactivos || []).slice();
+        } else if (filtroEstadoVal === "activo") {
+          base = (capasCache.activos || []).slice();
+        } else {
+          base = (capasCache.activos || []).concat(capasCache.inactivos || []);
+        }
         base = base.concat(capasCache.sin_estado || []);
 
         const filtradas = base.filter((capa) => {
@@ -2136,7 +2138,7 @@
         ui.filtroInstitucion = document.getElementById("filtroInstitucion");
         ui.tagsFiltros = document.getElementById("tagsFiltros");
         ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
-        ui.switchEstados = document.getElementById("switchEstados");
+        ui.filtroEstado = document.getElementById("filtroEstado");
         ui.btnAgregar = document.getElementById("btnAgregar");
         ui.btnGuardar = document.getElementById("btnGuardar");
         ui.modalCapa = document.getElementById("modalCapa");
@@ -2247,8 +2249,8 @@
           });
         }
 
-        if (ui.switchEstados) {
-          ui.switchEstados.addEventListener("change", aplicarFiltros);
+        if (ui.filtroEstado) {
+          ui.filtroEstado.addEventListener("change", aplicarFiltros);
         }
 
         if (ui.btnLimpiarFiltros) {

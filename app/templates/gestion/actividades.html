@@ -45,12 +45,12 @@
 
         <!-- Filtros -->
         <div class="row">
-          <div class="input-field col s12 m5 l4">
+          <div class="input-field col s12 m4 l4">
             <i class="material-icons prefix">description</i>
             <input id="txtBuscarDoc" type="text" placeholder="Número de documento" />
             <label for="txtBuscarDoc">Documento</label>
           </div>
-          <div class="input-field col s12 m5 l4">
+          <div class="input-field col s12 m4 l4">
             <i class="material-icons prefix">business</i>
             <input
               id="filtroInstitucion"
@@ -60,6 +60,15 @@
             />
             <label for="filtroInstitucion">Institución (sigla)</label>
             <span id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
+          </div>
+          <div class="input-field col s12 m4 l4">
+            <select id="filtroEstado">
+              <option value="">Todos los estados</option>
+              <option value="1">Pendiente</option>
+              <option value="2">En proceso</option>
+              <option value="3">Culminado</option>
+            </select>
+            <label>Estado</label>
           </div>
         </div>
 
@@ -81,15 +90,6 @@
         <div class="row">
           <div class="col s12">
             <div class="estado-filtros-row">
-              <div class="input-field" style="min-width: 230px; margin: 0">
-                <select id="filtroEstado">
-                  <option value="">Todos los estados</option>
-                  <option value="1">Pendiente</option>
-                  <option value="2">En proceso</option>
-                  <option value="3">Culminado</option>
-                </select>
-                <label>Estado</label>
-              </div>
               <p class="grey-text" id="contadorResultados"></p>
               <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
                 <i class="material-icons left">add</i>Nuevo

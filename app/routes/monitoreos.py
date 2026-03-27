@@ -363,7 +363,7 @@ def detalles():
           'fecha_hora': (log.fecha_verificacion if log else None),
           'tipo': (item.tipo.sigla if item.tipo and item.tipo.sigla else (item.tipo.nombre if item.tipo else '-')),
           'editar_url': url_for('herramientas_geograficas.inicio'),
-          'ejecutar_url': url_for('gestion.ejecutar_monitoreo_endpoint', tipo='herramientas_geograficas'),
+          'ejecutar_url': url_for('monitoreos.ejecutar_monitoreo_endpoint', tipo='herramientas_geograficas'),
       })
   else:
     consulta = ServicioGeografico.query.options(
@@ -400,7 +400,7 @@ def detalles():
           'fecha_hora': (log.fecha_verificacion if log else None),
           'tipo': (item.tipo.sigla if item.tipo and item.tipo.sigla else (item.tipo.nombre if item.tipo else '-')),
           'editar_url': url_for('capas_geograficas.inicio'),
-          'ejecutar_url': url_for('gestion.ejecutar_monitoreo_endpoint', tipo='servicios_geograficos'),
+          'ejecutar_url': url_for('monitoreos.ejecutar_monitoreo_endpoint', tipo='servicios_geograficos'),
       })
 
   titulo_tipo = None

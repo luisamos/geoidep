@@ -199,6 +199,14 @@
             <label for="filtroInstitucion">Buscar institución por sigla</label>
             <span class="helper-text" id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
           </div>
+          <div class="input-field col s12 m3 l3">
+            <select id="filtroEstado">
+              <option value="">Todos</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
+            </select>
+            <label>Estado</label>
+          </div>
         </div>
 
         <div class="row">
@@ -223,17 +231,7 @@
         <div class="row">
           <div class="col s12">
             <div class="estado-filtros-row">
-              <div class="estado-filtros">
-                <div class="switch">
-                  <label>
-                    Inactivo
-                    <input type="checkbox" id="switchActivos" checked />
-                    <span class="lever"></span>
-                    Activo
-                  </label>
-                </div>
-                <p class="grey-text" id="contadorResultados"></p>
-              </div>
+              <p class="grey-text" id="contadorResultados"></p>
               <div class="estado-filtros-acciones">
                 <button
                   id="btnAgregar"
@@ -414,7 +412,7 @@
         filtroInstitucion: null,
         tagsFiltros: null,
         btnLimpiarFiltros: null,
-        switchActivos: null,
+        filtroEstado: null,
         btnAgregar: null,
         formHerramienta: null,
         modalTituloHerramienta: null,
@@ -449,7 +447,7 @@
         );
         ui.filtroTipo = document.getElementById("filtro_tipo");
         ui.txtFiltro = document.getElementById("txtFiltro");
-        ui.switchActivos = document.getElementById("switchActivos");
+        ui.filtroEstado = document.getElementById("filtroEstado");
         ui.btnAgregar = document.getElementById("btnAgregar");
         ui.formHerramienta = document.getElementById("formHerramienta");
         ui.modalTituloHerramienta = document.getElementById(
@@ -552,8 +550,8 @@
           });
         }
 
-        if (ui.switchActivos) {
-          ui.switchActivos.addEventListener("change", renderHerramientas);
+        if (ui.filtroEstado) {
+          ui.filtroEstado.addEventListener("change", renderHerramientas);
         }
 
         if (ui.btnAgregar) {
@@ -872,9 +870,7 @@
         }
         tbody.innerHTML = "";
 
-        const mostrarSoloActivos =
-          ui.switchActivos && !ui.switchActivos.checked ? false : true;
-
+        const filtroEstadoVal = ui.filtroEstado ? ui.filtroEstado.value : "";
         const filtroTipo = ui.filtroTipo ? ui.filtroTipo.value : "";
         const textoFiltro = ui.txtFiltro ? ui.txtFiltro.value.trim() : "";
         const filtroInstitucionTexto =
@@ -884,9 +880,12 @@
 
         let herramientas = [];
 
-        if (mostrarSoloActivos) {
+        if (filtroEstadoVal === "inactivo") {
+          herramientas = herramientas.concat(herramientasCache.inactivos || []);
+        } else if (filtroEstadoVal === "activo") {
           herramientas = herramientas.concat(herramientasCache.activos || []);
         } else {
+          herramientas = herramientas.concat(herramientasCache.activos || []);
           herramientas = herramientas.concat(herramientasCache.inactivos || []);
         }
 
