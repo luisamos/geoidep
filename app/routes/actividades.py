@@ -26,10 +26,10 @@ def registrar_historico(act: Actividad, accion: str, usuario_id: int | None):
   historial = HActividad(
     id_documento=act.id_documento,
     id_institucion=act.id_institucion,
-    id_actividad=act.id_actividad,
+    id_tipo_actividad=act.id_tipo_actividad,
     f_atencion=act.f_atencion,
     estado=act.estado,
-    descripcion=act.descripcion,
+    description=act.description,
     usuario_registro=act.usuario_registro,
     fecha_registro=act.fecha_registro,
     accion=accion,
@@ -40,7 +40,7 @@ def registrar_historico(act: Actividad, accion: str, usuario_id: int | None):
 def validar_unicidad(id_documento: int, id_actividad: int, estado: int, excluir_id: int | None = None):
   consulta = Actividad.query.filter_by(
     id_documento=id_documento,
-    id_actividad=id_actividad,
+    id_tipo_actividad=id_actividad,
     estado=estado,
   )
   if excluir_id:
@@ -149,8 +149,8 @@ def guardar():
         return jsonify({'status': 'error', 'message': 'La fecha de atención no tiene formato válido.'}), 400
 
     usuario = obtener_usuario_actual(requerido=True)
-    actividad = Actividad.query.filter_by(id=int(id_actividad), estado=True).first()
-    if not actividad or actividad.id_perfil != usuario.id_perfil:
+    tipo_act = TipoActividad.query.filter_by(id=int(id_actividad), estado=True).first()
+    if not tipo_act or tipo_act.id_perfil != usuario.id_perfil:
         return jsonify({'status': 'error', 'message': 'La actividad seleccionada no está permitida para su perfil.'}), 403
 
     if (
@@ -165,9 +165,9 @@ def guardar():
     seg = Actividad(
       id_documento=int(id_documento),
       id_institucion=int(id_institucion),
-      id_actividad=int(id_actividad),
+      id_tipo_actividad=int(id_actividad),
       f_atencion=f_atencion,
-      descripcion=(payload.get('descripcion') or '').strip() or None,
+      description=(payload.get('descripcion') or '').strip() or None,
       estado=int(estado),
       usuario_registro=usuario.id if usuario else 1,
     )
@@ -188,7 +188,7 @@ def actualizar(id_seg: int):
     usuario = obtener_usuario_actual(requerido=True)
     if (
         usuario_restringido_a_su_entidad(usuario)
-        and act.id_institucion != usuario.id_institucion
+        and seg.id_institucion != usuario.id_institucion
     ):
         return jsonify({'status': 'error', 'message': 'No puedes modificar la actividad de otra institución.'}), 403
 
@@ -205,8 +205,8 @@ def actualizar(id_seg: int):
     if not f_atencion:
         return jsonify({'status': 'error', 'message': 'La fecha de atención no tiene formato válido.'}), 400
 
-    actividad = Actividad.query.filter_by(id=int(id_actividad), estado=True).first()
-    if not actividad or actividad.id_perfil != usuario.id_perfil:
+    tipo_act = TipoActividad.query.filter_by(id=int(id_actividad), estado=True).first()
+    if not tipo_act or tipo_act.id_perfil != usuario.id_perfil:
         return jsonify({'status': 'error', 'message': 'La actividad seleccionada no está permitida para su perfil.'}), 403
 
     nuevo_id_institucion = int(id_institucion)
@@ -221,12 +221,12 @@ def actualizar(id_seg: int):
 
     registrar_historico(seg, 'UPDATE', usuario.id if usuario else None)
 
-    act.id_documento = int(id_documento)
-    act.id_institucion = nuevo_id_institucion
-    act.id_actividad = int(id_actividad)
-    act.f_atencion = f_atencion
-    act.descripcion = (payload.get('d') or '').strip() or None
-    act.estado = int(estado)
+    seg.id_documento = int(id_documento)
+    seg.id_institucion = nuevo_id_institucion
+    seg.id_tipo_actividad = int(id_actividad)
+    seg.f_atencion = f_atencion
+    seg.description = (payload.get('descripcion') or '').strip() or None
+    seg.estado = int(estado)
     try:
         db.session.commit()
     except IntegrityError:
