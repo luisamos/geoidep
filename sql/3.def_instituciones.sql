@@ -60,6 +60,6 @@ SELECT id, nombre FROM ide.def_instituciones WHERE id_padre IN (1,2,3,4,5,6,7,8,
 
 --\copy ide.def_instituciones (codigo, nombre, id_padre, sigla, usuario_registro, fecha_registro) FROM 'C:\Apps\python\Flask\geoidep\sql\instituciones2.csv' WITH (FORMAT csv, DELIMITER ';', QUOTE '"', HEADER true, ENCODING 'UTF8');
 
-SELECT id, nombre, sigla FROM ide.def_instituciones
+SELECT id, codigo, nombre, sigla, id_padre, nro_ruc FROM ide.def_instituciones
 WHERE id >=45
-AND sigla ILIKE '%SERPOS%';
+AND sigla ILIKE '%jovenes%';

@@ -7,7 +7,7 @@ class Documento(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   n_documento = db.Column(db.String(1000), nullable=False, unique=True)
-  f_documento = db.Column(db.Date, nullable=False)
+  f_documento = db.Column(db.Date, nullable=True)
   cod_expediente = db.Column(db.String(100), nullable=True)
   f_recepcion = db.Column(db.Date, nullable=True)
   url_documento = db.Column(db.String(1000), nullable=True)
