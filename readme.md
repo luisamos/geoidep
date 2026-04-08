@@ -94,7 +94,12 @@ UMask=007
 RuntimeDirectory=geoidep
 RuntimeDirectoryMode=0755
 
-ExecStart=/opt/geoidep/.venv/bin/gunicorn --workers 3 --bind unix:/run/geoidep/geoidep.sock --log-level info app:create_app()
+ExecStart=/opt/geoidep/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/run/geoidep/geoidep.sock \
+    --log-level info \
+    --no-control-socket \
+    "app:create_app()"
 
 Restart=on-failure
 RestartSec=3
@@ -112,6 +117,8 @@ systemctl daemon-reload
 systemctl enable geoidep.service
 systemctl start geoidep.service
 systemctl status geoidep.service
+
+sudo journalctl -u geoidep -n 50 --no-pager
 ```
 
 ---
