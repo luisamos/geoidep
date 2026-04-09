@@ -1354,7 +1354,7 @@ def obtener_opciones_catalogo_globales():
 
   categorias_herramientas = (
     Categoria.query
-    .join(Categoria.herramientas)
+    .join(Categoria.herramientas_geograficas)
     .with_entities(Categoria.id, Categoria.nombre)
   )
 

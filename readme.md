@@ -30,7 +30,8 @@ Socket Unix: `/run/geoidep/geoidep.sock`
 
 ```bash
 # Primera vez
-git clone <repo-url> /opt/geoidep
+cd /opt
+git clone https://github.com/luisamos/geoidep.git
 
 # Actualizaciones posteriores
 cd /opt/geoidep
