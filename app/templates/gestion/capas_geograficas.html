@@ -1644,7 +1644,7 @@
             if (!idLayer) {
               M.toast({
                 html:
-                  "Ingrese el ID Layer de GeoPerú para el servicio WMS cuando la publicación esté activa.",
+                  "Ingrese el ID Layer de GeoPerú para el servicio WMS; si publicar en GeoPerú es No, envíe 0, y si es Sí, debe ingresar un valor.",
               });
               if (ui.idLayerGeoperu) {
                 ui.idLayerGeoperu.focus();
@@ -2047,12 +2047,18 @@
           return;
         }
 
+        const idLayerGeoPeruPayload = publicar
+          ? idLayerGeoPeru
+            ? Number(idLayerGeoPeru)
+            : null
+          : 0;
+
         const payload = {
           id,
           nombre,
           descripcion,
           tipo_capa: tipoCapa,
-          id_layer_geoperu: idLayerGeoPeru ? Number(idLayerGeoPeru) : null,
+          id_layer_geoperu: idLayerGeoPeruPayload,
           id_categoria: categoriaId,
           id_institucion: institucionId,
           servicios,

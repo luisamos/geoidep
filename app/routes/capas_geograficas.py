@@ -813,7 +813,7 @@ def guardar():
         jsonify(
           {
             'status': 'error',
-            'message': 'Ingrese el ID Layer de GeoPerú para el servicio WMS.',
+            'message': 'Ingrese el ID Layer de GeoPerú para el servicio WMS; si publicar en GeoPerú es No, envíe 0, y si es Sí, debe ingresar un valor.',
           }
         ),
         400,
