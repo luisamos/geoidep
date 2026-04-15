@@ -852,8 +852,8 @@ def guardar():
     else:
       sincronizar_secuencia(ServicioGeografico)
       servicio_instancia = ServicioGeografico(
-        capa=capa,
-        usuario_crea=usuario.id,
+        capa_geografica=capa,
+        usuario_registro=usuario.id,
       )
       db.session.add(servicio_instancia)
 
@@ -866,6 +866,8 @@ def guardar():
     if servicio['tipo_id'] == 11:
       if id_layer_geoperu is not None:
         servicio_instancia.id_layer = id_layer_geoperu
+      elif not servicio_instancia.id_layer:
+        servicio_instancia.id_layer = 0
     elif not servicio_instancia.id_layer:
       servicio_instancia.id_layer = 0
     servicio_instancia.usuario_modifica = usuario.id
