@@ -586,7 +586,7 @@ def guardar():
       )
   else:
     sincronizar_secuencia(CapaGeografica)
-    capa = CapaGeografica(usuario_crea=usuario.id)
+    capa = CapaGeografica(usuario_registro=usuario.id)
     db.session.add(capa)
 
   capa.nombre = nombre

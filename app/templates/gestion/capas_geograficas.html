@@ -558,6 +558,7 @@
       const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const crearOpcionesJson = window.GestionHttp.crearOpcionesJson;
       const tiposServicio = {{ tipos_serv | tojson | safe }};
       const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
 
