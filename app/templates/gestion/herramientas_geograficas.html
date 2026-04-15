@@ -401,6 +401,7 @@
       const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar =
         "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const crearOpcionesJson = window.GestionHttp.crearOpcionesJson;
       const institucionesDisponibles = {{ instituciones_disponibles | tojson | safe }};
 
       const puedeEditarInstitucion = {{ 'true' if puede_editar_institucion else 'false' }};
