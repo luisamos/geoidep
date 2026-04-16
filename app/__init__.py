@@ -5,6 +5,10 @@ import secrets
 from flask import Flask, Response, abort, g, jsonify, redirect, render_template, request, url_for
 from flask_jwt_extended import unset_jwt_cookies
 
+from app import config
+from app.extensions import cache, db, jwt, mail, migrate
+from app.routes import register_routes
+
 def _es_peticion_ajax():
   return (
     request.headers.get('X-Requested-With') == 'XMLHttpRequest'

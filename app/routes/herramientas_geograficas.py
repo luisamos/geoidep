@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models.categorias import Categoria
 from app.models.herramientas_geograficas import HerramientaGeografica
+from app.models.herramientas_geograficas import HHerramientaGeografica
 from app.models.instituciones import Institucion
 from app.models.tipos import Tipo
 from app.routes.helpers import obtener_usuario_actual, usuario_restringido_a_su_entidad
@@ -16,6 +17,27 @@ from app.routes.helpers import obtener_usuario_actual, usuario_restringido_a_su_
 bp = Blueprint('herramientas_geograficas', __name__, url_prefix='/herramientas_geograficas')
 
 EXCLUDED_PARENT_IDS = tuple(range(10))
+
+def registrar_historico_herramienta(
+  herramienta: HerramientaGeografica,
+  accion: str,
+  usuario_id: int | None,
+):
+  historial = HHerramientaGeografica(
+    id_herramienta_geografica=herramienta.id,
+    nombre=herramienta.nombre,
+    descripcion=herramienta.descripcion,
+    estado=herramienta.estado,
+    recurso=herramienta.recurso,
+    id_tipo=herramienta.id_tipo,
+    id_categoria=herramienta.id_categoria,
+    id_institucion=herramienta.id_institucion,
+    usuario_registro=herramienta.usuario_registro,
+    fecha_registro=herramienta.fecha_registro,
+    accion=accion,
+    usuario_accion=usuario_id,
+  )
+  db.session.add(historial)
 
 def sincronizar_secuencia(modelo):
   tabla = modelo.__table__
@@ -379,6 +401,7 @@ def actualizar(id):
     elif herramienta.id_institucion is None:
         herramienta.id_institucion = usuario.id_institucion
 
+    registrar_historico_herramienta(herramienta, 'UPDATE', usuario.id if usuario else None)
     herramienta.nombre = datos['nombre']
     herramienta.descripcion = datos['descripcion']
     if datos['estado_incluido']:
@@ -437,6 +460,7 @@ def eliminar(id):
       403,
     )
 
+  registrar_historico_herramienta(herramienta, 'DELETE', usuario.id if usuario else None)
   db.session.delete(herramienta)
   try:
     db.session.commit()

@@ -17,6 +17,7 @@ from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models import CapaGeografica, ServicioGeografico
+from app.models import HCapaGeografica, HServicioGeografico
 from app.models import Categoria
 from app.models import Institucion
 from app.models import Tipo
@@ -94,6 +95,50 @@ def construir_capas_desde_contenidos(contenidos):
     etiqueta = formatear_etiqueta_capa(nombre, titulo)
     capas.append({'value': nombre, 'label': etiqueta})
   return capas
+
+def registrar_historico_capa(
+  capa: CapaGeografica,
+  accion: str,
+  usuario_id: int | None,
+):
+  historial = HCapaGeografica(
+    id_capa_geografica=capa.id,
+    nombre=capa.nombre,
+    descripcion=capa.descripcion,
+    fecha_inicio=capa.fecha_inicio,
+    fecha_fin=capa.fecha_fin,
+    proyeccion=capa.proyeccion,
+    tipo_capa=capa.tipo_capa,
+    id_metadato=capa.id_metadato,
+    id_categoria=capa.id_categoria,
+    id_institucion=capa.id_institucion,
+    usuario_registro=capa.usuario_registro,
+    fecha_registro=capa.fecha_registro,
+    accion=accion,
+    usuario_accion=usuario_id,
+  )
+  db.session.add(historial)
+
+def registrar_historico_servicio(
+  servicio: ServicioGeografico,
+  accion: str,
+  usuario_id: int | None,
+):
+  historial = HServicioGeografico(
+    id_servicio_geografico=servicio.id,
+    id_capa_geografica=servicio.id_capa_geografica,
+    id_tipo=servicio.id_tipo,
+    direccion_web=servicio.direccion_web,
+    nombre_capa=servicio.nombre_capa,
+    titulo_capa=servicio.titulo_capa,
+    estado=servicio.estado,
+    id_layer=servicio.id_layer,
+    usuario_registro=servicio.usuario_registro,
+    fecha_registro=servicio.fecha_registro,
+    accion=accion,
+    usuario_accion=usuario_id,
+  )
+  db.session.add(historial)
 
 def validar_estado_servicio(url):
   try:
@@ -584,6 +629,11 @@ def guardar():
         ),
         403,
       )
+    registrar_historico_capa(capa, 'UPDATE', usuario.id if usuario else None)
+    for servicio_existente in list(capa.servicios):
+      registrar_historico_servicio(
+        servicio_existente, 'UPDATE', usuario.id if usuario else None
+      )
   else:
     sincronizar_secuencia(CapaGeografica)
     capa = CapaGeografica(usuario_registro=usuario.id)
@@ -872,9 +922,9 @@ def guardar():
       servicio_instancia.id_layer = 0
     servicio_instancia.usuario_modifica = usuario.id
 
-  for servicio in list(capa.servicios):
-    if servicio.id and servicio.id not in ids_a_conservar:
-      db.session.delete(servicio)
+  for id_existente, servicio_existente in servicios_existentes.items():
+    if id_existente not in ids_a_conservar:
+      db.session.delete(servicio_existente)
 
   try:
     db.session.commit()
@@ -996,6 +1046,9 @@ def eliminar(id_capa: int):
       403,
     )
 
+  registrar_historico_capa(capa, 'DELETE', usuario.id if usuario else None)
+  for servicio in list(capa.servicios):
+    registrar_historico_servicio(servicio, 'DELETE', usuario.id if usuario else None)
   db.session.delete(capa)
   try:
     db.session.commit()
