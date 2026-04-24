@@ -55,6 +55,9 @@ WFS_FORMATOS_GEOSERVER = (
   ('Geopackage', 'application/geopackage+sqlite3'),
 )
 
+ESPACIALG_DOMINIO = 'espacialg.geoperu.gob.pe'
+ESPACIALG_DOWNLOAD_REDIRECT_URL = 'https://www.geoidep.gob.pe/descarga-espacialg'
+
 def sanitize_text(value):
   if value is None:
     return None
@@ -795,6 +798,29 @@ def es_servicio_wfs_arcgis(base_url):
 
   return 'mapserver/wfsserver' in base_url.lower()
 
+def es_dominio_espacialg(base_url):
+  if not base_url:
+    return False
+
+  parsed = urlparse(base_url)
+  host = (parsed.netloc or '').lower()
+  if not host:
+    return False
+
+  host = host.split(':', 1)[0]
+  return host == ESPACIALG_DOMINIO
+
+def obtener_opciones_descarga_espacialg(base_url):
+  if not es_dominio_espacialg(base_url):
+    return []
+
+  return [
+    {
+      'label': 'ShapeFile (ZIP)',
+      'url': ESPACIALG_DOWNLOAD_REDIRECT_URL,
+    }
+  ]
+
 def obtener_opciones_formato_wfs(base_url):
   if es_servicio_wfs_arcgis(base_url):
     return WFS_FORMATOS_ARCGIS
@@ -1074,6 +1100,9 @@ def obtener_datos_catalogo_cacheados(
           and 'WFS' in sigla_display.upper()
         ):
           download_options = construir_opciones_descarga_wfs(recurso, layer_name)
+
+        if estado_activo and not download_options:
+          download_options = obtener_opciones_descarga_espacialg(recurso)
 
         if estado_activo and view_map_url and view_map_url not in acciones_vistas:
           acciones.append(
