@@ -924,6 +924,9 @@ def guardar():
 
   for id_existente, servicio_existente in servicios_existentes.items():
     if id_existente not in ids_a_conservar:
+      registrar_historico_servicio(
+        servicio_existente, 'DELETE', usuario.id if usuario else None
+      )
       db.session.delete(servicio_existente)
 
   try:
@@ -1049,6 +1052,7 @@ def eliminar(id_capa: int):
   registrar_historico_capa(capa, 'DELETE', usuario.id if usuario else None)
   for servicio in list(capa.servicios):
     registrar_historico_servicio(servicio, 'DELETE', usuario.id if usuario else None)
+    db.session.delete(servicio)
   db.session.delete(capa)
   try:
     db.session.commit()
