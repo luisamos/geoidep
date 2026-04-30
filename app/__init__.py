@@ -4,6 +4,7 @@ import secrets
 
 from flask import Flask, Response, abort, g, jsonify, redirect, render_template, request, url_for
 from flask_jwt_extended import unset_jwt_cookies
+from flask_wtf.csrf import generate_csrf
 
 from app import config
 from app.extensions import cache, db, jwt, mail, migrate
@@ -58,7 +59,10 @@ def create_app() -> Flask:
 
   @app.context_processor
   def inyectar_nonce_csp():
-    return {"csp_nonce": getattr(g, "csp_nonce", "")}
+    return {
+      "csp_nonce": getattr(g, "csp_nonce", ""),
+      "csrf_token": generate_csrf,
+    }
 
   @app.errorhandler(404)
   def pagina_no_encontrada(error):

@@ -428,6 +428,7 @@
           <div
             class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center"
           >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input name="id_catalogo" type="hidden" value="" />
             <input name="id_entidad" type="hidden" value="" />
 
