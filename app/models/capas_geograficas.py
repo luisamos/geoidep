@@ -9,7 +9,7 @@ class CapaGeografica(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   nombre = db.Column(db.String(200), nullable=False)
-  descripcion = db.Column(db.String(2500))
+  descripcion = db.Column(db.Text)
   fecha_inicio = db.Column(db.Date, nullable=True)
   fecha_fin = db.Column(db.Date, nullable=True)
   proyeccion= db.Column(db.Integer, nullable=True)
@@ -42,14 +42,14 @@ class ServicioGeografico(db.Model):
 
   id = db.Column(db.Integer, primary_key=True)
   id_capa_geografica = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{SCHEMA_IDE}.def_capas_geograficas.id"),
-      nullable=False,
+    db.Integer,
+    db.ForeignKey(f"{SCHEMA_IDE}.def_capas_geograficas.id"),
+    nullable=False,
   )
   id_tipo = db.Column(
-      db.Integer,
-      db.ForeignKey(f"{SCHEMA_IDE}.dom_tipos.id"),
-      nullable=False,
+    db.Integer,
+    db.ForeignKey(f"{SCHEMA_IDE}.dom_tipos.id"),
+    nullable=False,
   )
   direccion_web = db.Column(db.Text, nullable=False)
   nombre_capa = db.Column(db.String(200))
