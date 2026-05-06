@@ -29,7 +29,7 @@ from app.models import Institucion
 from app.models import Tipo
 from app.models import CapaGeografica, ServicioGeografico
 from app.extensions import cache
-FROM app.config import URL_SERVIDOR_MAPAS, URL_SERVIDOR_DESCARGA
+from app.config import URL_SERVIDOR_MAPAS, URL_SERVIDOR_DESCARGA
 
 bp = Blueprint('geoportal', __name__)
 
@@ -808,14 +808,26 @@ def es_dominio_espacialg(base_url):
   host = host.split(':', 1)[0]
   return host == URL_SERVIDOR_MAPAS
 
-def obtener_opciones_descarga_espacialg(base_url):
+def construir_url_descarga_espacialg(nombre_capa):
+  nombre_capa = (nombre_capa or '').strip()
+  if not nombre_capa:
+    return None
+
+  nombre_archivo = quote(nombre_capa, safe=':-_.~')
+  return f"{URL_SERVIDOR_DESCARGA.rstrip('/')}/{nombre_archivo}.zip"
+
+def obtener_opciones_descarga_espacialg(base_url, nombre_capa):
   if not es_dominio_espacialg(base_url):
+    return []
+
+  url_descarga = construir_url_descarga_espacialg(nombre_capa)
+  if not url_descarga:
     return []
 
   return [
     {
       'label': 'ShapeFile (ZIP)',
-      'url': URL_SERVIDOR_DESCARGA,
+      'url': url_descarga,
     }
   ]
 
@@ -1100,7 +1112,10 @@ def obtener_datos_catalogo_cacheados(
           download_options = construir_opciones_descarga_wfs(recurso, layer_name)
 
         if estado_activo and not download_options:
-          download_options = obtener_opciones_descarga_espacialg(recurso)
+          download_options = obtener_opciones_descarga_espacialg(
+            recurso,
+            servicio.nombre_capa,
+          )
 
         if estado_activo and view_map_url and view_map_url not in acciones_vistas:
           acciones.append(
