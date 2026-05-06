@@ -29,6 +29,7 @@ from app.models import Institucion
 from app.models import Tipo
 from app.models import CapaGeografica, ServicioGeografico
 from app.extensions import cache
+FROM app.config import URL_SERVIDOR_MAPAS, URL_SERVIDOR_DESCARGA
 
 bp = Blueprint('geoportal', __name__)
 
@@ -54,9 +55,6 @@ WFS_FORMATOS_GEOSERVER = (
   ('CSV', 'csv'),
   ('Geopackage', 'application/geopackage+sqlite3'),
 )
-
-ESPACIALG_DOMINIO = 'espacialg.geoperu.gob.pe'
-ESPACIALG_DOWNLOAD_REDIRECT_URL = 'https://www.geoidep.gob.pe/descarga-espacialg'
 
 def sanitize_text(value):
   if value is None:
@@ -808,7 +806,7 @@ def es_dominio_espacialg(base_url):
     return False
 
   host = host.split(':', 1)[0]
-  return host == ESPACIALG_DOMINIO
+  return host == URL_SERVIDOR_MAPAS
 
 def obtener_opciones_descarga_espacialg(base_url):
   if not es_dominio_espacialg(base_url):
@@ -817,7 +815,7 @@ def obtener_opciones_descarga_espacialg(base_url):
   return [
     {
       'label': 'ShapeFile (ZIP)',
-      'url': ESPACIALG_DOWNLOAD_REDIRECT_URL,
+      'url': URL_SERVIDOR_DESCARGA,
     }
   ]
 

@@ -3,7 +3,6 @@ from datetime import timedelta
 
 from dotenv import load_dotenv
 
-
 def env_flag(name: str, default: bool) -> bool:
   value = os.getenv(name)
   if value is None:
@@ -11,13 +10,15 @@ def env_flag(name: str, default: bool) -> bool:
 
   return value.strip().lower() in {"1", "true", "t", "yes", "on"}
 
-
 load_dotenv()
 
 SECRET_KEY = "2ec242bf63d3e623de366a182809a09318a458091d336f4cf6e3d26408a2f247"
 JWT_SECRET_KEY = "dc5654d30597e3678966d27526cb403c64f6b5e9f4346e084bf65497fa7fee4e"
 RECAPTCHA_PUBLIC_KEY = "6LcNxoUrAAAAAL_UlqLYShQCvmruYTUE7s5jUkGL"
 RECAPTCHA_PRIVATE_KEY = "6LcNxoUrAAAAANoYYtojSWUmyUgz9XP7_-OeUa71"
+
+URL_SERVIDOR_MAPAS = 'espacialg.geoperu.gob.pe'
+URL_SERVIDOR_DESCARGA = 'https://descargas.geoperu.gob.pe/'
 
 IS_DEV = True
 SCHEMA_IDE = 'ide'
