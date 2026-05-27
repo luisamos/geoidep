@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="keywords"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="description"
+      content="GeoPortal de la Infraestructura de Datos Espaciales del Perú (IDEP)."
+    />
+    <meta
+      name="author"
+      content="Secretaría de Gobierno Digital y Transformación Digital."
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+
+    <title>Página no encontrada | Geoportal IDEP</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-9NZG2MM9BE"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-9NZG2MM9BE");
+    </script>
+
+    <script src="{{ url_for('static', filename='js/browser@4.js') }}"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+    />
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+    </style>
+  </head>
+
+  <body class="bg-[#EEF3FB]">
+    {% include 'geoportal/cabecera.html' %}
+
+    <main class="min-h-[60vh] flex items-center">
+      <div class="max-w-screen-xl mx-auto px-6 py-[80px] text-center">
+        <p class="text-sm font-semibold uppercase text-[#B31312]">Error 404</p>
+        <h1 class="mt-4 text-[32px] md:text-[40px] font-semibold text-black">
+          Página no encontrada
+        </h1>
+        <p class="mt-4 text-gray-700">
+          El recurso solicitado no existe o fue movido. Puedes regresar al
+          portal principal para continuar navegando.
+        </p>
+        <div class="mt-8">
+          <a
+            href="{{ url_for('geoportal.principal') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-[#26292E] px-6 py-3 text-white font-medium hover:bg-black transition"
+          >
+            Retornar al portal inicial
+          </a>
+        </div>
+      </div>
+    </main>
+
+    {% include 'geoportal/pie_pagina.html' %}
+  </body>
+</html>

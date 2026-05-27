@@ -1,0 +1,103 @@
+.tabla-gestion {
+  background-color: #fff;
+  width: 100%;
+}
+
+.tabla-gestion th,
+.tabla-gestion td {
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.tabla-gestion .col-indice {
+  width: 50px;
+}
+.tabla-gestion .col-estado {
+  width: 140px;
+  text-align: center;
+}
+.tabla-gestion .col-opciones {
+  width: 110px;
+}
+
+.estado-filtros-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.filtros-aplicados {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.filtros-aplicados__label {
+  font-weight: 600;
+}
+.filtros-aplicados__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filtro-tag {
+  border: 1px solid #90caf9;
+  border-radius: 16px;
+  padding: 2px 10px;
+  font-size: 0.85rem;
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  cursor: pointer;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.badge-estado--pendiente {
+  background: #fff8e1;
+  color: #ef6c00;
+}
+.badge-estado--proceso {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+.badge-estado--culminado {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.inst-search-wrapper,
+.doc-search-wrapper {
+  position: relative;
+}
+
+.inst-suggestions {
+  position: absolute;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  max-height: 180px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.inst-suggestions li {
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.inst-suggestions li:hover {
+  background-color: #e3f2fd;
+}

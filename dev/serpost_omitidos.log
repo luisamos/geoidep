@@ -1,0 +1,19 @@
+Log generado: 2026-01-07T12:23:38.640260
+Total registros omitidos: 16
+
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25370, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "LIMA"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25376, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "SANTIAGO DE SURCO"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25377, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "SANTIAGO DE SURCO"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25378, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "SURQUILLO"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25379, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "MIRAFLORES"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25381, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "MIRAFLORES"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25380, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "LIMA", "PTOPROV": "LIMA", "PTODIST": "MIRAFLORES"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25385, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "CUSCO", "PTOPROV": "CUSCO", "PTODIST": "CUSCO"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25386, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "CUSCO", "PTOPROV": "CUSCO", "PTODIST": "CUSCO"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25387, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "CUSCO", "PTOPROV": "CALCA", "PTODIST": "CALCA"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 24357, "PLATITUD": "-", "PLONGITUD": "-", "PTODPTO": "Cusco", "PTOPROV": "Cusco", "PTODIST": "Cusco"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 24358, "PLATITUD": "-", "PLONGITUD": "--", "PTODPTO": "Cusco", "PTOPROV": "Cusco", "PTODIST": "Cusco"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25388, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "ANCASH", "PTOPROV": "HUARAZ", "PTODIST": "HUARAZ"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25382, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "AREQUIPA", "PTOPROV": "AREQUIPA", "PTODIST": "AREQUIPA"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25383, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "AREQUIPA", "PTOPROV": "AREQUIPA", "PTODIST": "AREQUIPA"}
+{"motivo": "lat/lon inválidas", "IDOFICINA": 25384, "PLATITUD": null, "PLONGITUD": null, "PTODPTO": "CUSCO", "PTOPROV": "CUSCO", "PTODIST": "CUSCO"}
