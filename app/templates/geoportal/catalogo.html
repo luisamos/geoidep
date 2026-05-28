@@ -611,6 +611,60 @@
       </div>
     </section>
 
+    <div
+      id="termsModal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="termsModalTitle"
+    >
+      <div class="w-full max-w-2xl overflow-hidden rounded-xl bg-white">
+        <div class="bg-[#D30000] px-6 py-4 text-center">
+          <h3 id="termsModalTitle" class="text-[22px] font-bold text-white">
+            AVISO IMPORTANTE
+          </h3>
+        </div>
+        <div class="space-y-4 p-6 text-[15px] leading-7 text-[#1F2937]">
+          <p>
+            <strong>GEOIDEP</strong> es la plataforma nacional que integra
+            datos y servicios de información georreferenciada publicados por
+            las entidades de la Administración Pública, conforme a lo
+            establecido en el Decreto supremo N° 069-2011-PCM. Las entidades
+            públicas son responsables de la publicación, actualización,
+            integridad y calidad de la información compartida a través de la
+            plataforma. Asimismo, la
+            <strong>Secretaría de Gobierno y Transformación Digital</strong>
+            establece los lineamientos, estándares y disposiciones para la
+            gestión, interoperabilidad y gobierno de los datos, promoviendo su
+            integración y aprovechamiento dentro del ecosistema digital del
+            Estado. El acceso, consulta y descarga de los datos disponibles en
+            la plataforma implican la aceptación plena y sin reservas, por parte
+            del USUARIO, de los presentes
+            <a href="#" class="font-semibold text-[#0B84C4] underline"
+              >términos y condiciones</a
+            >.
+          </p>
+          <label
+            for="termsCheckbox"
+            class="flex items-center justify-center gap-3 text-[14px] font-semibold"
+          >
+            <input id="termsCheckbox" type="checkbox" class="h-5 w-5" />
+            He leído y acepto las condiciones de uso.
+          </label>
+          <div class="flex justify-center">
+            <button
+              id="termsAcceptButton"
+              type="button"
+              disabled
+              class="min-w-[170px] rounded-md bg-[#BEBEBE] px-7 py-2 text-[20px] font-bold text-white transition disabled:cursor-not-allowed enabled:bg-[#184397] enabled:hover:bg-[#133574]"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {% include 'geoportal/pie_pagina.html' %}
 
     <script>
@@ -627,6 +681,48 @@
           'input[name="search_token"]',
         );
         const filterButtons = document.querySelectorAll(".js-remove-filter");
+        const termsModal = document.getElementById("termsModal");
+        const termsCheckbox = document.getElementById("termsCheckbox");
+        const termsAcceptButton = document.getElementById("termsAcceptButton");
+        const termsStorageKey = "catalogoNacionalTermsAccepted";
+
+        function shouldShowTermsModal() {
+          try {
+            return localStorage.getItem(termsStorageKey) !== "true";
+          } catch (error) {
+            return true;
+          }
+        }
+
+        function setTermsAccepted() {
+          try {
+            localStorage.setItem(termsStorageKey, "true");
+          } catch (error) {
+            console.warn("No fue posible guardar la aceptación.", error);
+          }
+        }
+
+        if (termsModal && termsCheckbox && termsAcceptButton) {
+          if (shouldShowTermsModal()) {
+            termsModal.classList.remove("hidden");
+            termsModal.classList.add("flex");
+            document.body.classList.add("overflow-hidden");
+          }
+
+          termsCheckbox.addEventListener("change", () => {
+            termsAcceptButton.disabled = !termsCheckbox.checked;
+          });
+
+          termsAcceptButton.addEventListener("click", () => {
+            if (!termsCheckbox.checked) {
+              return;
+            }
+            setTermsAccepted();
+            termsModal.classList.remove("flex");
+            termsModal.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+          });
+        }
 
         let institutionOptions = [];
         if (institutionSelect) {
