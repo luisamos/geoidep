@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>GEOIDEP | Usuarios</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      /* Badges de estado de cuenta */
+      .badge-estado--activo   { background: #e8f5e9; color: #2e7d32; }
+      .badge-estado--inactivo { background: #ffebee; color: #c62828; }
+
+      /* Indicadores booleanos CND/IDEP/GEOPERU/PNDA/CNM */
+      .badge-bool {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 0.8rem;
+      }
+      .badge-bool--si  { color: #2e7d32; }
+      .badge-bool--no  { color: #9e9e9e; }
+
+      /* Buscador de institución con sugerencias en el modal */
+      .inst-search-wrapper { position: relative; }
+      .inst-suggestions {
+        position: absolute;
+        z-index: 100;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        max-height: 180px;
+        overflow-y: auto;
+        width: 100%;
+      }
+      .inst-suggestions li {
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .inst-suggestions li:hover { background-color: #e3f2fd; }
+
+      /* Toggle de visibilidad de contraseña */
+      .campo-password-wrapper { position: relative; }
+      .toggle-password {
+        position: absolute;
+        right: 0;
+        top: 10px;
+        cursor: pointer;
+        color: #757575;
+        background: none;
+        border: none;
+        padding: 0;
+      }
+
+      /* Modal de roles (más angosto que el modal-gestion estándar) */
+      #modalRoles {
+        width: 60%;
+        max-width: 760px;
+        max-height: 92%;
+        overflow: hidden;
+      }
+      #modalRoles .modal-content { overflow: hidden; }
+
+      @media (max-width: 992px) {
+        #modalRoles { width: 85%; max-width: 640px; }
+      }
+
+      @media (max-width: 600px) {
+        #modalRoles { width: 95%; }
+      }
+
+      #tablaRoles td, #tablaRoles th { padding: 8px 10px; }
+      #tablaRoles .col-orden    { width: 70px;  text-align: center; }
+      #tablaRoles .col-asignar  { width: 80px;  text-align: center; }
+      #tablaRoles .col-nivel    { width: 200px; }
+      #tablaRoles .switch-nivel,
+      #tablaRoles .switch-nivel label { font-size: 12px !important; white-space: nowrap; color: rgba(0,0,0,0.87); }
+      #tablaRoles tr.fila-padre { background: #f5f5f5; }
+      #tablaRoles tr.fila-padre td {
+        font-weight: 700;
+        color: #1B5184;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.6px;
+        padding: 6px 10px;
+        border-top: 2px solid rgba(1,11,100,0.12);
+      }
+      .roles-usuario-nombre { font-weight: 600; color: #0d47a1; }
+    </style>
+  </head>
+
+  <body class="pagina-gestion-tabla">
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <!-- Encabezado -->
+        <div class="row">
+          <div class="col s12">
+            <h3>Usuarios</h3>
+            <p class="flow-text">
+              Administra las cuentas de acceso al sistema GEOIDEP.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row">
+          <div class="input-field col s12 m4 l3">
+            <i class="material-icons prefix">person</i>
+            <input id="filtroNombre" type="text" placeholder="Nombres o apellidos" />
+            <label for="filtroNombre">Buscar por nombre</label>
+          </div>
+          <div class="input-field col s12 m4 l3">
+            <i class="material-icons prefix">email</i>
+            <input id="filtroEmail" type="text" placeholder="Correo electrónico" />
+            <label for="filtroEmail">Correo</label>
+          </div>
+          <div class="input-field col s12 m2 l3">
+            <select id="filtroPerfil">
+              <option value="" selected>Todos los perfiles</option>
+              {% for perfil in perfiles %}
+              <option value="{{ perfil.id }}">{{ perfil.nombre }}</option>
+              {% endfor %}
+            </select>
+            <label>Perfil</label>
+          </div>
+          <div class="input-field col s12 m2 l3">
+            <select id="filtroEstado">
+              <option value="">Todos</option>
+              <option value="activo">Activos</option>
+              <option value="inactivo">Inactivos</option>
+            </select>
+            <label>Estado</label>
+          </div>
+        </div>
+
+        <!-- Barra unificada: filtros aplicados + contador + botón Nuevo -->
+        <div class="row">
+          <div class="col s12 acciones-tabla">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1">Sin filtros aplicados</span>
+              </div>
+              <button id="btnLimpiarFiltros" class="btn-flat" type="button" disabled>
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
+            <div class="acciones-tabla__derecha">
+              <p class="grey-text" id="contadorResultados"></p>
+              <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
+                <i class="material-icons left">person_add</i>Nuevo usuario
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="row tabla-wrapper">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaUsuarios">
+              <thead>
+                <tr>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th>Nombre completo</th>
+                  <th>Correo</th>
+                  <th>Perfil</th>
+                  <th>Institución</th>
+                  <th>CND</th>
+                  <th>IDEP</th>
+                  <th>GEOPERU</th>
+                  <th>PNDA</th>
+                  <th>CNM</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-opciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div id="modalUsuario" class="modal modal-gestion">
+      <div class="modal-content">
+        <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
+          <h5 id="tituloModal">USUARIO</h5>
+          <i
+            class="material-icons"
+            id="btnCerrarModal"
+            style="position:absolute;right:16px;top:16px;cursor:pointer;color:#757575"
+          >close</i>
+        </div>
+
+        <form id="formUsuario">
+          <input type="hidden" id="usuarioId" />
+          <div class="row" style="margin-top: 16px">
+            <!-- Datos personales -->
+            <div class="col s12">
+              <h2 class="seccion-titulo">
+                <i class="material-icons">person</i>Datos personales
+              </h2>
+            </div>
+            <div class="input-field col s12">
+              <input id="usu_nombres_apellidos" type="text" maxlength="255" required />
+              <label for="usu_nombres_apellidos">Nombres y apellidos</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="usu_correo" type="email" maxlength="120" required />
+              <label for="usu_correo">Correo electrónico</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="usu_cargo" type="text" maxlength="100" />
+              <label for="usu_cargo">Cargo</label>
+            </div>
+
+            <!-- Institución con buscador -->
+            <div class="col s12">
+              <h2 class="seccion-titulo">
+                <i class="material-icons">business</i>Institución y perfil
+              </h2>
+            </div>
+            <div class="input-field col s12 m8 inst-search-wrapper">
+              <input type="hidden" id="usu_id_institucion" />
+              <i class="material-icons prefix">business</i>
+              <input
+                id="usu_institucion_texto"
+                type="text"
+                autocomplete="off"
+                placeholder="Escriba sigla o nombre"
+                required
+              />
+              <label for="usu_institucion_texto">Institución</label>
+              <ul id="instSugerencias" class="inst-suggestions" style="display:none"></ul>
+            </div>
+            <div class="input-field col s12 m4">
+              <select id="usu_perfil" required>
+                <option value="" disabled selected>Seleccione</option>
+                {% for perfil in perfiles %}
+                <option value="{{ perfil.id }}">{{ perfil.nombre }}</option>
+                {% endfor %}
+              </select>
+              <label>Perfil</label>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="col s12">
+              <h2 class="seccion-titulo">
+                <i class="material-icons">lock</i>Contraseña
+              </h2>
+            </div>
+            <div class="input-field col s12 m6 campo-password-wrapper">
+              <input id="usu_password" type="password" maxlength="128" autocomplete="new-password" />
+              <label for="usu_password">Contraseña</label>
+              <button type="button" class="toggle-password" data-target="usu_password" tabindex="-1">
+                <i class="material-icons">visibility</i>
+              </button>
+              <span class="helper-text" id="usu_password_hint">
+                Deje vacío para mantener la contraseña actual (en edición).
+              </span>
+            </div>
+
+            <!-- Estado de cuenta -->
+            <div class="col s12" style="margin-top:8px">
+              <div class="switch">
+                <label>
+                  Inactivo
+                  <input type="checkbox" id="usu_estado" checked />
+                  <span class="lever"></span>
+                  Activo
+                </label>
+              </div>
+            </div>
+            <!-- Flags acceso -->
+            <div class="col s12">
+              <h2 class="seccion-titulo">
+                <i class="material-icons">vpn_key</i>Accesos al sistema
+              </h2>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_cnd" />
+                <span>CND</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_idep" />
+                <span>IDEP</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_geoperu" />
+                <span>GEOPERU</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_pnda" />
+                <span>PNDA</span>
+              </label>
+            </div>
+            <div class="col s12 m4">
+              <label>
+                <input type="checkbox" id="usu_cnm" />
+                <span>CNM</span>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardar" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Roles -->
+    <div id="modalRoles" class="modal">
+      <div class="modal-content">
+        <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
+          <h5 id="tituloModalRoles">ASIGNAR O EDITAR ROLES</h5>
+          <p id="modalRolesUsuario" class="roles-usuario-nombre" style="margin: 4px 0 8px"></p>
+          <i
+            class="material-icons"
+            id="btnCerrarModalRoles"
+            style="position:absolute;right:16px;top:16px;cursor:pointer;color:#757575"
+          >close</i>
+        </div>
+
+        <div class="row" style="margin-top: 12px; max-height: 460px; overflow-y: auto">
+          <div class="col s12">
+            <table class="highlight" id="tablaRoles">
+              <thead>
+                <tr>
+                  <th class="col-orden">Orden</th>
+                  <th>Rol</th>
+                  <th class="col-asignar">Asignar</th>
+                  <th class="col-nivel">Nivel</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardarRoles" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación -->
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align" style="padding: 32px 24px">
+        <i class="material-icons large red-text">warning</i>
+        <h6 id="mensajeConfirmacion" style="margin-top: 12px">
+          ¿Desea eliminar al usuario seleccionado?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">Cancelar</button>
+        <button id="btnEliminar" class="btn red" type="button">
+          <i class="material-icons small left">delete</i>Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
+    <script>
+      let orden = null;
+      function escapar(t) {
+        const d = document.createElement("div");
+        d.textContent = t || "";
+        return d.innerHTML;
+      }
+      const crearOpciones = GestionHttp.crearOpcionesJson;
+
+      const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
+      const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const iconoRoles    = "{{ url_for('static', filename='imagenes/roles.png') }}";
+      const instituciones = {{ instituciones | tojson | safe }};
+
+      const ui = {
+        tabla: null,
+        modal: null,
+        modalConf: null,
+        modalRoles: null,
+      };
+
+      let cache = [];
+      let editandoId = null;
+      let eliminandoId = null;
+      let asignandoId = null;
+
+      // ---- Buscador institución en modal ----
+      function inicializarBuscadorInstitucion() {
+        const input = document.getElementById("usu_institucion_texto");
+        const lista = document.getElementById("instSugerencias");
+        const hidden = document.getElementById("usu_id_institucion");
+
+        input.addEventListener("input", () => {
+          hidden.value = "";
+          const texto = input.value.trim().toLowerCase();
+          if (!texto) { lista.style.display = "none"; return; }
+          const coincidencias = instituciones.filter((inst) =>
+            (inst.sigla  || "").toLowerCase().includes(texto) ||
+            (inst.nombre || "").toLowerCase().includes(texto)
+          ).slice(0, 8);
+          if (!coincidencias.length) { lista.style.display = "none"; return; }
+          lista.innerHTML = coincidencias.map((inst) => {
+            const label = inst.sigla ? `${inst.sigla} — ${inst.nombre}` : inst.nombre;
+            return `<li data-id="${inst.id}" data-label="${escapar(label)}">${escapar(label)}</li>`;
+          }).join("");
+          lista.style.display = "block";
+        });
+
+        lista.addEventListener("click", (e) => {
+          const li = e.target.closest("li");
+          if (!li) return;
+          hidden.value = li.dataset.id;
+          input.value  = li.dataset.label;
+          lista.style.display = "none";
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!input.contains(e.target) && !lista.contains(e.target))
+            lista.style.display = "none";
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tabla    = document.querySelector("#tablaUsuarios tbody");
+        ui.modal    = M.Modal.init(document.getElementById("modalUsuario"), { dismissible: false });
+        ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
+        ui.modalRoles = M.Modal.init(document.getElementById("modalRoles"), { dismissible: false });
+
+        M.FormSelect.init(document.querySelectorAll("select"));
+        inicializarBuscadorInstitucion();
+
+        document.getElementById("btnCerrarModal").addEventListener("click", () => ui.modal.close());
+        document.getElementById("btnCerrarModalRoles").addEventListener("click", () => ui.modalRoles.close());
+        document.getElementById("btnNuevo").addEventListener("click", () => abrirModal());
+        document.getElementById("btnGuardar").addEventListener("click", guardar);
+        document.getElementById("btnGuardarRoles").addEventListener("click", guardarRoles);
+        document.getElementById("btnEliminar").addEventListener("click", confirmarEliminacion);
+        ui.tabla.addEventListener("click", manejarTabla);
+
+        // Toggle password visibility
+        document.querySelectorAll(".toggle-password").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const mostrar = input.type === "password";
+            input.type = mostrar ? "text" : "password";
+            btn.querySelector("i").textContent = mostrar ? "visibility_off" : "visibility";
+          });
+        });
+
+        document.getElementById("filtroNombre").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroEmail").addEventListener("input", aplicarFiltros);
+        document.getElementById("filtroPerfil").addEventListener("change", aplicarFiltros);
+        document.getElementById("filtroEstado").addEventListener("change", aplicarFiltros);
+        document.getElementById("btnLimpiarFiltros").addEventListener("click", limpiarFiltros);
+        document.getElementById("tagsFiltros").addEventListener("click", (e) => {
+          const btn = e.target.closest(".filtro-tag");
+          if (!btn) return;
+          if (btn.dataset.filtro === "nombre") document.getElementById("filtroNombre").value = "";
+          if (btn.dataset.filtro === "email")  document.getElementById("filtroEmail").value  = "";
+          if (btn.dataset.filtro === "perfil") {
+            const sel = document.getElementById("filtroPerfil");
+            sel.value = "";
+            M.FormSelect.init(sel);
+          }
+          if (btn.dataset.filtro === "estado") {
+            const sel = document.getElementById("filtroEstado");
+            sel.value = "";
+            M.FormSelect.init(sel);
+          }
+          aplicarFiltros();
+        });
+
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaUsuarios"),
+          columnas: [
+            { indice: 1,  key: "nombre_completo",    tipo: "string" },
+            { indice: 2,  key: "correo_electronico", tipo: "string" },
+            { indice: 3,  key: "perfil_nombre",      tipo: "string" },
+            { indice: 4,  key: "institucion_sigla",  tipo: "string" },
+            { indice: 5,  key: "cnd",                tipo: "number" },
+            { indice: 6,  key: "idep",               tipo: "number" },
+            { indice: 7,  key: "geoperu",            tipo: "number" },
+            { indice: 8,  key: "pnda",               tipo: "number" },
+            { indice: 9,  key: "cnm",                tipo: "number" },
+            { indice: 10, key: "estado",             tipo: "number" },
+          ],
+          alOrdenar: aplicarFiltros,
+        });
+
+        cargar();
+      });
+
+      async function cargar() {
+        ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        try {
+          const resp = await fetch("/usuarios/datos");
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "Error al cargar");
+          cache = data.usuarios || [];
+          aplicarFiltros();
+        } catch (err) {
+          ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          M.toast({ html: err.message, classes: "red" });
+        }
+      }
+
+      function renderizar(lista) {
+        const contador = document.getElementById("contadorResultados");
+        if (contador) contador.textContent = `${lista.length} registro(s)`;
+        if (!lista.length) {
+          ui.tabla.innerHTML = '<tr><td colspan="12" class="center-align grey-text">No hay registros.</td></tr>';
+          return;
+        }
+        ui.tabla.innerHTML = lista.map((u, i) => `
+          <tr>
+            <td style="padding-left:20px">${i + 1}</td>
+            <td>${escapar(u.nombre_completo)}</td>
+            <td>${escapar(u.correo_electronico)}</td>
+            <td>${escapar(u.perfil_nombre) || '<span class="grey-text">—</span>'}</td>
+            <td>${escapar(u.institucion_sigla || u.institucion_nombre) || '<span class="grey-text">—</span>'}</td>
+            <td class="center-align">
+              <span class="badge-bool ${u.cnd ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.cnd ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.idep ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.idep ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.geoperu ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.geoperu ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.pnda ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.pnda ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-bool ${u.cnm ? 'badge-bool--si' : 'badge-bool--no'}">
+                <i class="material-icons tiny">${u.cnm ? 'check_circle' : 'cancel'}</i>
+              </span>
+            </td>
+            <td class="center-align">
+              <span class="badge-estado ${u.estado ? 'badge-estado--activo' : 'badge-estado--inactivo'}">
+                ${u.estado ? 'Activo' : 'Inactivo'}
+              </span>
+            </td>
+            <td class="col-opciones">
+              <img src="${iconoEditar}"  alt="Editar"   title="Editar usuario"           class="icono-accion accion-editar"   data-id="${u.id}" />
+              <img src="${iconoRoles}"   alt="Roles"    title="Asignar o editar roles"   class="icono-accion accion-roles"    data-id="${u.id}" />
+              <img src="${iconoEliminar}" alt="Eliminar" title="Eliminar usuario"         class="icono-accion accion-eliminar" data-id="${u.id}" />
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      function aplicarFiltros() {
+        const termNombre = document.getElementById("filtroNombre").value.trim().toLowerCase();
+        const termEmail  = document.getElementById("filtroEmail").value.trim().toLowerCase();
+        const termPerfil = document.getElementById("filtroPerfil").value;
+        const filtroEstadoVal = document.getElementById("filtroEstado").value;
+
+        const filtradas = cache.filter((u) => {
+          const okNombre = termNombre
+            ? (u.nombre_completo || "").toLowerCase().includes(termNombre)
+            : true;
+          const okEmail  = termEmail
+            ? (u.correo_electronico || "").toLowerCase().includes(termEmail)
+            : true;
+          const okPerfil = termPerfil ? String(u.id_perfil) === String(termPerfil) : true;
+          const okEstado = filtroEstadoVal === "activo" ? u.estado === true
+                         : filtroEstadoVal === "inactivo" ? u.estado === false
+                         : true;
+          return okNombre && okEmail && okPerfil && okEstado;
+        });
+
+        renderizar(orden ? orden.aplicar(filtradas) : filtradas);
+        actualizarTags(termNombre, termEmail, termPerfil, filtroEstadoVal);
+      }
+
+      function actualizarTags(termNombre, termEmail, termPerfil, filtroEstadoVal) {
+        const tags = [];
+        if (termNombre) tags.push({ tipo: "nombre", label: `Nombre: ${termNombre}` });
+        if (termEmail)  tags.push({ tipo: "email",  label: `Correo: ${termEmail}` });
+        if (termPerfil) {
+          const sel = document.getElementById("filtroPerfil");
+          const txt = sel.options[sel.selectedIndex]?.textContent || termPerfil;
+          tags.push({ tipo: "perfil", label: `Perfil: ${txt}` });
+        }
+        if (filtroEstadoVal) {
+          const estadoLabel = filtroEstadoVal === "activo" ? "Activos" : "Inactivos";
+          tags.push({ tipo: "estado", label: `Estado: ${estadoLabel}` });
+        }
+
+        const cont = document.getElementById("tagsFiltros");
+        cont.innerHTML = tags.length
+          ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
+          : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+
+        document.getElementById("btnLimpiarFiltros").disabled = !tags.length;
+      }
+
+      function limpiarFiltros() {
+        document.getElementById("filtroNombre").value = "";
+        document.getElementById("filtroEmail").value  = "";
+        const sel = document.getElementById("filtroPerfil");
+        sel.value = "";
+        M.FormSelect.init(sel);
+        const selEstado = document.getElementById("filtroEstado");
+        selEstado.value = "";
+        M.FormSelect.init(selEstado);
+        aplicarFiltros();
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        const id = Number(objetivo.dataset.id);
+        if (objetivo.classList.contains("accion-editar")) {
+          const usu = cache.find((u) => u.id === id);
+          if (usu) abrirModal(usu);
+        } else if (objetivo.classList.contains("accion-roles")) {
+          const usu = cache.find((u) => u.id === id);
+          if (usu) abrirModalRoles(usu);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          eliminandoId = id;
+          ui.modalConf.open();
+        }
+      }
+
+      function abrirModal(usu = null) {
+        editandoId = usu ? usu.id : null;
+        document.getElementById("tituloModal").textContent = usu ? "EDITAR USUARIO" : "NUEVO USUARIO";
+        document.getElementById("formUsuario").reset();
+        document.getElementById("instSugerencias").style.display = "none";
+        document.getElementById("usu_id_institucion").value = "";
+
+        const hint = document.getElementById("usu_password_hint");
+        if (hint) {
+          hint.textContent = usu
+            ? "Deje vacío para mantener la contraseña actual."
+            : "Ingrese una contraseña temporal para el nuevo usuario.";
+        }
+
+        if (usu) {
+          document.getElementById("usuarioId").value               = usu.id || "";
+          document.getElementById("usu_nombres_apellidos").value   = usu.nombre_completo     || "";
+          document.getElementById("usu_correo").value              = usu.correo_electronico  || "";
+          document.getElementById("usu_cargo").value               = usu.cargo               || "";
+          document.getElementById("usu_id_institucion").value      = usu.id_institucion      || "";
+          document.getElementById("usu_institucion_texto").value   = usu.institucion_sigla
+            ? `${usu.institucion_sigla} — ${usu.institucion_nombre}`
+            : usu.institucion_nombre || "";
+          document.getElementById("usu_perfil").value              = usu.id_perfil           || "";
+          document.getElementById("usu_cnd").checked               = Boolean(usu.cnd);
+          document.getElementById("usu_idep").checked              = Boolean(usu.idep);
+          document.getElementById("usu_geoperu").checked           = Boolean(usu.geoperu);
+          document.getElementById("usu_pnda").checked              = Boolean(usu.pnda);
+          document.getElementById("usu_cnm").checked               = Boolean(usu.cnm);
+          document.getElementById("usu_estado").checked            = Boolean(usu.estado);
+        }
+
+        M.updateTextFields();
+        M.FormSelect.init(document.querySelectorAll("#formUsuario select"));
+        ui.modal.open();
+      }
+
+      async function guardar() {
+        const nombres  = document.getElementById("usu_nombres_apellidos").value.trim();
+        const correo   = document.getElementById("usu_correo").value.trim();
+        const idInst   = document.getElementById("usu_id_institucion").value;
+        const idPerfil = document.getElementById("usu_perfil").value;
+        const password = document.getElementById("usu_password").value;
+
+        if (!nombres || !correo) {
+          M.toast({ html: "El nombre y el correo son obligatorios.", classes: "orange" });
+          return;
+        }
+        if (!idInst) {
+          M.toast({ html: "Seleccione una institución válida.", classes: "orange" });
+          return;
+        }
+        if (!idPerfil) {
+          M.toast({ html: "Seleccione un perfil.", classes: "orange" });
+          return;
+        }
+        if (!editandoId && !password) {
+          M.toast({ html: "Ingrese una contraseña para el nuevo usuario.", classes: "orange" });
+          return;
+        }
+
+        const payload = {
+          nombres_apellidos: nombres,
+          correo_electronico: correo,
+          cargo:              document.getElementById("usu_cargo").value.trim() || null,
+          id_institucion:     Number(idInst),
+          id_perfil:          Number(idPerfil),
+          cnd:                document.getElementById("usu_cnd").checked,
+          idep:               document.getElementById("usu_idep").checked,
+          geoperu:            document.getElementById("usu_geoperu").checked,
+          pnda:               document.getElementById("usu_pnda").checked,
+          cnm:                document.getElementById("usu_cnm").checked,
+          estado:             document.getElementById("usu_estado").checked,
+        };
+        if (password) payload.password = password;
+
+        const url    = editandoId ? `/usuarios/${editandoId}` : "/usuarios/guardar";
+        const metodo = editandoId ? "PUT" : "POST";
+        try {
+          const resp = await fetch(url, crearOpciones(metodo, payload));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
+          M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
+          ui.modal.close();
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar.", classes: "red" });
+        }
+      }
+
+      async function abrirModalRoles(usu) {
+        asignandoId = usu.id;
+        document.getElementById("modalRolesUsuario").textContent = usu.nombre_completo || usu.correo_electronico || "";
+        const tbody = document.querySelector("#tablaRoles tbody");
+        tbody.innerHTML = '<tr><td colspan="4" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        ui.modalRoles.open();
+
+        try {
+          const resp = await fetch(`/usuarios/${usu.id}/roles/datos`);
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudieron cargar los roles.");
+
+          const asignados = data.asignados || {};
+          const disponibles = data.disponibles || [];
+
+          if (!disponibles.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="center-align grey-text">No hay roles disponibles.</td></tr>';
+            return;
+          }
+
+          const filaRol = (rol) => {
+            const asignado = Object.prototype.hasOwnProperty.call(asignados, rol.id);
+            const nivel = asignado ? asignados[rol.id] : 2;
+            return `
+              <tr data-id-rol="${rol.id}">
+                <td class="col-orden">${rol.orden ?? ""}</td>
+                <td>${escapar(rol.nombre)}</td>
+                <td class="col-asignar">
+                  <label>
+                    <input type="checkbox" class="filled-in chk-rol" ${asignado ? "checked" : ""} />
+                    <span></span>
+                  </label>
+                </td>
+                <td class="col-nivel">
+                  <div class="switch switch-nivel">
+                    <label>
+                      Lectura
+                      <input type="checkbox" class="chk-nivel" ${nivel === 2 ? "checked" : ""} ${asignado ? "" : "disabled"} />
+                      <span class="lever"></span>
+                      Escritura
+                    </label>
+                  </div>
+                </td>
+              </tr>
+            `;
+          };
+
+          const grupos = new Map();
+          disponibles.forEach((rol) => {
+            const clave = rol.id_padre ?? 0;
+            if (!grupos.has(clave)) {
+              grupos.set(clave, {
+                nombre: rol.padre_nombre || "Otros",
+                orden: rol.padre_orden ?? 999,
+                roles: [],
+              });
+            }
+            grupos.get(clave).roles.push(rol);
+          });
+
+          const ordenados = Array.from(grupos.values()).sort((a, b) => a.orden - b.orden);
+          tbody.innerHTML = ordenados.map((g) => `
+            <tr class="fila-padre"><td colspan="4">${escapar(g.nombre)}</td></tr>
+            ${g.roles.map(filaRol).join("")}
+          `).join("");
+
+          tbody.querySelectorAll(".chk-rol").forEach((chk) => {
+            chk.addEventListener("change", () => {
+              const fila = chk.closest("tr");
+              const chkNivel = fila.querySelector(".chk-nivel");
+              chkNivel.disabled = !chk.checked;
+            });
+          });
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="4" class="center-align red-text">Error al cargar los roles.</td></tr>';
+          M.toast({ html: err.message, classes: "red" });
+        }
+      }
+
+      async function guardarRoles() {
+        if (!asignandoId) { ui.modalRoles.close(); return; }
+        const filas = document.querySelectorAll("#tablaRoles tbody tr[data-id-rol]");
+        const roles = [];
+        filas.forEach((fila) => {
+          const chk = fila.querySelector(".chk-rol");
+          if (chk && chk.checked) {
+            const chkNivel = fila.querySelector(".chk-nivel");
+            roles.push({
+              id_rol: Number(fila.dataset.idRol),
+              nivel:  chkNivel && chkNivel.checked ? 2 : 1,
+            });
+          }
+        });
+        try {
+          const resp = await fetch(`/usuarios/${asignandoId}/roles`, crearOpciones("POST", { roles }));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudieron guardar los roles.");
+          M.toast({ html: data.message || "Roles asignados correctamente.", classes: "green" });
+          ui.modalRoles.close();
+          asignandoId = null;
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar roles.", classes: "red" });
+        }
+      }
+
+      async function confirmarEliminacion() {
+        if (!eliminandoId) { ui.modalConf.close(); return; }
+        try {
+          const resp = await fetch(`/usuarios/${eliminandoId}`, crearOpciones("DELETE"));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
+          M.toast({ html: data.message || "Usuario eliminado.", classes: "green" });
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar.", classes: "red" });
+        } finally {
+          eliminandoId = null;
+          ui.modalConf.close();
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='imagenes/favicon-peru.ico') }}"
+    />
+    <title>GEOIDEP | Actividades</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/materialize.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/actividades.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="pagina-gestion-tabla">
+    <div id="menu">{% include 'gestion/izquierda.html' %}</div>
+
+    <div class="contenido">
+      <div class="container">
+        <!-- Encabezado -->
+        <div class="row">
+          <div class="col s12">
+            <h3>Actividades</h3>
+            <p class="flow-text">
+              Registra y administra las actividades realizadas de acuerdo a los documentos remitidos por las institucións publicas.
+              y actividad.
+            </p>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row">
+          <div class="input-field col s12 m4 l4">
+            <i class="material-icons prefix">description</i>
+            <input id="txtBuscarDoc" type="text" placeholder="Número de documento" />
+            <label for="txtBuscarDoc">Documento</label>
+          </div>
+          <div class="input-field col s12 m4 l4">
+            <i class="material-icons prefix">business</i>
+            <input
+              id="filtroInstitucion"
+              type="text"
+              autocomplete="off"
+              placeholder="Ej: IGN, MINAM, PCM…"
+            />
+            <label for="filtroInstitucion">Institución (sigla)</label>
+            <span id="filtroInstitucionHint" style="font-size:0.75rem;color:#757575"></span>
+          </div>
+          <div class="input-field col s12 m4 l4">
+            <select id="filtroEstado">
+              <option value="">Todos los estados</option>
+              <option value="1">Pendiente</option>
+              <option value="2">En proceso</option>
+              <option value="3">Culminado</option>
+            </select>
+            <label>Estado</label>
+          </div>
+        </div>
+
+        <!-- Barra unificada: filtros aplicados + contador + botón Nuevo -->
+        <div class="row">
+          <div class="col s12 acciones-tabla">
+            <div class="filtros-aplicados">
+              <span class="filtros-aplicados__label">Filtros aplicados:</span>
+              <div id="tagsFiltros" class="filtros-aplicados__tags">
+                <span class="grey-text text-darken-1">Sin filtros aplicados</span>
+              </div>
+              <button id="btnLimpiarFiltros" class="btn-flat" type="button" disabled>
+                <i class="material-icons left">delete</i>Borrar filtros
+              </button>
+            </div>
+            <div class="acciones-tabla__derecha">
+              <p class="grey-text" id="contadorResultados"></p>
+              <button id="btnNuevo" class="btn waves-effect btn-small green" type="button">
+                <i class="material-icons left">add</i>Nuevo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="row tabla-wrapper">
+          <div class="col s12">
+            <table class="highlight tabla-gestion" id="tablaActividades">
+              <thead>
+                <tr>
+                  <th class="col-indice" style="padding-left: 20px">N°</th>
+                  <th>Documento</th>
+                  <th>Institución</th>
+                  <th>Actividad</th>
+                  <th>Fecha</th>
+                  <th>Observación</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-opciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Actividad -->
+    <div id="modalActividad" class="modal modal-gestion">
+      <div class="modal-content">
+        <div class="row center" style="border-bottom: 3px solid rgba(1,11,100,0.14)">
+          <h5 id="modalTitulo">ACTIVIDAD</h5>
+          <i
+            class="material-icons"
+            id="btnCerrarModal"
+            style="position:absolute;right:16px;top:16px;cursor:pointer;color:#757575"
+          >close</i>
+        </div>
+
+        <form id="formActividad">
+          <input type="hidden" id="actId" />
+          <div class="row" style="margin-top: 16px">
+
+            <!-- Documento: buscador -->
+            <div class="input-field col s12 doc-search-wrapper">
+              <input type="hidden" id="act_id_documento" />
+              <input
+                id="act_documento_texto"
+                type="text"
+                autocomplete="off"
+                required
+              />
+              <label for="act_documento_texto">Número de documento</label>
+              <ul id="docSugerencias" class="inst-suggestions" style="display:none"></ul>
+              <span class="helper-text" data-error="Seleccione un documento válido"></span>
+            </div>
+
+            <!-- Institución: buscador por sigla -->
+            <div class="input-field col s12 inst-search-wrapper">
+              <input type="hidden" id="act_id_institucion" />
+              <i class="material-icons prefix">business</i>
+              <input
+                id="act_institucion_texto"
+                type="text"
+                autocomplete="off"
+                placeholder="Escriba sigla o nombre"
+                required
+              />
+              <label for="act_institucion_texto">Institución</label>
+              <ul id="instSugerencias" class="inst-suggestions" style="display:none"></ul>
+              <span class="helper-text" data-error="Seleccione una institución válida"></span>
+            </div>
+
+            <!-- Actividad -->
+            <div class="input-field col s12 m4">
+              <select id="act_actividad" required>
+                <option value="" disabled selected>Seleccione actividad</option>
+                {% for act in actividades %}
+                <option value="{{ act.id }}">{{ act.nombre }}</option>
+                {% endfor %}
+              </select>
+              <label>Actividad</label>
+            </div>
+
+            <!-- Estado -->
+            <div class="input-field col s12 m4">
+              <select id="act_estado" required>
+                <option value="" disabled selected>Seleccione estado</option>
+                <option value="1">Pendiente</option>
+                <option value="2">En proceso</option>
+                <option value="3">Culminado</option>
+              </select>
+              <label>Estado</label>
+            </div>
+
+            <!-- Fecha de atención -->
+            <div class="input-field col s12 m4">
+              <input id="act_f_atencion" type="date" required />
+              <label class="active" for="act_f_atencion">Fecha de atención</label>
+            </div>
+
+            <!-- Observación -->
+            <div class="input-field col s12">
+              <textarea id="act_descripcion" class="materialize-textarea" maxlength="2000"></textarea>
+              <label for="act_descripcion">Descripción (opcional)</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">
+          <i class="material-icons small left">clear</i>Cancelar
+        </button>
+        <button class="btn blue" id="btnGuardar" type="button">
+          <i class="material-icons small left">save</i>Guardar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación -->
+    <div id="modalConfirmacion" class="modal">
+      <div class="modal-content center-align" style="padding: 32px 24px">
+        <i class="material-icons large red-text">warning</i>
+        <h6 id="mensajeConfirmacion" style="margin-top: 12px">
+          ¿Desea eliminar la actividad seleccionada?
+        </h6>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn grey" type="button">Cancelar</button>
+        <button id="btnEliminar" class="btn red" type="button">
+          <i class="material-icons small left">delete</i>Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
+    <script>
+      let orden = null;
+      const iconoEditar   = "{{ url_for('static', filename='imagenes/editar.png') }}";
+      const iconoEliminar = "{{ url_for('static', filename='imagenes/eliminar.png') }}";
+      const instituciones = {{ instituciones | tojson | safe }};
+      const documentos    = {{ documentos    | tojson | safe }};
+      const estados       = {{ estados       | tojson | safe }};
+      const crearOpcionesJson = window.GestionHttp.crearOpcionesJson;
+
+      function escapar(valor) {
+        return String(valor ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function obtenerClaseEstado(estado) {
+        if (Number(estado) === 1) return "badge-estado--pendiente";
+        if (Number(estado) === 2) return "badge-estado--proceso";
+        if (Number(estado) === 3) return "badge-estado--culminado";
+        return "";
+      }
+
+      const ui = {
+        tablaBody: null,
+        modal: null,
+        modalConf: null,
+        btnNuevo: null,
+        btnGuardar: null,
+        btnEliminar: null,
+        txtBuscarDoc: null,
+        filtroInstitucion: null,
+        filtroEstado: null,
+        tagsFiltros: null,
+        btnLimpiarFiltros: null,
+        contadorResultados: null,
+        segIdDocumento: null,
+        segDocumentoTexto: null,
+        docSugerencias: null,
+        segIdInstitucion: null,
+        segInstitucionTexto: null,
+        instSugerencias: null,
+        segActividad: null,
+        segEstado: null,
+        segFAtencion: null,
+        segObservacion: null,
+        filtroInstitucionHint: null,
+      };
+
+      let cache = [];
+      let editandoId = null;
+      let eliminandoId = null;
+
+      // ---- Buscador institución en modal ----
+      function inicializarBuscadorInstitucion() {
+        const input = ui.segInstitucionTexto;
+        const lista = ui.instSugerencias;
+        const hidden = ui.segIdInstitucion;
+
+        input.addEventListener("input", () => {
+          hidden.value = "";
+          const texto = input.value.trim().toLowerCase();
+          if (!texto) { lista.style.display = "none"; return; }
+          const coincidencias = instituciones.filter((inst) =>
+            (inst.sigla  || "").toLowerCase().includes(texto) ||
+            (inst.nombre || "").toLowerCase().includes(texto)
+          ).slice(0, 8);
+
+          if (!coincidencias.length) { lista.style.display = "none"; return; }
+          lista.innerHTML = coincidencias
+            .map((inst) => `<li data-id="${inst.id}" data-label="${escapar((inst.sigla || inst.nombre))} — ${escapar(inst.nombre)}">${escapar(inst.sigla || "")} — ${escapar(inst.nombre)}</li>`)
+            .join("");
+          lista.style.display = "block";
+        });
+
+        lista.addEventListener("click", (e) => {
+          const li = e.target.closest("li");
+          if (!li) return;
+          hidden.value = li.dataset.id;
+          input.value  = li.dataset.label;
+          lista.style.display = "none";
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!input.contains(e.target) && !lista.contains(e.target)) {
+            lista.style.display = "none";
+          }
+        });
+      }
+
+      // ---- Buscador documento en modal ----
+      function inicializarBuscadorDocumento() {
+        const input = ui.segDocumentoTexto;
+        const lista = ui.docSugerencias;
+        const hidden = ui.segIdDocumento;
+
+        input.addEventListener("input", () => {
+          hidden.value = "";
+          const texto = input.value.trim().toLowerCase();
+          if (!texto) { lista.style.display = "none"; return; }
+          const coincidencias = documentos
+            .filter((doc) => (doc.n_documento || "").toLowerCase().includes(texto))
+            .slice(0, 8);
+          if (!coincidencias.length) { lista.style.display = "none"; return; }
+          lista.innerHTML = coincidencias
+            .map((doc) => `<li data-id="${doc.id}" data-label="${escapar(doc.n_documento)}">${escapar(doc.n_documento)}</li>`)
+            .join("");
+          lista.style.display = "block";
+        });
+        lista.addEventListener("click", (e) => {
+          const li = e.target.closest("li");
+          if (!li) return;
+          hidden.value = li.dataset.id;
+          input.value = li.dataset.label;
+          lista.style.display = "none";
+        });
+        document.addEventListener("click", (e) => {
+          if (!input.contains(e.target) && !lista.contains(e.target)) {
+            lista.style.display = "none";
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        ui.tablaBody = document.querySelector("#tablaActividades tbody");
+        ui.modal    = M.Modal.init(document.getElementById("modalActividad"), { dismissible: false });
+        ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
+        ui.btnNuevo    = document.getElementById("btnNuevo");
+        ui.btnGuardar  = document.getElementById("btnGuardar");
+        ui.btnEliminar = document.getElementById("btnEliminar");
+        ui.txtBuscarDoc = document.getElementById("txtBuscarDoc");
+        ui.filtroInstitucion = document.getElementById("filtroInstitucion");
+        ui.filtroEstado = document.getElementById("filtroEstado");
+        ui.tagsFiltros = document.getElementById("tagsFiltros");
+        ui.btnLimpiarFiltros = document.getElementById("btnLimpiarFiltros");
+        ui.contadorResultados = document.getElementById("contadorResultados");
+        ui.segIdDocumento = document.getElementById("act_id_documento");
+        ui.segDocumentoTexto = document.getElementById("act_documento_texto");
+        ui.docSugerencias = document.getElementById("docSugerencias");
+        ui.segIdInstitucion = document.getElementById("act_id_institucion");
+        ui.segInstitucionTexto = document.getElementById("act_institucion_texto");
+        ui.instSugerencias = document.getElementById("instSugerencias");
+        ui.segActividad = document.getElementById("act_actividad");
+        ui.segEstado = document.getElementById("act_estado");
+        ui.segFAtencion = document.getElementById("act_f_atencion");
+        ui.segDescripcion = document.getElementById("act_descripcion");
+        ui.filtroInstitucionHint = document.getElementById("filtroInstitucionHint");
+
+        M.FormSelect.init(document.querySelectorAll("select"));
+        inicializarBuscadorInstitucion();
+        inicializarBuscadorDocumento();
+
+        document.getElementById("btnCerrarModal").addEventListener("click", () => ui.modal.close());
+        ui.btnNuevo.addEventListener("click", () => abrirModal());
+        ui.btnGuardar.addEventListener("click", guardar);
+        ui.btnEliminar.addEventListener("click", confirmarEliminacion);
+        ui.tablaBody.addEventListener("click", manejarTabla);
+
+        ui.txtBuscarDoc.addEventListener("input", aplicarFiltros);
+        ui.filtroInstitucion.addEventListener("input", () => {
+          actualizarHintInstitucion();
+          aplicarFiltros();
+        });
+        ui.filtroEstado.addEventListener("change", aplicarFiltros);
+        ui.btnLimpiarFiltros.addEventListener("click", limpiarFiltros);
+        ui.tagsFiltros.addEventListener("click", (e) => {
+          const btn = e.target.closest(".filtro-tag");
+          if (!btn) return;
+          if (btn.dataset.filtro === "documento") ui.txtBuscarDoc.value = "";
+          if (btn.dataset.filtro === "institucion") ui.filtroInstitucion.value = "";
+          if (btn.dataset.filtro === "estado") {
+            ui.filtroEstado.value = "";
+            M.FormSelect.init(document.querySelectorAll("#filtroEstado"));
+          }
+          aplicarFiltros();
+        });
+
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaActividades"),
+          columnas: [
+            { indice: 1, key: "documento_numero",  tipo: "string" },
+            { indice: 2, key: "institucion_sigla", tipo: "string" },
+            { indice: 3, key: "actividad_nombre",  tipo: "string" },
+            { indice: 4, key: "f_atencion",        tipo: "date"   },
+            { indice: 5, key: "descripcion",       tipo: "string" },
+            { indice: 6, key: "estado",            tipo: "number" },
+          ],
+          alOrdenar: aplicarFiltros,
+        });
+
+        cargar();
+      });
+
+      async function cargar() {
+        ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text"><i class="material-icons tiny">hourglass_empty</i> Cargando...</td></tr>';
+        try {
+          const resp = await fetch("/actividades/datos");
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "Error al cargar");
+          cache = data.actividades || [];
+          renderizar(orden ? orden.aplicar(cache) : cache);
+        } catch (err) {
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align red-text">Error al cargar los datos.</td></tr>';
+          M.toast({ html: err.message, classes: "red" });
+        }
+      }
+
+      function renderizar(lista) {
+        if (ui.contadorResultados) ui.contadorResultados.textContent = `${lista.length} registro(s)`;
+        if (!lista.length) {
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text">No hay registros.</td></tr>';
+          return;
+        }
+        ui.tablaBody.innerHTML = lista
+          .map((s, i) => `
+            <tr>
+              <td style="padding-left:20px">${i + 1}</td>
+              <td>${escapar(s.documento_numero)}</td>
+              <td>${escapar(s.institucion_sigla || s.institucion_nombre)}</td>
+              <td>${escapar(s.actividad_nombre)}</td>
+              <td>${escapar(s.descripcion) || '<span class="grey-text">—</span>'}</td>
+              <td class="center-align">
+                <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
+                  ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
+                </span>
+              </td>
+              <td>
+                <img src="${iconoEditar}"  alt="Editar"   class="icono-accion accion-editar"   data-id="${s.id}" style="width:28px;height:28px;cursor:pointer;margin-right:6px" />
+                <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${s.id}" style="width:28px;height:28px;cursor:pointer" />
+              </td>
+            </tr>
+          `).join("");
+      }
+
+      function aplicarFiltros() {
+        const termDoc  = ui.txtBuscarDoc.value.trim().toLowerCase();
+        const termInst = ui.filtroInstitucion.value.trim().toLowerCase();
+        const estadoFiltro = ui.filtroEstado.value;
+
+        const filtradas = cache.filter((s) => {
+          const coincideDoc  = termDoc  ? (s.documento_numero || "").toLowerCase().includes(termDoc) : true;
+          const coincideInst = termInst
+            ? (s.institucion_sigla  || "").toLowerCase().includes(termInst) ||
+              (s.institucion_nombre || "").toLowerCase().includes(termInst)
+            : true;
+          const coincideEstado = estadoFiltro ? String(s.estado) === String(estadoFiltro) : true;
+          return coincideDoc && coincideInst && coincideEstado;
+        });
+
+        renderizarFiltrada(orden ? orden.aplicar(filtradas) : filtradas);
+        actualizarTags(termDoc, termInst, estadoFiltro);
+      }
+
+      function renderizarFiltrada(lista) {
+        if (ui.contadorResultados) ui.contadorResultados.textContent = `${lista.length} registro(s)`;
+        if (!lista.length) {
+          ui.tablaBody.innerHTML = '<tr><td colspan="8" class="center-align grey-text">Sin resultados para los filtros aplicados.</td></tr>';
+          return;
+        }
+        ui.tablaBody.innerHTML = lista.map((s, i) => `
+          <tr>
+            <td style="padding-left:20px">${i + 1}</td>
+            <td>${escapar(s.documento_numero)}</td>
+            <td>${escapar(s.institucion_sigla || s.institucion_nombre)}</td>
+            <td>${escapar(s.actividad_nombre)}</td>
+            <td class="center-align">
+              <span class="badge-estado ${obtenerClaseEstado(s.estado)}">
+                ${escapar(s.estado_nombre || estados[s.estado] || 'Desconocido')}
+              </span>
+            </td>
+            <td>
+              <img src="${iconoEditar}"  alt="Editar"   class="icono-accion accion-editar"   data-id="${s.id}" style="width:28px;height:28px;cursor:pointer;margin-right:6px" />
+              <img src="${iconoEliminar}" alt="Eliminar" class="icono-accion accion-eliminar" data-id="${s.id}" style="width:28px;height:28px;cursor:pointer" />
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      function actualizarHintInstitucion() {
+        const texto = ui.filtroInstitucion.value.trim().toLowerCase();
+        if (!ui.filtroInstitucionHint) return;
+        if (!texto) { ui.filtroInstitucionHint.textContent = ""; return; }
+        const ids = new Set();
+        cache.forEach((s) => {
+          if (
+            (s.institucion_sigla  || "").toLowerCase().includes(texto) ||
+            (s.institucion_nombre || "").toLowerCase().includes(texto)
+          ) ids.add(s.id_institucion);
+        });
+        ui.filtroInstitucionHint.textContent = ids.size ? `${ids.size} institución(es) encontrada(s)` : "Sin coincidencias";
+      }
+
+      function actualizarTags(termDoc, termInst, estadoFiltro = "") {
+        const tags = [];
+        if (termDoc)  tags.push({ tipo: "documento",   label: `Documento: ${termDoc}` });
+        if (termInst) tags.push({ tipo: "institucion", label: `Institución: ${termInst}` });
+        if (estadoFiltro) tags.push({ tipo: "estado", label: `Estado: ${estados[estadoFiltro] || estadoFiltro}` });
+
+        ui.tagsFiltros.innerHTML = tags.length
+          ? tags.map((t) => `<button type="button" class="filtro-tag" data-filtro="${t.tipo}">${t.label} ✕</button>`).join("")
+          : '<span class="grey-text text-darken-1">Sin filtros aplicados</span>';
+
+        ui.btnLimpiarFiltros.disabled = !tags.length;
+      }
+
+      function limpiarFiltros() {
+        ui.txtBuscarDoc.value = "";
+        ui.filtroInstitucion.value = "";
+        ui.filtroEstado.value = "";
+        M.FormSelect.init(document.querySelectorAll("#filtroEstado"));
+        if (ui.filtroInstitucionHint) ui.filtroInstitucionHint.textContent = "";
+        renderizar(orden ? orden.aplicar(cache) : cache);
+        actualizarTags("", "", "");
+      }
+
+      function manejarTabla(evento) {
+        const objetivo = evento.target;
+        const id = Number(objetivo.dataset.id);
+        if (objetivo.classList.contains("accion-editar")) {
+          const seg = cache.find((s) => s.id === id);
+          if (seg) abrirModal(seg);
+        } else if (objetivo.classList.contains("accion-eliminar")) {
+          eliminandoId = id;
+          ui.modalConf.open();
+        }
+      }
+
+      function abrirModal(actividad = null) {
+        editandoId = actividad ? actividad.id : null;
+        ui.instSugerencias.style.display = "none";
+        ui.docSugerencias.style.display = "none";
+        ui.segIdDocumento.value = "";
+        ui.segIdInstitucion.value = "";
+        ui.segFAtencion.value = new Date().toISOString().slice(0, 10);
+
+        if (actividad) {
+          ui.segIdDocumento.value = actividad.id_documento || "";
+          ui.segDocumentoTexto.value = actividad.documento_numero || "";
+          ui.segIdInstitucion.value = actividad.id_institucion || "";
+          ui.segInstitucionTexto.value = actividad.institucion_sigla
+            ? `${actividad.institucion_sigla} — ${actividad.institucion_nombre}`
+            : actividad.institucion_nombre || "";
+          ui.segActividad.value = actividad.id_actividad || "";
+          ui.segEstado.value = String(actividad.estado || "");
+          ui.segFAtencion.value = actividad.f_atencion || new Date().toISOString().slice(0, 10);
+          ui.segDescripcion.value = actividad.descripcion || "";
+        }
+
+        M.updateTextFields();
+        M.FormSelect.init(document.querySelectorAll("#formActividad select"));
+        ui.modal.open();
+      }
+
+      async function guardar() {
+        const idDoc = ui.segIdDocumento.value;
+        const idInst = ui.segIdInstitucion.value;
+        const idAct = ui.segActividad.value;
+        const estado = ui.segEstado.value;
+        const fAtencion = ui.segFAtencion.value;
+        if (!idDoc || !idInst || !idAct || !estado || !fAtencion) {
+          M.toast({ html: "Complete documento, institución, actividad, estado y fecha.", classes: "orange" });
+          return;
+        }
+        const payload = {
+          id_documento:   Number(idDoc),
+          id_institucion: Number(idInst),
+          id_actividad:   Number(idAct),
+          estado:         Number(estado),
+          f_atencion:     fAtencion,
+          descripcion: ui.segDescripcion.value.trim() || null,
+        };
+        const url    = editandoId ? `/actividades/${editandoId}` : "/actividades/guardar";
+        const metodo = editandoId ? "PUT" : "POST";
+        try {
+         const resp = await fetch(url, crearOpcionesJson(metodo, payload));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo guardar.");
+          M.toast({ html: data.message || "Guardado correctamente.", classes: "green" });
+          ui.modal.close();
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al guardar.", classes: "red" });
+        }
+      }
+
+      async function confirmarEliminacion() {
+        if (!eliminandoId) { ui.modalConf.close(); return; }
+        try {
+          const resp = await fetch(`/actividades/${eliminandoId}`, crearOpcionesJson("DELETE"));
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.message || "No se pudo eliminar.");
+          M.toast({ html: data.message || "Actividad eliminada.", classes: "green" });
+          cargar();
+        } catch (err) {
+          M.toast({ html: err.message || "Error al eliminar.", classes: "red" });
+        } finally {
+          eliminandoId = null;
+          ui.modalConf.close();
+        }
+      }
+    </script>
+  </body>
+</html>

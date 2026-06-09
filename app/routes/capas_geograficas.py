@@ -1,0 +1,817 @@
+from __future__ import annotations
+
+from flask import Blueprint, jsonify, render_template, request
+from flask_jwt_extended import jwt_required
+from sqlalchemy import nullslast
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
+
+from app import db
+from app.config import URL_SERVIDOR_MAPAS
+from app.models import CapaGeografica, ServicioGeografico
+from app.models import Categoria
+from app.models import Institucion
+from app.models import Tipo
+from app.services.auditoria import (
+  registrar_historico_capa,
+  registrar_historico_servicio,
+)
+from app.services.database import sincronizar_secuencia
+from app.services.instituciones import obtener_instituciones_para
+from app.services.ogc import (
+  IDS_PADRE_SERVICIOS,
+  VALORES_TIPO_CAPA,
+  es_servicio_arcgis_mapserver,
+  obtener_capas_desde_mapserver,
+  obtener_capas_desde_servicio,
+)
+from .helpers import obtener_usuario_actual, usuario_puede_editar, usuario_restringido_a_su_entidad
+
+bp = Blueprint('capas_geograficas', __name__, url_prefix='/capas_geograficas')
+
+@bp.route('/')
+@jwt_required()
+def inicio():
+  usuario = obtener_usuario_actual(requerido=True)
+  categorias = (
+    Categoria.query.filter_by(id_padre=1)
+    .order_by(Categoria.id.asc())
+    .all()
+  )
+  tipos_query = (
+    Tipo.query.filter(Tipo.estado.is_(True))
+    .filter(Tipo.id_padre.in_(IDS_PADRE_SERVICIOS))
+    .order_by(Tipo.id.asc(), Tipo.nombre.asc())
+    .all()
+  )
+  tipos_serv = [
+    {
+      'id': tipo.id,
+      'nombre': tipo.nombre,
+      'sigla' : tipo.sigla,
+      'id_padre': tipo.id_padre,
+      'estado': tipo.estado,
+    }
+    for tipo in tipos_query
+  ]
+  instituciones = obtener_instituciones_para(
+    usuario, excluir_sectores=True, excluir_padres=False
+  )
+  instituciones_disponibles = [
+    {
+      'id': institucion.id,
+      'nombre': institucion.nombre or '',
+      'sigla': institucion.sigla or '',
+    }
+    for institucion in instituciones
+  ]
+  puede_editar_institucion = (
+    not usuario_restringido_a_su_entidad(usuario) if usuario else False
+  )
+  return render_template(
+    'gestion/capas_geograficas.html',
+    categorias=categorias,
+    tipos_serv=tipos_serv,
+    instituciones_disponibles=instituciones_disponibles,
+    institucion_usuario=usuario.institucion if usuario else None,
+    puede_editar_institucion=puede_editar_institucion,
+    usuario_actual=usuario,
+    url_servidor_mapas=URL_SERVIDOR_MAPAS,
+  )
+
+
+@bp.route('/listar')
+@jwt_required()
+def listar():
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return (
+      jsonify({'status': 'error', 'message': 'Sesión no válida.'}),
+      401,
+    )
+
+  consulta = CapaGeografica.query.options(
+    joinedload(CapaGeografica.categoria),
+    joinedload(CapaGeografica.institucion),
+    joinedload(CapaGeografica.servicios).joinedload(
+      ServicioGeografico.tipo
+    ),
+  ).outerjoin(
+    Institucion,
+    CapaGeografica.id_institucion == Institucion.id,
+  ).order_by(
+    nullslast(Institucion.nombre.asc()),
+    CapaGeografica.nombre.asc(),
+  )
+
+  if usuario_restringido_a_su_entidad(usuario):
+    consulta = consulta.filter(CapaGeografica.id_institucion == usuario.id_institucion)
+
+  activos = []
+  inactivos = []
+  sin_estado = []
+
+  for capa in consulta.all():
+    servicios_detalle = []
+    tiene_activos = False
+    tiene_inactivos = False
+
+    for servicio in capa.servicios:
+      if not servicio.tipo:
+        continue
+
+      estado_servicio = None
+      if servicio.estado is True:
+        estado_servicio = True
+        tiene_activos = True
+      elif servicio.estado is False:
+        estado_servicio = False
+        tiene_inactivos = True
+
+      servicios_detalle.append(
+        {
+          'id': servicio.tipo.id,
+          'nombre': servicio.tipo.nombre,
+          'sigla': servicio.tipo.sigla,
+          'estado': estado_servicio,
+        }
+      )
+
+    servicios_detalle.sort(key=lambda detalle: detalle.get('id') or 0)
+
+    nombres_servicios = ', '.join(
+      detalle.get('sigla') or detalle.get('nombre')
+      for detalle in servicios_detalle
+      if detalle.get('sigla') or detalle.get('nombre')
+    )
+    servicio_wms = next(
+      (servicio for servicio in capa.servicios if servicio.id_tipo == 11),
+      None,
+    )
+
+    capa_data = {
+      'id': capa.id,
+      'nombre': capa.nombre,
+      'descripcion': capa.descripcion,
+      'tipo_capa': capa.tipo_capa,
+      'id_layer_geoperu': servicio_wms.id_layer if servicio_wms else 0,
+      'servicios': nombres_servicios,
+      'servicios_detalle': servicios_detalle,
+      'categoria': capa.categoria.nombre if capa.categoria else None,
+      'id_categoria': capa.id_categoria,
+      'institucion_sigla': (
+        capa.institucion.sigla or '' if capa.institucion else ''
+      ),
+      'institucion_nombre': (
+        capa.institucion.nombre if capa.institucion else None
+      ),
+      'id_institucion': capa.id_institucion,
+      'ids_servicio': [detalle['id'] for detalle in servicios_detalle],
+    }
+
+    if tiene_activos and not tiene_inactivos:
+      activos.append(capa_data)
+    elif tiene_inactivos and not tiene_activos:
+      inactivos.append(capa_data)
+    else:
+      sin_estado.append(capa_data)
+
+  return jsonify({'activos': activos, 'inactivos': inactivos, 'sin_estado': sin_estado})
+
+
+@bp.route('/detalle/<int:id_capa>')
+@jwt_required()
+def detalle(id_capa):
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return jsonify({'status': 'error', 'message': 'Sesión no válida.'}), 401
+
+  capa = (
+    CapaGeografica.query.options(
+      joinedload(CapaGeografica.categoria),
+      joinedload(CapaGeografica.institucion),
+      joinedload(CapaGeografica.servicios).joinedload(
+        ServicioGeografico.tipo
+      ),
+    )
+    .filter(CapaGeografica.id == id_capa)
+    .first()
+  )
+
+  if not capa:
+    return jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}), 404
+
+  if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No puedes acceder a capas de otra institución.',
+        }
+      ),
+      403,
+    )
+
+  servicios = [
+    {
+      'id': servicio.id,
+      'id_tipo': servicio.id_tipo,
+      'direccion_web': servicio.direccion_web,
+      'nombre_capa': servicio.nombre_capa,
+      'titulo_capa': servicio.titulo_capa,
+      'id_layer': servicio.id_layer,
+      'estado': servicio.estado,
+      'descarga': bool(servicio.descarga),
+      'url_doc_descarga': servicio.url_doc_descarga,
+      'tipo_nombre': servicio.tipo.nombre
+      if servicio.tipo
+      else None,
+    }
+    for servicio in capa.servicios
+  ]
+
+  servicio_wms = next(
+    (servicio for servicio in capa.servicios if servicio.id_tipo == 11),
+    None,
+  )
+  id_layer_geoperu = servicio_wms.id_layer if servicio_wms else 0
+
+  return jsonify(
+    {
+      'id': capa.id,
+      'nombre': capa.nombre,
+      'descripcion': capa.descripcion,
+      'tipo_capa': capa.tipo_capa,
+      'id_layer_geoperu': id_layer_geoperu,
+      'en_geoperu': bool(id_layer_geoperu),
+      'id_categoria': capa.id_categoria,
+      'id_institucion': capa.id_institucion,
+      'servicios': servicios,
+    }
+  )
+
+
+@bp.route('/guardar', methods=['POST'])
+@jwt_required()
+def guardar():
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return (
+      jsonify({'status': 'error', 'message': 'Sesión no válida.'}),
+      401,
+    )
+  if not usuario_puede_editar(usuario):
+    return jsonify({'status': 'error', 'message': 'No cuentas con permisos de escritura.'}), 403
+
+  data = request.get_json(force=True) or {}
+  id_capa = data.get('id')
+
+  try:
+    id_categoria = int(data.get('id_categoria')) if data.get('id_categoria') else None
+  except (TypeError, ValueError):
+    id_categoria = None
+
+  try:
+    institucion_payload = int(data.get('id_institucion')) if data.get('id_institucion') else None
+  except (TypeError, ValueError):
+    institucion_payload = None
+
+  if usuario_restringido_a_su_entidad(usuario):
+    id_institucion = usuario.id_institucion
+    if institucion_payload and institucion_payload != id_institucion:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'No puedes gestionar capas para otra institución.',
+          }
+        ),
+        403,
+      )
+  else:
+    id_institucion = institucion_payload or usuario.id_institucion
+
+  if not id_institucion:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'Debe seleccionar una institución válida.',
+        }
+      ),
+      400,
+    )
+
+  if not id_categoria:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'Debe seleccionar una categoría válida.',
+        }
+      ),
+      400,
+    )
+
+  tipo_capa_valor = data.get('tipo_capa')
+  try:
+    tipo_capa = int(tipo_capa_valor)
+  except (TypeError, ValueError):
+    tipo_capa = None
+
+  if tipo_capa not in VALORES_TIPO_CAPA:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'El tipo de capa seleccionado no es válido.',
+        }
+      ),
+      400,
+    )
+
+  nombre = (data.get('nombre') or '').strip()
+  if not nombre:
+    return (
+      jsonify(
+        {'status': 'error', 'message': 'El nombre de la capa es obligatorio.'}
+      ),
+      400,
+    )
+
+  descripcion = (data.get('descripcion') or '').strip()
+  id_layer_geoperu = data.get('id_layer_geoperu')
+
+  if id_capa:
+    try:
+      id_capa_int = int(id_capa)
+    except (TypeError, ValueError):
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El identificador enviado no es válido.',
+          }
+        ),
+        400,
+      )
+    capa = CapaGeografica.query.get(id_capa_int)
+    if not capa:
+      return (
+        jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}),
+        404,
+      )
+    if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'No puedes modificar capas de otra institución.',
+          }
+        ),
+        403,
+      )
+    registrar_historico_capa(capa, 'UPDATE', usuario.id if usuario else None)
+    for servicio_existente in list(capa.servicios):
+      registrar_historico_servicio(
+        servicio_existente, 'UPDATE', usuario.id if usuario else None
+      )
+  else:
+    sincronizar_secuencia(CapaGeografica)
+    capa = CapaGeografica(usuario_registro=usuario.id)
+    db.session.add(capa)
+
+  capa.nombre = nombre
+  capa.descripcion = descripcion
+  capa.tipo_capa = tipo_capa
+  capa.id_categoria = id_categoria
+  capa.id_institucion = id_institucion
+  capa.usuario_modifica = usuario.id
+
+  servicios_payload = data.get('servicios', [])
+  if servicios_payload and not isinstance(servicios_payload, list):
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'El formato de servicios enviados no es válido.',
+        }
+      ),
+      400,
+    )
+
+  if id_layer_geoperu in ('', None):
+    id_layer_geoperu = None
+  else:
+    try:
+      id_layer_geoperu = int(id_layer_geoperu)
+    except (TypeError, ValueError):
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El ID Layer de GeoPerú debe contener solo números.',
+          }
+        ),
+        400,
+      )
+    if id_layer_geoperu < 0:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El ID Layer de GeoPerú no puede ser negativo.',
+          }
+        ),
+        400,
+      )
+
+  servicios_validos = []
+  tipos_requeridos = set()
+  for servicio in servicios_payload:
+    if not isinstance(servicio, dict):
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'La estructura de un servicio no es válida.',
+          }
+        ),
+        400,
+      )
+
+    id_servicio = servicio.get('id')
+    id_tipo = servicio.get('id_tipo')
+    direccion = (servicio.get('direccion') or '').strip()
+    nombre_capa_servicio = (servicio.get('nombre_capa') or '').strip()
+    titulo_capa_servicio = (servicio.get('titulo_capa') or '').strip()
+    id_layer = servicio.get('id_layer')
+    visible = bool(servicio.get('visible', True))
+    url_doc_descarga = (servicio.get('url_doc_descarga') or '').strip() or None
+    estado_valor = servicio.get('estado', False)
+    descarga_valor = servicio.get('descarga', False)
+    valores_verdaderos = ('1', 'true', 't', 'si', 'sí', 'on', 'yes')
+    if isinstance(estado_valor, str):
+      estado_servicio = estado_valor.strip().lower() in valores_verdaderos
+    else:
+      estado_servicio = bool(estado_valor)
+    if isinstance(descarga_valor, str):
+      descarga_servicio = descarga_valor.strip().lower() in valores_verdaderos
+    else:
+      descarga_servicio = bool(descarga_valor)
+
+    if not id_tipo or not direccion:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'Cada servicio debe contar con tipo y dirección.',
+          }
+        ),
+        400,
+      )
+
+    try:
+      id_tipo = int(id_tipo)
+    except (TypeError, ValueError):
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El tipo de servicio indicado no es válido.',
+          }
+        ),
+        400,
+      )
+
+    tipos_requeridos.add(id_tipo)
+    servicios_validos.append(
+      {
+        'id': id_servicio,
+        'tipo_id': id_tipo,
+        'direccion': direccion,
+        'nombre_capa': nombre_capa_servicio,
+        'titulo_capa': titulo_capa_servicio,
+        'id_layer': id_layer,
+        'estado': estado_servicio,
+        'descarga': descarga_servicio,
+        'url_doc_descarga': url_doc_descarga,
+        'visible': visible,
+      }
+    )
+
+  tipos_consulta = (
+    Tipo.query.filter(Tipo.id.in_(tipos_requeridos)).all()
+    if tipos_requeridos
+    else []
+  )
+  tipos_por_id = {tipo.id: tipo for tipo in tipos_consulta}
+
+  tipos_controlados = set()
+
+  for servicio in servicios_validos:
+    tipo = tipos_por_id.get(servicio['tipo_id'])
+    if not tipo:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'Se indicó un tipo de servicio inexistente.',
+          }
+        ),
+        400,
+      )
+    requiere_unicidad = (
+      tipo.estado
+      and tipo.id_padre in (2, 3)
+    )
+    if requiere_unicidad:
+      if tipo.id in tipos_controlados:
+        return (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'No se puede registrar más de un servicio por tipo seleccionado.',
+            }
+          ),
+          400,
+        )
+      tipos_controlados.add(tipo.id)
+
+    if tipo.id_padre == 2:
+      if servicio['estado']:
+        if not servicio['nombre_capa'] or not servicio['titulo_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Los servicios OGC conectados deben incluir nombre y título de capa.',
+              }
+            ),
+            400,
+          )
+      else:
+        if not servicio['nombre_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Indique el nombre de la capa cuando el servicio OGC no está activo.',
+              }
+            ),
+            400,
+          )
+        servicio['titulo_capa'] = None
+    elif es_servicio_arcgis_mapserver(tipo):
+      if servicio['estado']:
+        if not servicio['nombre_capa'] or not servicio['titulo_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Los servicios ArcGIS MapServer conectados requieren id y nombre de capa.',
+              }
+            ),
+            400,
+          )
+      else:
+        if not servicio['nombre_capa']:
+          return (
+            jsonify(
+              {
+                'status': 'error',
+                'message': 'Indique el identificador de capa cuando el servicio ArcGIS MapServer no está activo.',
+              }
+            ),
+            400,
+          )
+        servicio['titulo_capa'] = None
+
+    if tipo.id_padre in (2, 3) and not servicio['nombre_capa']:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'Los servicios deben contar con un nombre de capa válido.',
+          }
+        ),
+        400,
+      )
+    servicio['nombre_capa'] = servicio['nombre_capa'] or None
+    servicio['titulo_capa'] = servicio['titulo_capa'] or None
+
+    if servicio['tipo_id'] == 11 and id_layer_geoperu is None:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'Ingrese el ID Layer de GeoPerú para el servicio WMS; si publicar en GeoPerú es No, envíe 0, y si es Sí, debe ingresar un valor.',
+          }
+        ),
+        400,
+      )
+
+  servicios_existentes = {serv.id: serv for serv in capa.servicios}
+  ids_a_conservar = set()
+
+  for servicio in servicios_validos:
+    servicio_instancia = None
+    if servicio['id']:
+      try:
+        id_servicio = int(servicio['id'])
+      except (TypeError, ValueError):
+        return (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'El identificador de servicio es inválido.',
+            }
+          ),
+          400,
+        )
+      servicio_instancia = servicios_existentes.get(id_servicio)
+      if not servicio_instancia:
+        return (
+          jsonify(
+            {
+              'status': 'error',
+              'message': 'Uno de los servicios indicados no existe.',
+            }
+          ),
+          404,
+        )
+      ids_a_conservar.add(id_servicio)
+    else:
+      sincronizar_secuencia(ServicioGeografico)
+      servicio_instancia = ServicioGeografico(
+        capa_geografica=capa,
+        usuario_registro=usuario.id,
+      )
+      db.session.add(servicio_instancia)
+
+    servicio_instancia.id_tipo = servicio['tipo_id']
+    servicio_instancia.direccion_web = servicio['direccion']
+    servicio_instancia.nombre_capa = servicio['nombre_capa'] or None
+    servicio_instancia.titulo_capa = servicio['titulo_capa'] or None
+    servicio_instancia.estado = servicio['estado']
+    servicio_instancia.descarga = servicio['descarga']
+    servicio_instancia.url_doc_descarga = servicio['url_doc_descarga']
+    servicio_instancia.visible = servicio['visible']
+    if servicio['tipo_id'] == 11:
+      if id_layer_geoperu is not None:
+        servicio_instancia.id_layer = id_layer_geoperu
+      elif not servicio_instancia.id_layer:
+        servicio_instancia.id_layer = 0
+    elif not servicio_instancia.id_layer:
+      servicio_instancia.id_layer = 0
+    servicio_instancia.usuario_modifica = usuario.id
+
+  for id_existente, servicio_existente in servicios_existentes.items():
+    if id_existente not in ids_a_conservar:
+      registrar_historico_servicio(
+        servicio_existente, 'DELETE', usuario.id if usuario else None
+      )
+      db.session.delete(servicio_existente)
+
+  try:
+    db.session.commit()
+  except IntegrityError:
+    db.session.rollback()
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo registrar la capa geográfica.',
+        }
+      ),
+      400,
+    )
+
+  return (
+    jsonify({'status': 'success', 'id_capa': capa.id}),
+    200 if id_capa else 201,
+  )
+
+
+@bp.route('/servicios/capabilities', methods=['POST'])
+@jwt_required()
+def obtener_capas_servicio():
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return jsonify({'status': 'error', 'message': 'Sesión no válida.'}), 401
+
+  data = request.get_json(force=True) or {}
+  tipo_id = data.get('id_tipo')
+  url = (data.get('url') or '').strip()
+
+  if not tipo_id or not url:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'Debe indicar el tipo de servicio y la URL.',
+        }
+      ),
+      400,
+    )
+
+  try:
+    tipo_id_int = int(tipo_id)
+  except (TypeError, ValueError):
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'El tipo de servicio enviado no es válido.',
+        }
+      ),
+      400,
+    )
+
+  tipo = Tipo.query.get(tipo_id_int)
+  if not tipo:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'El tipo de servicio indicado no existe.',
+        }
+      ),
+      400,
+    )
+
+  try:
+    if tipo.id_padre == 2:
+      capas = obtener_capas_desde_servicio(tipo, url)
+    elif es_servicio_arcgis_mapserver(tipo):
+      capas = obtener_capas_desde_mapserver(url)
+    else:
+      return (
+        jsonify(
+          {
+            'status': 'error',
+            'message': 'El tipo de servicio seleccionado no admite conexión automática.',
+          }
+        ),
+        400,
+      )
+  except ValueError as error:
+    return jsonify({'status': 'error', 'message': str(error)}), 400
+
+  if not capas:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se encontraron capas disponibles en el servicio.',
+        }
+      ),
+      200,
+    )
+
+  return jsonify({'status': 'success', 'capas': capas})
+
+@bp.route('/<int:id_capa>', methods=['DELETE'])
+@jwt_required()
+def eliminar(id_capa: int):
+  usuario = obtener_usuario_actual(requerido=True)
+  if not usuario:
+    return jsonify({'status': 'error', 'message': 'Sesión no válida.'}), 401
+  if not usuario_puede_editar(usuario):
+    return jsonify({'status': 'error', 'message': 'No cuentas con permisos de escritura.'}), 403
+
+  capa = CapaGeografica.query.get(id_capa)
+  if not capa:
+    return jsonify({'status': 'error', 'message': 'La capa indicada no existe.'}), 404
+
+  if usuario_restringido_a_su_entidad(usuario) and capa.id_institucion != usuario.id_institucion:
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No puedes eliminar capas de otra institución.',
+        }
+      ),
+      403,
+    )
+
+  registrar_historico_capa(capa, 'DELETE', usuario.id if usuario else None)
+  for servicio in list(capa.servicios):
+    registrar_historico_servicio(servicio, 'DELETE', usuario.id if usuario else None)
+    db.session.delete(servicio)
+  db.session.delete(capa)
+  try:
+    db.session.commit()
+  except IntegrityError:
+    db.session.rollback()
+    return (
+      jsonify(
+        {
+          'status': 'error',
+          'message': 'No se pudo eliminar la capa geográfica.',
+        }
+      ),
+      400,
+    )
+
+  return jsonify({'status': 'success', 'message': 'Capa geográfica eliminada correctamente.'})

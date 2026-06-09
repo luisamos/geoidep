@@ -1,0 +1,52 @@
+/* Estilos específicos de /actividades.
+   Las reglas compartidas (.tabla-gestion, .filtros-aplicados, .filtro-tag,
+   .acciones-tabla, .icono-accion) viven en index.css. */
+
+/* Sobrescritura: la columna de estado en actividades es más ancha que el
+   default de .tabla-gestion para mostrar "En proceso"/"Culminado". */
+.tabla-gestion .col-estado {
+  width: 140px;
+}
+
+/* Badges de estado del flujo de actividades (la base .badge-estado vive
+   en index.css y es compartida por usuarios y actividades) */
+.badge-estado--pendiente {
+  background: #fff8e1;
+  color: #ef6c00;
+}
+.badge-estado--proceso {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+.badge-estado--culminado {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Buscadores con sugerencias (institución y documento) */
+.inst-search-wrapper,
+.doc-search-wrapper {
+  position: relative;
+}
+
+.inst-suggestions {
+  position: absolute;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  max-height: 180px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.inst-suggestions li {
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.inst-suggestions li:hover {
+  background-color: #e3f2fd;
+}

@@ -1,0 +1,60 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="45px"
+  height="45px"
+  viewBox="0 0 100 100"
+  preserveAspectRatio="xMidYMid"
+>
+  <g>
+    <path
+      d="M82 50 A32 32 0 0 1 69.95167365947947 75.01860743897696"
+      fill="none"
+      stroke="#ffe2e0"
+      strokeWidth="13"
+    />
+    <path
+      d="M69.95167365947947 75.01860743897696 A32 32 0 0 1 42.87933011339794 81.19769318981835"
+      fill="none"
+      stroke="#ffaaa3"
+      strokeWidth="13"
+    />
+    <path
+      d="M42.87933011339794 81.19769318981835 A32 32 0 0 1 21.16899622712259 63.884279651761865"
+      fill="none"
+      stroke="#d72f21"
+      strokeWidth="13"
+    />
+    <path
+      d="M21.16899622712259 63.884279651761865 A32 32 0 0 1 21.168996227122587 36.11572034823814"
+      fill="none"
+      stroke="#be271f"
+      strokeWidth="13"
+    />
+    <path
+      d="M21.168996227122587 36.11572034823814 A32 32 0 0 1 42.879330113397934 18.802306810181644"
+      fill="none"
+      stroke="#939dac"
+      strokeWidth="13"
+    />
+    <path
+      d="M42.879330113397934 18.802306810181644 A32 32 0 0 1 69.95167365947947 24.981392561023043"
+      fill="none"
+      stroke="#dfe3e9"
+      strokeWidth="13"
+    />
+    <path
+      d="M69.95167365947947 24.981392561023043 A32 32 0 0 1 82 49.99999999999999"
+      fill="none"
+      stroke="#f4f6f9"
+      strokeWidth="13"
+    />
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      values="0 50 50;360 50 50"
+      times="0;1"
+      dur="0.462962962962963s"
+      repeatCount="indefinite"
+    />
+  </g>
+</svg>
