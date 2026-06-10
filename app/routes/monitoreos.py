@@ -378,6 +378,7 @@ def detalles():
       filas.append({
           'id_recurso': item.id,
           'nombre': item.nombre,
+          'url': item.recurso or '',
           'institucion': (item.institucion.nombre if item.institucion else '-'),
           'sigla': (item.institucion.sigla if item.institucion else '-'),
           'problema_detectado': (log.mensaje_error if log and log.mensaje_error else ('Servicio no disponible' if not item.estado else '-')),
@@ -415,6 +416,7 @@ def detalles():
       filas.append({
           'id_recurso': item.id,
           'nombre': (item.titulo_capa or item.nombre_capa or (item.capa_geografica.nombre if item.capa_geografica else '-')),
+          'url': item.direccion_web or '',
           'institucion': (institucion.nombre if institucion else '-'),
           'sigla': (institucion.sigla if institucion else '-'),
           'problema_detectado': (log.mensaje_error if log and log.mensaje_error else ('Servicio no disponible' if not item.estado else '-')),
