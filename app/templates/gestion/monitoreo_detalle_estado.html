@@ -32,7 +32,7 @@
       }
       .acciones-col {
         white-space: nowrap;
-        width: 80px;
+        width: 110px;
         text-align: center;
       }
       .icono-accion {
@@ -40,9 +40,16 @@
         height: 28px;
         cursor: pointer;
         margin-right: 4px;
+        vertical-align: middle;
       }
       .problema-col {
         max-width: 320px;
+      }
+      .url-col {
+        max-width: 260px;
+      }
+      .url-col a {
+        word-break: break-all;
       }
     </style>
   </head>
@@ -75,49 +82,19 @@
           </div>
           <div class="row tabla-wrapper">
             <div class="col s12">
-              <table class="highlight tabla-gestion" id="tablaDetalle">
+              <table class="highlight tabla-gestion">
                 <thead>
                   <tr>
                     <th style="width: 50px">N°</th>
                     <th>Nombre</th>
+                    <th class="url-col">URL</th>
                     <th style="width: 120px">Institución</th>
                     <th class="problema-col">Problema detectado</th>
                     <th style="width: 90px">Código HTTP</th>
                     <th class="acciones-col">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {% for f in filas %}
-                  <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ f.nombre }}</td>
-                    <td>{{ f.sigla }}</td>
-                    <td class="problema-col">{{ f.problema_detectado }}</td>
-                    <td>{{ f.codigo_problema }}</td>
-                    <td class="acciones-col">
-                      <i
-                        class="material-icons btn-reintentar"
-                        title="Ejecutar monitoreo"
-                        data-url="{{ f.ejecutar_url }}"
-                        data-id="{{ f.id_recurso }}"
-                        style="
-                          font-size: 26px;
-                          color: #00897b;
-                          vertical-align: middle;
-                          cursor: pointer;
-                        "
-                        >play_circle</i
-                      >
-                    </td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="6" class="center-align grey-text">
-                      No hay recursos inoperativos para este filtro.
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
+                <tbody id="tbodyDetalle"></tbody>
               </table>
             </div>
           </div>
@@ -129,16 +106,125 @@
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
-      GestionTabla.ordenableDom({
-        tabla: document.getElementById("tablaDetalle"),
-        columnas: [
-          { indice: 1, tipo: "string" },
-          { indice: 2, tipo: "string" },
-          { indice: 3, tipo: "string" },
-          { indice: 4, tipo: "string" },
-        ],
-        indiceNumeracion: 0,
+      const URL_ENLACE = "{{ url_for('static', filename='imagenes/enlace.png') }}";
+      const FILAS = {{ filas | tojson | safe }};
+
+      // Normalizar codigo_problema ('-' o null) para que el comparador lo trate como ausente.
+      FILAS.forEach(function (f) {
+        if (f.codigo_problema === "-" || f.codigo_problema === undefined) {
+          f.codigo_problema = null;
+        }
       });
+
+      function escaparHtml(valor) {
+        return String(valor == null ? "" : valor).replace(/[&<>"']/g, function (c) {
+          return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          }[c];
+        });
+      }
+
+      function renderizar(lista) {
+        const tbody = document.getElementById("tbodyDetalle");
+        if (!lista || lista.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="center-align grey-text">' +
+            "No hay recursos inoperativos para este filtro." +
+            "</td></tr>";
+          return;
+        }
+        tbody.innerHTML = lista
+          .map(function (f, i) {
+            const urlEscapada = escaparHtml(f.url);
+            const celdaUrl = f.url
+              ? '<a href="' + urlEscapada + '" target="_blank" rel="noopener">' + urlEscapada + "</a>"
+              : '<span class="grey-text">-</span>';
+            const botonIr = f.url
+              ? '<a href="' + urlEscapada + '" target="_blank" rel="noopener" title="Ir al recurso">' +
+                '<img src="' + URL_ENLACE + '" class="icono-accion" alt="Ir al recurso" />' +
+                "</a>"
+              : "";
+            const codigo = f.codigo_problema == null ? "-" : escaparHtml(f.codigo_problema);
+            return (
+              "<tr>" +
+              "<td>" + (i + 1) + "</td>" +
+              "<td>" + escaparHtml(f.nombre) + "</td>" +
+              '<td class="url-col">' + celdaUrl + "</td>" +
+              "<td>" + escaparHtml(f.sigla) + "</td>" +
+              '<td class="problema-col">' + escaparHtml(f.problema_detectado) + "</td>" +
+              "<td>" + codigo + "</td>" +
+              '<td class="acciones-col">' +
+              botonIr +
+              '<i class="material-icons btn-reintentar"' +
+              ' title="Ejecutar monitoreo"' +
+              ' data-url="' + escaparHtml(f.ejecutar_url) + '"' +
+              ' data-id="' + f.id_recurso + '"' +
+              ' style="font-size: 26px; color: #00897b; vertical-align: middle; cursor: pointer;">' +
+              "cloud_sync</i>" +
+              "</td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+        bindBotonesReintentar();
+      }
+
+      function bindBotonesReintentar() {
+        document.querySelectorAll(".btn-reintentar").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var headers = { "Content-Type": "application/json" };
+            var csrfToken = GestionHttp.obtenerCookie("csrf_access_token");
+            if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+
+            fetch(btn.dataset.url, {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify({ ids: [Number(btn.dataset.id)] }),
+            })
+              .then(function (resp) {
+                return resp.json().then(function (data) {
+                  return { ok: resp.ok, data: data };
+                });
+              })
+              .then(function (result) {
+                if (result.ok) {
+                  M.toast({ html: "Reejecución completada" });
+                  setTimeout(function () {
+                    window.location.reload();
+                  }, 900);
+                } else {
+                  M.toast({
+                    html: result.data.message || "No se pudo reejecutar",
+                  });
+                }
+              })
+              .catch(function () {
+                M.toast({ html: "Error de conexión" });
+              });
+          });
+        });
+      }
+
+      const tabla = document.querySelector(".tabla-gestion");
+      const orden = GestionTabla.ordenable({
+        tabla: tabla,
+        columnas: [
+          { indice: 1, key: "nombre",             tipo: "string" },
+          { indice: 2, key: "url",                tipo: "string" },
+          { indice: 3, key: "sigla",              tipo: "string" },
+          { indice: 4, key: "problema_detectado", tipo: "string" },
+          { indice: 5, key: "codigo_problema",    tipo: "number" },
+        ],
+        alOrdenar: function () {
+          renderizar(orden.aplicar(FILAS));
+        },
+      });
+
+      renderizar(FILAS);
 
       var btnVolver = document.getElementById("btnVolver");
       if (btnVolver) {
@@ -146,40 +232,6 @@
           window.history.back();
         });
       }
-
-      document.querySelectorAll(".btn-reintentar").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var headers = { "Content-Type": "application/json" };
-          var csrfToken = GestionHttp.obtenerCookie("csrf_access_token");
-          if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
-
-          fetch(btn.dataset.url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify({ ids: [Number(btn.dataset.id)] }),
-          })
-            .then(function (resp) {
-              return resp.json().then(function (data) {
-                return { ok: resp.ok, data: data };
-              });
-            })
-            .then(function (result) {
-              if (result.ok) {
-                M.toast({ html: "Reejecución completada" });
-                setTimeout(function () {
-                  window.location.reload();
-                }, 900);
-              } else {
-                M.toast({
-                  html: result.data.message || "No se pudo reejecutar",
-                });
-              }
-            })
-            .catch(function () {
-              M.toast({ html: "Error de conexión" });
-            });
-        });
-      });
     </script>
   </body>
 </html>
