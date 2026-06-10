@@ -45,6 +45,8 @@ body {
     position: absolute;
     height: 65px;
     background-color: #fff;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .contenido {
