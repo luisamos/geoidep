@@ -656,6 +656,20 @@ table th.sortable.sort-desc .sort-icon {
     color: #1565c0;
 }
 
+/* === Cabecera unificada de página (título + subtítulo) === */
+.cabecera-pagina h4 {
+    margin: 0 0 4px 0;
+    font-weight: 400;
+}
+.cabecera-pagina p,
+.cabecera-pagina p.flow-text,
+.cabecera-pagina .ultima-verificacion {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0;
+    font-weight: 400;
+}
+
 /* === Modal unificado gestión === */
 .modal.modal-gestion {
     width: 70%;
