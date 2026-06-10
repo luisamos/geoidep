@@ -60,11 +60,11 @@ def datos():
   return jsonify({'instituciones': instituciones})
 
 
-def _validar_sector(sector_id: int | None) -> bool:
+def validar_sector(sector_id: int | None) -> bool:
   return sector_id in SECTOR_IDS
 
 
-def _obtener_datos_institucion(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
+def obtener_datos_institucion(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
   codigo = (payload.get('codigo') or '').strip()
   nombre = (payload.get('nombre') or '').strip()
   sigla = (payload.get('sigla') or '').strip()
@@ -81,7 +81,7 @@ def _obtener_datos_institucion(payload: dict[str, object]) -> tuple[dict[str, ob
   if not nombre:
     return {}, (jsonify({'status': 'error', 'message': 'El nombre es obligatorio.'}), 400)
 
-  if not _validar_sector(sector_id_int):
+  if not validar_sector(sector_id_int):
     return {}, (
       jsonify({'status': 'error', 'message': 'Seleccione un sector válido.'}),
       400,
@@ -103,7 +103,7 @@ def _obtener_datos_institucion(payload: dict[str, object]) -> tuple[dict[str, ob
 @jwt_required()
 def guardar():
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_institucion(payload)
+  datos, error = obtener_datos_institucion(payload)
   if error:
     return error
 
@@ -148,7 +148,7 @@ def actualizar(id_institucion: int):
     return jsonify({'status': 'error', 'message': 'No puedes actualizar otra institución.'}), 403
 
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_institucion(payload)
+  datos, error = obtener_datos_institucion(payload)
   if error:
     return error
 

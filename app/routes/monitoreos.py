@@ -440,7 +440,7 @@ def detalles():
       filas=filas,
   )
 
-def _calcular_total_recursos(tipo: str) -> int:
+def calcular_total_recursos(tipo: str) -> int:
   total = 0
   if tipo in ('todos', 'servicios_geograficos'):
     total += ServicioGeografico.query.count()
@@ -451,7 +451,7 @@ def _calcular_total_recursos(tipo: str) -> int:
   return total
 
 
-def _run_monitoreo_background(app, tipo: str, ids, usuario_nombre: str) -> None:
+def run_monitoreo_background(app, tipo: str, ids, usuario_nombre: str) -> None:
   """Ejecuta el monitoreo completo en un hilo de fondo independiente.
 
   El hilo es daemon (muere con el proceso principal) y mantiene su propio
@@ -522,7 +522,7 @@ def ejecutar_monitoreo_endpoint():
   payload = request.get_json(silent=True) or {}
   ids = payload.get('ids') if isinstance(payload.get('ids'), list) else None
 
-  total = _calcular_total_recursos(tipo)
+  total = calcular_total_recursos(tipo)
   usuario_nombre = usuario.nombre_completo or usuario.correo_electronico or f"Usuario #{usuario.id}"
 
   # Registrar inicio (con lock interno — si otro request ganó la carrera, rechazar)
@@ -535,7 +535,7 @@ def ejecutar_monitoreo_endpoint():
   # Lanzar hilo daemon independiente del ciclo de vida del request
   app = current_app._get_current_object()
   hilo = threading.Thread(
-      target=_run_monitoreo_background,
+      target=run_monitoreo_background,
       args=(app, tipo, ids, usuario_nombre),
       daemon=True,
       name=f"monitoreo-{tipo}",
@@ -567,4 +567,4 @@ def total_recursos():
     return jsonify({"message": "No autorizado"}), 401
 
   tipo = request.args.get('tipo', 'todos')
-  return jsonify({"total": _calcular_total_recursos(tipo)})
+  return jsonify({"total": calcular_total_recursos(tipo)})

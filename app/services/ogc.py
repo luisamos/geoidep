@@ -113,7 +113,7 @@ def texto_hijo_directo(elemento, nombre: str) -> str | None:
 
 # ---------- Parsers de Capabilities ----------
 
-def _construir_capas_wms_desde_xml(root) -> list[dict]:
+def construir_capas_wms_desde_xml(root) -> list[dict]:
   capas = []
 
   def recorrer_layer(layer):
@@ -136,7 +136,7 @@ def _construir_capas_wms_desde_xml(root) -> list[dict]:
   return capas
 
 
-def _construir_capas_wfs_desde_xml(root) -> list[dict]:
+def construir_capas_wfs_desde_xml(root) -> list[dict]:
   capas = []
   for feature_type in root.iter():
     if nombre_local_xml(feature_type) != 'FeatureType':
@@ -149,7 +149,7 @@ def _construir_capas_wfs_desde_xml(root) -> list[dict]:
   return capas
 
 
-def _construir_capas_wmts_desde_xml(root) -> list[dict]:
+def construir_capas_wmts_desde_xml(root) -> list[dict]:
   capas = []
   for layer in root.iter():
     if nombre_local_xml(layer) != 'Layer':
@@ -177,11 +177,11 @@ def construir_capas_desde_xml(tipo, contenido) -> list[dict]:
     ) from error
 
   if es_servicio_wms(tipo):
-    return _construir_capas_wms_desde_xml(root)
+    return construir_capas_wms_desde_xml(root)
   if es_servicio_wfs(tipo):
-    return _construir_capas_wfs_desde_xml(root)
+    return construir_capas_wfs_desde_xml(root)
   if es_servicio_wmts(tipo):
-    return _construir_capas_wmts_desde_xml(root)
+    return construir_capas_wmts_desde_xml(root)
   return []
 
 

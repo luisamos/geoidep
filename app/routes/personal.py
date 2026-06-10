@@ -182,7 +182,7 @@ def personas_listar():
   return jsonify({'personas': data})
 
 
-def _obtener_datos_persona(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
+def obtener_datos_persona(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
   id_tipo_documento = payload.get('id_tipo_documento')
   numero_documento = (payload.get('numero_documento') or '').strip()
   nombres_apellidos = (payload.get('nombres_apellidos') or '').strip()
@@ -218,7 +218,7 @@ def _obtener_datos_persona(payload: dict[str, object]) -> tuple[dict[str, object
 @jwt_required()
 def personas_crear():
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_persona(payload)
+  datos, error = obtener_datos_persona(payload)
   if error:
     return error
 
@@ -251,7 +251,7 @@ def personas_actualizar(id_persona: int):
     return jsonify({'status': 'error', 'message': 'Persona no encontrada.'}), 404
 
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_persona(payload)
+  datos, error = obtener_datos_persona(payload)
   if error:
     return error
 

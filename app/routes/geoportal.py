@@ -71,12 +71,12 @@ ACCENTED_CHARS = 'áéíóúüñÁÉÍÓÚÜÑ'
 UNACCENTED_CHARS = 'aeiouunaeiouun'
 
 
-def _normalize_for_search(expression):
+def normalize_for_search(expression):
   return func.lower(func.translate(expression, ACCENTED_CHARS, UNACCENTED_CHARS))
 
 
 def ilike_unaccent(column, pattern):
-  return _normalize_for_search(column).ilike(_normalize_for_search(pattern))
+  return normalize_for_search(column).ilike(normalize_for_search(pattern))
 
 def slugify_text(value):
   if not value:
@@ -1612,7 +1612,7 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
   categorias_globales_cache = None
   instituciones_globales_cache = None
 
-  def _obtener_opciones_globales():
+  def obtener_opciones_globales():
     nonlocal categorias_globales_cache, instituciones_globales_cache
     if categorias_globales_cache is None or instituciones_globales_cache is None:
       categorias_globales_cache, instituciones_globales_cache = (
@@ -1626,7 +1626,7 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       None,
     )
     if not selected_categoria:
-      categorias_globales, _ = _obtener_opciones_globales()
+      categorias_globales, _ = obtener_opciones_globales()
       selected_categoria = next(
         (cat for cat in categorias_globales if cat['id'] == id_categoria),
         None,
@@ -1650,7 +1650,7 @@ def construir_contexto_catalogo(tipos_catalogo, tipo_config=None):
       None,
     )
     if not selected_institucion:
-      _, instituciones_globales = _obtener_opciones_globales()
+      _, instituciones_globales = obtener_opciones_globales()
       selected_institucion = next(
         (inst for inst in instituciones_globales if inst['id'] == id_institucion),
         None,

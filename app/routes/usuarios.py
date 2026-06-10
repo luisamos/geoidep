@@ -95,7 +95,7 @@ def datos_usuarios():
   ]
   return jsonify({'usuarios': lista})
 
-def _aplicar_campos_usuario(usuario, payload, admin_id):
+def aplicar_campos_usuario(usuario, payload, admin_id):
   """Aplica los campos del payload JSON a la instancia de Usuario."""
   nombres = (payload.get('nombres_apellidos') or '').strip() or None
   if nombres is not None and usuario.persona:
@@ -138,7 +138,7 @@ def guardar_usuario():
   usuario.persona = persona
   db.session.add(persona)
   db.session.add(usuario)
-  _aplicar_campos_usuario(usuario, payload, admin.id)
+  aplicar_campos_usuario(usuario, payload, admin.id)
   usuario.set_password(password)
   db.session.commit()
   return jsonify({'status': 'success', 'message': 'Usuario creado correctamente.'})
@@ -164,7 +164,7 @@ def actualizar_usuario(id_usuario: int):
       return jsonify({'status': 'error', 'message': 'El correo ya está asociado a otro usuario.'}), 400
     usuario.correo_electronico = correo
 
-  _aplicar_campos_usuario(usuario, payload, admin.id)
+  aplicar_campos_usuario(usuario, payload, admin.id)
 
   password = (payload.get('password') or '').strip()
   if password:

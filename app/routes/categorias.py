@@ -40,7 +40,7 @@ def datos():
   return jsonify({'categorias': data})
 
 
-def _obtener_datos_categoria(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
+def obtener_datos_categoria(payload: dict[str, object]) -> tuple[dict[str, object], tuple[dict, int] | None]:
   codigo = (payload.get('codigo') or '').strip()
   nombre = (payload.get('nombre') or '').strip()
   sigla = (payload.get('sigla') or '').strip()
@@ -73,7 +73,7 @@ def _obtener_datos_categoria(payload: dict[str, object]) -> tuple[dict[str, obje
 @jwt_required()
 def guardar():
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_categoria(payload)
+  datos, error = obtener_datos_categoria(payload)
   if error:
     return error
 
@@ -107,7 +107,7 @@ def actualizar(id_categoria: int):
     return jsonify({'status': 'error', 'message': 'Categoría no encontrada.'}), 404
 
   payload = request.get_json(silent=True) or {}
-  datos, error = _obtener_datos_categoria(payload)
+  datos, error = obtener_datos_categoria(payload)
   if error:
     return error
 
