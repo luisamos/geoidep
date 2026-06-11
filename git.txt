@@ -3,9 +3,9 @@
 #
 git init
 git add .
-git commit -m "v.3.12 | 09/06/2026 17:10"
+git commit -m "v.3.13 | 11/06/2026 14:56"
 git branch -M main
 git remote add origin https://github.com/luisamos/geoidep.git
 git push -u origin main
 
-git pull origin claude/zealous-archimedes-1qYXA
+git pull origin claude/pensive-brown-miv6ct
