@@ -88,7 +88,8 @@
                     <th style="width: 50px">N°</th>
                     <th>Nombre</th>
                     <th class="url-col">URL</th>
-                    <th style="width: 120px">Institución</th>
+                    <th>Institución</th>
+                    <th style="width: 90px">Sigla</th>
                     <th class="problema-col">Problema detectado</th>
                     <th style="width: 90px">Código HTTP</th>
                     <th class="acciones-col">Acciones</th>
@@ -132,7 +133,7 @@
         const tbody = document.getElementById("tbodyDetalle");
         if (!lista || lista.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="7" class="center-align grey-text">' +
+            '<tr><td colspan="8" class="center-align grey-text">' +
             "No hay recursos inoperativos para este filtro." +
             "</td></tr>";
           return;
@@ -154,6 +155,7 @@
               "<td>" + (i + 1) + "</td>" +
               "<td>" + escaparHtml(f.nombre) + "</td>" +
               '<td class="url-col">' + celdaUrl + "</td>" +
+              "<td>" + escaparHtml(f.institucion) + "</td>" +
               "<td>" + escaparHtml(f.sigla) + "</td>" +
               '<td class="problema-col">' + escaparHtml(f.problema_detectado) + "</td>" +
               "<td>" + codigo + "</td>" +
@@ -215,9 +217,10 @@
         columnas: [
           { indice: 1, key: "nombre",             tipo: "string" },
           { indice: 2, key: "url",                tipo: "string" },
-          { indice: 3, key: "sigla",              tipo: "string" },
-          { indice: 4, key: "problema_detectado", tipo: "string" },
-          { indice: 5, key: "codigo_problema",    tipo: "number" },
+          { indice: 3, key: "institucion",        tipo: "string" },
+          { indice: 4, key: "sigla",              tipo: "string" },
+          { indice: 5, key: "problema_detectado", tipo: "string" },
+          { indice: 6, key: "codigo_problema",    tipo: "number" },
         ],
         alOrdenar: function () {
           renderizar(orden.aplicar(FILAS));

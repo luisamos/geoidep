@@ -38,6 +38,7 @@
       .tabla-herramientas .col-tipo    { width: 140px; white-space: normal; }
       .tabla-herramientas .col-nombre,
       .tabla-herramientas .col-institucion { max-width: 180px; }
+      .tabla-herramientas .col-sigla   { width: 90px; }
       .tabla-herramientas .col-estado  { width: 90px; text-align: center; }
       .tabla-herramientas .col-opciones { width: 150px; }
 
@@ -163,6 +164,7 @@
                   <th class="col-nombre">Nombre</th>
                   <th class="col-estado">Estado</th>
                   <th class="col-institucion">Institución</th>
+                  <th class="col-sigla">Sigla</th>
                   <th class="col-opciones">Opciones</th>
                 </tr>
               </thead>
@@ -380,7 +382,8 @@
             { indice: 2, key: "tipo",           tipo: "string" },
             { indice: 3, key: "nombre",         tipo: "string" },
             { indice: 4, key: "estado_display", tipo: "string" },
-            { indice: 5, key: "institucion",    tipo: "string" },
+            { indice: 5, key: "institucion",       tipo: "string" },
+            { indice: 6, key: "institucion_sigla", tipo: "string" },
           ],
           alOrdenar: renderHerramientas,
         });
@@ -878,7 +881,7 @@
         if (herramientas.length === 0) {
           const fila = document.createElement("tr");
           fila.innerHTML = `
-            <td colspan="7" class="center-align">
+            <td colspan="8" class="center-align">
               No se encontraron herramientas geográficas con los criterios seleccionados.
             </td>
           `;
@@ -902,6 +905,10 @@
             herramienta.institucion != null
               ? escaparHtml(herramienta.institucion)
               : "-";
+          const sigla =
+            herramienta.institucion_sigla != null
+              ? escaparHtml(herramienta.institucion_sigla)
+              : "-";
           const estadoIcono = herramienta.estado_icono || "⚪";
           const estadoTexto = herramienta.estado_display || "Sin estado";
           const estadoTooltip = escaparHtml(estadoTexto);
@@ -915,6 +922,7 @@
               <span class="estado-icono" title="${estadoTooltip}">${estadoIcono}</span>
             </td>
             <td class="col-institucion">${institucion}</td>
+            <td class="col-sigla">${sigla}</td>
             <td class="col-opciones">
                   <img
                     src="${iconoEnlace}"

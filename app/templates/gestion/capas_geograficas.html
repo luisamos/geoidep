@@ -53,6 +53,10 @@
         width: 160px;
       }
 
+      .tabla-capas .col-sigla {
+        width: 90px;
+      }
+
       .tabla-capas .col-servicios {
         max-width: 260px;
       }
@@ -325,6 +329,7 @@
                   <th class="col-nombre">Nombre</th>
                   <th class="col-categoria">Categoría</th>
                   <th class="col-institucion">Institución</th>
+                  <th class="col-sigla">Sigla</th>
                   <th class="col-servicios">Servicios</th>
                   <th class="col-opciones">Acciones</th>
                 </tr>
@@ -1846,7 +1851,7 @@
         if (!data.length) {
           const fila = document.createElement("tr");
           const celda = document.createElement("td");
-          celda.colSpan = 6;
+          celda.colSpan = 7;
           celda.textContent = "No hay capas registradas.";
           fila.appendChild(celda);
           tabla.appendChild(fila);
@@ -1857,7 +1862,8 @@
           const fila = document.createElement("tr");
           const nombre = escaparHtml(capa.nombre || "");
           const categoria = escaparHtml(capa.categoria || "");
-          const institucion = escaparHtml(capa.institucion_sigla || "");
+          const institucion = escaparHtml(capa.institucion_nombre || "");
+          const sigla = escaparHtml(capa.institucion_sigla || "");
           const serviciosDetalle = Array.isArray(capa.servicios_detalle)
             ? capa.servicios_detalle
             : [];
@@ -1898,6 +1904,7 @@
             <td>${nombre}</td>
             <td>${categoria}</td>
             <td>${institucion}</td>
+            <td>${sigla}</td>
             <td>${serviciosContenido}</td>
             <td class="col-opciones">
               <img
@@ -2232,9 +2239,10 @@
         orden = GestionTabla.ordenable({
           tabla: document.getElementById("tablaCapas"),
           columnas: [
-            { indice: 1, key: "nombre",            tipo: "string" },
-            { indice: 2, key: "categoria",         tipo: "string" },
-            { indice: 3, key: "institucion_sigla", tipo: "string" },
+            { indice: 1, key: "nombre",             tipo: "string" },
+            { indice: 2, key: "categoria",          tipo: "string" },
+            { indice: 3, key: "institucion_nombre", tipo: "string" },
+            { indice: 4, key: "institucion_sigla",  tipo: "string" },
           ],
           alOrdenar: aplicarFiltros,
         });

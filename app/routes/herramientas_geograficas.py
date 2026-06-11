@@ -193,6 +193,7 @@ def listar():
         'tipo': herramienta.tipo.nombre if herramienta.tipo else None,
         'id_tipo': herramienta.id_tipo,
         'institucion': herramienta.institucion.nombre if herramienta.institucion else None,
+        'institucion_sigla': herramienta.institucion.sigla if herramienta.institucion else None,
         'id_institucion': herramienta.id_institucion,
         'estado': estado,
         'estado_display': estado_display,
