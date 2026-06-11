@@ -13,6 +13,9 @@
 
     /* COLOR FUENTE DE LA TABLA - CONTENT */
     --color-fuente-content: #000;
+
+    /* TAMAÑO DE FUENTE DE LAS TABLAS (parámetro único para uniformizar) */
+    --tabla-tamano-fuente: 13px;
 }
 
 /* color: var(--color-tabla) */
@@ -594,6 +597,12 @@ body.pagina-gestion-tabla .contenido > .container > .seccion-gestion:has(.row.ta
     margin-left: auto;
 }
 .acciones-tabla__derecha .grey-text { margin: 0; }
+
+/* Tamaño de fuente uniforme para todas las tablas; se ajusta en un solo
+   lugar con --tabla-tamano-fuente (definido en :root). */
+table {
+    font-size: var(--tabla-tamano-fuente);
+}
 
 /* Tabla base de gestión (reutilizable) */
 .tabla-gestion {
