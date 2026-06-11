@@ -247,6 +247,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       const ESTADOS = { 1: 'Pendiente', 2: 'En proceso', 3: 'Culminado' };
       const TIPOS_ACTIVIDAD = {{ tipos_actividad | map(attribute='id') | list | tojson | safe }};
@@ -262,6 +263,19 @@
       const tagsEl   = document.getElementById('tagsFiltros');
       const btnLimpiar  = document.getElementById('btnLimpiar');
       const btnExportar = document.getElementById('btnExportar');
+
+      const orden = GestionTabla.ordenable({
+        tabla: document.getElementById('tablaSeguimiento'),
+        columnas: [
+          { indice: 1, key: 'nro_ruc',       tipo: 'string' },
+          { indice: 2, key: 'institucion',   tipo: 'string' },
+          { indice: 3, key: 'documento',     tipo: 'string' },
+          { indice: 4, key: 'estado_nombre', tipo: 'string' },
+          { indice: 5, key: 'etapa_nombre',  tipo: 'string' },
+          { indice: 6, key: 'fecha',         tipo: 'date'   },
+        ],
+        alOrdenar: aplicarFiltros,
+      });
 
       // ── Carga inicial ────────────────────────────────────────────────────
       async function cargar() {
@@ -298,6 +312,7 @@
 
       // ── Render tabla ─────────────────────────────────────────────────────
       function renderizar(lista) {
+        if (orden) lista = orden.aplicar(lista);
         if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {
           tbody.innerHTML = `<tr><td colspan="7" class="sin-resultados">

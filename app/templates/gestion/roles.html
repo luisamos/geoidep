@@ -249,6 +249,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       function escapar(t) {
         const d = document.createElement("div");
@@ -267,11 +268,22 @@
       };
 
       let cache = [];
+      let orden = null;
       let editandoId = null;
       let eliminandoId = null;
 
       document.addEventListener("DOMContentLoaded", () => {
         ui.tabla    = document.querySelector("#tablaRoles tbody");
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaRoles"),
+          columnas: [
+            { indice: 1, key: "nombre",       tipo: "string" },
+            { indice: 3, key: "enlace",       tipo: "string" },
+            { indice: 4, key: "orden",        tipo: "number" },
+            { indice: 6, key: "padre_nombre", tipo: "string" },
+          ],
+          alOrdenar: aplicarFiltros,
+        });
         ui.modal    = M.Modal.init(document.getElementById("modalRol"), { dismissible: false });
         ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
 
@@ -334,6 +346,7 @@
       }
 
       function renderizar(lista) {
+        if (orden) lista = orden.aplicar(lista);
         const contador = document.getElementById("contadorResultados");
         if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {

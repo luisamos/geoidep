@@ -434,7 +434,7 @@
               Problemas detectados ({{ problemas|length }})
             </div>
             <div style="max-height: 350px; overflow-y: auto">
-              <table class="striped logs-table">
+              <table class="striped logs-table" id="tablaProblemas">
                 <thead>
                   <tr>
                     <th style="width: 45px">ID</th>
@@ -516,9 +516,24 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         M.Tabs.init(document.querySelectorAll(".tabs"));
+
+        var tablaProblemas = document.getElementById("tablaProblemas");
+        if (tablaProblemas) {
+          GestionTabla.ordenableDom({
+            tabla: tablaProblemas,
+            columnas: [
+              { indice: 0, tipo: "number" },
+              { indice: 1, tipo: "string" },
+              { indice: 2, tipo: "string" },
+              { indice: 3, tipo: "string" },
+              { indice: 4, tipo: "date" },
+            ],
+          });
+        }
 
         var btn              = document.getElementById("btnMonitoreo");
         var progresoContainer = document.getElementById("progresoContainer");

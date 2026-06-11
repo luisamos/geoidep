@@ -63,13 +63,26 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       const ui = {
         tabla: null,
       };
 
+      let tiposCache = [];
+      let orden = null;
+
       document.addEventListener("DOMContentLoaded", () => {
         ui.tabla = document.querySelector("#tablaTipos tbody");
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaTipos"),
+          columnas: [
+            { indice: 1, key: "nombre",         tipo: "string" },
+            { indice: 2, key: "estado_display", tipo: "string" },
+            { indice: 3, key: "orden",          tipo: "number" },
+          ],
+          alOrdenar: () => renderTiposServicios(tiposCache),
+        });
         cargarTiposServicios();
       });
 
@@ -87,8 +100,8 @@
               data.message || "No se pudo cargar la información.",
             );
           }
-          const tipos = data.tipos || [];
-          renderTiposServicios(tipos);
+          tiposCache = data.tipos || [];
+          renderTiposServicios(tiposCache);
         } catch (error) {
           console.error(error);
           ui.tabla.innerHTML =
@@ -103,6 +116,7 @@
         if (!ui.tabla) {
           return;
         }
+        if (orden) lista = orden.aplicar(lista);
         if (!lista.length) {
           ui.tabla.innerHTML =
             '<tr><td colspan="4" class="center-align">No hay registros.</td></tr>';

@@ -1,7 +1,7 @@
 """Utilidades compartidas para operaciones de base de datos."""
 from __future__ import annotations
 
-from sqlalchemy import func, text
+from sqlalchemy import func, select
 
 from app.extensions import db
 
@@ -21,10 +21,5 @@ def sincronizar_secuencia(modelo) -> None:
     nombre_secuencia = f"{tabla.schema}.{nombre_secuencia}"
   valor = max_id if max_id else 1
   db.session.execute(
-    text("SELECT setval(to_regclass(:secuencia), :valor, :llamado)"),
-    {
-      'secuencia': nombre_secuencia,
-      'valor': valor,
-      'llamado': bool(max_id),
-    },
+    select(func.setval(func.to_regclass(nombre_secuencia), valor, bool(max_id)))
   )

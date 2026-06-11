@@ -545,6 +545,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       const iconoEditar = "{{ url_for('static', filename='imagenes/editar.png') }}";
       const iconoEliminar =
@@ -602,6 +603,7 @@
 
       let capas = [];
       let capasCache = { activos: [], inactivos: [], sin_estado: [] };
+      let orden = null;
       let modalInstance = null;
       let capaEliminando = null;
       let puedeEditarInstitucion = false;
@@ -1992,7 +1994,7 @@
           return coincideNombre && coincideInstitucion && coincideServicio;
         });
 
-        renderTabla(filtradas);
+        renderTabla(orden ? orden.aplicar(filtradas) : filtradas);
         actualizarTagsFiltros();
       }
 
@@ -2227,6 +2229,15 @@
 
       document.addEventListener("DOMContentLoaded", () => {
         ui.tablaCapasBody = document.querySelector("#tablaCapas tbody");
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaCapas"),
+          columnas: [
+            { indice: 1, key: "nombre",            tipo: "string" },
+            { indice: 2, key: "categoria",         tipo: "string" },
+            { indice: 3, key: "institucion_sigla", tipo: "string" },
+          ],
+          alOrdenar: aplicarFiltros,
+        });
         ui.tablaServiciosBody = document.querySelector("#tablaServicios tbody");
         ui.txtBuscarNombre = document.getElementById("txtBuscarNombre");
         ui.filtroTipo = document.getElementById("filtroTipo");

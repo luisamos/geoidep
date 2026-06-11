@@ -75,7 +75,7 @@
           </div>
           <div class="row tabla-wrapper">
             <div class="col s12">
-              <table class="highlight tabla-gestion">
+              <table class="highlight tabla-gestion" id="tablaDetalle">
                 <thead>
                   <tr>
                     <th style="width: 50px">N°</th>
@@ -127,7 +127,19 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
+      GestionTabla.ordenableDom({
+        tabla: document.getElementById("tablaDetalle"),
+        columnas: [
+          { indice: 1, tipo: "string" },
+          { indice: 2, tipo: "string" },
+          { indice: 3, tipo: "string" },
+          { indice: 4, tipo: "string" },
+        ],
+        indiceNumeracion: 0,
+      });
+
       var btnVolver = document.getElementById("btnVolver");
       if (btnVolver) {
         btnVolver.addEventListener("click", function () {

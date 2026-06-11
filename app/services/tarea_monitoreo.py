@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Optional
 
-from sqlalchemy import text
+from sqlalchemy import and_, case, func, or_, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from app.config import SCHEMA_IDE
 from app.extensions import db
+from app.models.estado_monitoreo import EstadoMonitoreo
 
 # Una corrida sin actividad durante este tiempo se considera interrumpida
 # (worker caído, reinicio a mitad de proceso). Permite relanzar y evita que la
@@ -29,7 +29,7 @@ from app.extensions import db
 # caso de un recurso lento (timeout 30 s x 3 reintentos x reintento sin SSL).
 UMBRAL_OBSOLETO_MIN = 10
 
-_TABLA = f"{SCHEMA_IDE}.estado_monitoreo"
+_TABLA = EstadoMonitoreo.__table__
 
 _ESTADO_IDLE = {
     'estado': 'idle',
@@ -46,38 +46,30 @@ _ESTADO_IDLE = {
 }
 
 
+def _limite_actividad():
+    """Instante (en el reloj de la BD) antes del cual una corrida se considera
+    sin actividad reciente."""
+    return func.now() - func.make_interval(0, 0, 0, 0, 0, UMBRAL_OBSOLETO_MIN)
+
+
 def asegurar_estado_monitoreo() -> None:
     """Crea la tabla y la fila id=1 si no existen (idempotente).
 
-    Se invoca al crear la app. ``CREATE TABLE IF NOT EXISTS`` + ``ON CONFLICT``
+    Se invoca al crear la app. ``checkfirst`` + ``ON CONFLICT DO NOTHING``
     lo hacen seguro aunque los 3 workers arranquen a la vez. Debe llamarse
     dentro de un app_context.
     """
-    ddl = text(f"""
-        CREATE TABLE IF NOT EXISTS {_TABLA} (
-            id              integer PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-            estado          character varying(20) NOT NULL DEFAULT 'idle',
-            tipo            character varying(40),
-            iniciado_por    character varying(255),
-            inicio          timestamp with time zone,
-            fin             timestamp with time zone,
-            actualizado_en  timestamp with time zone,
-            total           integer NOT NULL DEFAULT 0,
-            verificados     integer NOT NULL DEFAULT 0,
-            resultado       text,
-            error           text
-        )
-    """)
-    seed = text(
-        f"INSERT INTO {_TABLA} (id, estado) VALUES (1, 'idle') "
-        "ON CONFLICT (id) DO NOTHING"
+    seed = (
+        pg_insert(_TABLA)
+        .values(id=1, estado='idle')
+        .on_conflict_do_nothing(index_elements=['id'])
     )
     try:
         with db.engine.begin() as conn:
-            conn.execute(ddl)
+            _TABLA.create(conn, checkfirst=True)
             conn.execute(seed)
     except Exception:
-        logging.exception("No se pudo asegurar la tabla %s", _TABLA)
+        logging.exception("No se pudo asegurar la tabla %s", _TABLA.fullname)
 
 
 class _EstadoTarea:
@@ -88,21 +80,25 @@ class _EstadoTarea:
     # ------------------------------------------------------------------
 
     def to_dict(self) -> dict:
-        sql = text(f"""
-            SELECT estado, tipo, iniciado_por, inicio, fin,
-                   total, verificados, resultado, error,
-                   (estado = 'ejecutando'
-                    AND actualizado_en < now() - (interval '1 minute' * :umbral))
-                       AS obsoleto,
-                   CASE WHEN inicio IS NOT NULL
-                        THEN round(extract(epoch FROM (coalesce(fin, now()) - inicio)))
-                        ELSE NULL END AS duracion_segundos
-            FROM {_TABLA}
-            WHERE id = 1
-        """)
+        c = _TABLA.c
+        sql = select(
+            c.estado, c.tipo, c.iniciado_por, c.inicio, c.fin,
+            c.total, c.verificados, c.resultado, c.error,
+            and_(
+                c.estado == 'ejecutando',
+                c.actualizado_en < _limite_actividad(),
+            ).label('obsoleto'),
+            case(
+                (
+                    c.inicio.isnot(None),
+                    func.round(func.extract('epoch', func.coalesce(c.fin, func.now()) - c.inicio)),
+                ),
+                else_=None,
+            ).label('duracion_segundos'),
+        ).where(c.id == 1)
         try:
             with db.engine.connect() as conn:
-                fila = conn.execute(sql, {'umbral': UMBRAL_OBSOLETO_MIN}).mappings().first()
+                fila = conn.execute(sql).mappings().first()
         except Exception:
             logging.exception("No se pudo leer el estado del monitoreo")
             return dict(_ESTADO_IDLE)
@@ -146,16 +142,16 @@ class _EstadoTarea:
         }
 
     def esta_ejecutando(self) -> bool:
-        sql = text(f"""
-            SELECT (estado = 'ejecutando'
-                    AND actualizado_en >= now() - (interval '1 minute' * :umbral))
-                       AS activo
-            FROM {_TABLA}
-            WHERE id = 1
-        """)
+        c = _TABLA.c
+        sql = select(
+            and_(
+                c.estado == 'ejecutando',
+                c.actualizado_en >= _limite_actividad(),
+            ).label('activo'),
+        ).where(c.id == 1)
         try:
             with db.engine.connect() as conn:
-                fila = conn.execute(sql, {'umbral': UMBRAL_OBSOLETO_MIN}).first()
+                fila = conn.execute(sql).first()
         except Exception:
             logging.exception("No se pudo consultar si el monitoreo está en ejecución")
             return False
@@ -171,72 +167,76 @@ class _EstadoTarea:
         El UPDATE condicional es el guard cross-proceso: sólo una petición gana
         la carrera. Retorna ``False`` si ya hay una corrida vigente.
         """
-        sql = text(f"""
-            UPDATE {_TABLA}
-            SET estado = 'ejecutando',
-                tipo = :tipo,
-                iniciado_por = :usuario,
-                inicio = now(),
-                fin = NULL,
-                actualizado_en = now(),
-                total = :total,
-                verificados = 0,
-                resultado = NULL,
-                error = NULL
-            WHERE id = 1
-              AND (estado <> 'ejecutando'
-                   OR actualizado_en < now() - (interval '1 minute' * :umbral))
-        """)
+        c = _TABLA.c
+        sql = (
+            update(_TABLA)
+            .where(
+                c.id == 1,
+                or_(
+                    c.estado != 'ejecutando',
+                    c.actualizado_en < _limite_actividad(),
+                ),
+            )
+            .values(
+                estado='ejecutando',
+                tipo=tipo,
+                iniciado_por=usuario,
+                inicio=func.now(),
+                fin=None,
+                actualizado_en=func.now(),
+                total=total,
+                verificados=0,
+                resultado=None,
+                error=None,
+            )
+        )
         try:
             with db.engine.begin() as conn:
-                resultado = conn.execute(sql, {
-                    'tipo': tipo,
-                    'usuario': usuario,
-                    'total': total,
-                    'umbral': UMBRAL_OBSOLETO_MIN,
-                })
+                resultado = conn.execute(sql)
             return resultado.rowcount == 1
         except Exception:
             logging.exception("No se pudo iniciar la tarea de monitoreo")
             return False
 
     def actualizar_progreso(self, verificados: int) -> None:
-        sql = text(f"""
-            UPDATE {_TABLA}
-            SET verificados = :verificados, actualizado_en = now()
-            WHERE id = 1
-        """)
+        sql = (
+            update(_TABLA)
+            .where(_TABLA.c.id == 1)
+            .values(verificados=verificados, actualizado_en=func.now())
+        )
         try:
             with db.engine.begin() as conn:
-                conn.execute(sql, {'verificados': verificados})
+                conn.execute(sql)
         except Exception:
             logging.exception("No se pudo actualizar el progreso del monitoreo")
 
     def completar(self, resultado: dict) -> None:
-        sql = text(f"""
-            UPDATE {_TABLA}
-            SET estado = 'completado',
-                fin = now(),
-                actualizado_en = now(),
-                resultado = :resultado,
-                verificados = total
-            WHERE id = 1
-        """)
+        sql = (
+            update(_TABLA)
+            .where(_TABLA.c.id == 1)
+            .values(
+                estado='completado',
+                fin=func.now(),
+                actualizado_en=func.now(),
+                resultado=json.dumps(resultado),
+                verificados=_TABLA.c.total,
+            )
+        )
         try:
             with db.engine.begin() as conn:
-                conn.execute(sql, {'resultado': json.dumps(resultado)})
+                conn.execute(sql)
         except Exception:
             logging.exception("No se pudo marcar el monitoreo como completado")
 
     def marcar_error(self, error: str) -> None:
-        sql = text(f"""
-            UPDATE {_TABLA}
-            SET estado = 'error', fin = now(), actualizado_en = now(), error = :error
-            WHERE id = 1
-        """)
+        sql = (
+            update(_TABLA)
+            .where(_TABLA.c.id == 1)
+            .values(estado='error', fin=func.now(), actualizado_en=func.now(), error=error)
+        )
         try:
             with db.engine.begin() as conn:
-                conn.execute(sql, {'error': error})
+                conn.execute(sql)
         except Exception:
             logging.exception("No se pudo marcar el error del monitoreo")
 

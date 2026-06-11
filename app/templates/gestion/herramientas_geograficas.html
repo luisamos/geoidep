@@ -320,6 +320,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       const iconoEnlace =
         "{{ url_for('static', filename='imagenes/enlace.png') }}";
@@ -362,6 +363,7 @@
       let herramientasCache = { activos: [], inactivos: [], sin_estado: [] };
       let herramientaEditandoId = null;
       let herramientaEliminandoId = null;
+      let orden = null;
       const mapaInstitucionesPorId = new Map();
       const mapaInstitucionesPorEtiqueta = new Map();
       let institucionBaseId = '';
@@ -371,6 +373,17 @@
         ui.tablaHerramientasBody = document.querySelector(
           "#tablaHerramientas tbody"
         );
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaHerramientas"),
+          columnas: [
+            { indice: 1, key: "categoria",      tipo: "string" },
+            { indice: 2, key: "tipo",           tipo: "string" },
+            { indice: 3, key: "nombre",         tipo: "string" },
+            { indice: 4, key: "estado_display", tipo: "string" },
+            { indice: 5, key: "institucion",    tipo: "string" },
+          ],
+          alOrdenar: renderHerramientas,
+        });
         ui.filtroTipo = document.getElementById("filtro_tipo");
         ui.txtFiltro = document.getElementById("txtFiltro");
         ui.filtroEstado = document.getElementById("filtroEstado");
@@ -859,6 +872,8 @@
 
         const contador = document.getElementById("contadorResultados");
         if (contador) contador.textContent = `${herramientas.length} registro(s)`;
+
+        if (orden) herramientas = orden.aplicar(herramientas);
 
         if (herramientas.length === 0) {
           const fila = document.createElement("tr");

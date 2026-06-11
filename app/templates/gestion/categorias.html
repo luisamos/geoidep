@@ -128,6 +128,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       const iconoEditar =
         "{{ url_for('static', filename='imagenes/editar.png') }}";
@@ -148,9 +149,19 @@
       let categoriaEditandoId = null;
       let categoriaEliminandoId = null;
       let categoriasCache = [];
+      let orden = null;
 
       document.addEventListener("DOMContentLoaded", () => {
         ui.tabla = document.querySelector("#tablaCategorias tbody");
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaCategorias"),
+          columnas: [
+            { indice: 1, key: "codigo", tipo: "string" },
+            { indice: 2, key: "nombre", tipo: "string" },
+            { indice: 3, key: "sigla",  tipo: "string" },
+          ],
+          alOrdenar: () => renderCategorias(categoriasCache),
+        });
         ui.modal = M.Modal.init(document.querySelector("#modalCategoria"));
         ui.modalConfirmacion = M.Modal.init(
           document.querySelector("#modalConfirmacion")
@@ -213,6 +224,7 @@
         if (!ui.tabla) {
           return;
         }
+        if (orden) lista = orden.aplicar(lista);
         if (!lista.length) {
           ui.tabla.innerHTML =
             '<tr><td colspan="5" class="center-align">No hay registros.</td></tr>';

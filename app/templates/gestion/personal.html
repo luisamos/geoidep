@@ -179,6 +179,7 @@
 
     <script src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/gestion_http.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gestion_tabla.js') }}"></script>
     <script>
       function escapar(t) {
         const d = document.createElement("div");
@@ -202,11 +203,23 @@
       };
 
       let cache = [];
+      let orden = null;
       let editandoId = null;
       let eliminandoId = null;
 
       document.addEventListener("DOMContentLoaded", () => {
         ui.tabla    = document.querySelector("#tablaPersonas tbody");
+        orden = GestionTabla.ordenable({
+          tabla: document.getElementById("tablaPersonas"),
+          columnas: [
+            { indice: 1, key: "tipo_documento_nombre", tipo: "string" },
+            { indice: 2, key: "numero_documento",      tipo: "string" },
+            { indice: 3, key: "nombres_apellidos",     tipo: "string" },
+            { indice: 4, key: "celular",               tipo: "string" },
+            { indice: 5, key: "tiene_usuario",         tipo: "number" },
+          ],
+          alOrdenar: aplicarFiltros,
+        });
         ui.modal    = M.Modal.init(document.getElementById("modalPersona"), { dismissible: false });
         ui.modalConf = M.Modal.init(document.getElementById("modalConfirmacion"));
         ui.btnNuevo    = document.getElementById("btnNuevo");
@@ -256,6 +269,7 @@
       }
 
       function renderizar(lista) {
+        if (orden) lista = orden.aplicar(lista);
         const contador = document.getElementById("contadorResultados");
         if (contador) contador.textContent = `${lista.length} registro(s)`;
         if (!lista.length) {

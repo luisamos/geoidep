@@ -627,22 +627,22 @@ body.pagina-gestion-tabla .contenido > .container > .seccion-gestion:has(.row.ta
     font-weight: 600;
 }
 
-/* === Tabla ordenable === */
-.tabla-gestion th.sortable {
+/* === Tabla ordenable (aplica a cualquier tabla con cabeceras .sortable) === */
+table th.sortable {
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
 }
 
-.tabla-gestion th.sortable .sort-icon {
+table th.sortable .sort-icon {
     font-size: 14px !important;
     vertical-align: middle;
     margin-left: 4px;
     opacity: 0.4;
 }
 
-.tabla-gestion th.sortable.sort-asc .sort-icon,
-.tabla-gestion th.sortable.sort-desc .sort-icon {
+table th.sortable.sort-asc .sort-icon,
+table th.sortable.sort-desc .sort-icon {
     opacity: 1;
     color: #1565c0;
 }

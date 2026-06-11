@@ -6,7 +6,7 @@ import threading
 
 from flask import Blueprint, current_app, jsonify, render_template, request, url_for
 from flask_jwt_extended import jwt_required
-from sqlalchemy import func, text
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 from app.services.monitoreo import RequestConfig, ejecutar_monitoreo
