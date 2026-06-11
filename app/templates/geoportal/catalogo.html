@@ -457,7 +457,9 @@
                           href="{{ accion.url }}"
                           target="_blank"
                           rel="noopener noreferrer"
-                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition"
+                          class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-4 py-2 hover:bg-[#184397] hover:text-white transition js-evento-enlace"
+                          data-evento="ver_mapa"
+                          data-recurso-nombre="{{ herramienta.nombre }}"
                         >
                           <i class="fa-solid fa-map-location-dot text-sm"></i>
                           <span>Ver mapa</span>
@@ -468,6 +470,7 @@
                           class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
                           data-copy-url="{{ accion.url }}"
                           data-copy-label="{{ accion.sigla }}"
+                          data-recurso-nombre="{{ herramienta.nombre }}"
                         >
                           <i class="fa-solid fa-link text-sm"></i>
                           <span class="js-copy-button-text"
@@ -481,6 +484,7 @@
                         >
                           <select
                             class="js-descarga-select h-[44px] rounded-[8px] border-2 border-[#0F172A] px-6 text-[#0F172A] font-semibold hover:border-[#184397] focus:outline-none"
+                            data-recurso-nombre="{{ herramienta.nombre }}"
                           >
                             <option value="" selected disabled>
                               [ Descargar elegir formato ]
@@ -503,6 +507,7 @@
                           class="inline-flex items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-4 py-2 hover:bg-[#0F172A] hover:text-white transition js-copy-url"
                           data-copy-url="{{ servicio.copy_url }}"
                           data-copy-label="{{ servicio.sigla }}"
+                          data-recurso-nombre="{{ herramienta.nombre }}"
                         >
                           <i class="fa-solid fa-link text-sm"></i>
                           <span class="js-copy-button-text"
@@ -542,6 +547,7 @@
                           class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#0F172A] text-[#0F172A] font-semibold px-8 py-[14px] hover:bg-[#0F172A] hover:text-white transition js-copy-url"
                           data-copy-url="{{ herramienta.recurso }}"
                           data-copy-label="Recurso"
+                          data-recurso-nombre="{{ herramienta.nombre }}"
                         >
                           <i class="fa-solid fa-link text-sm"></i>
                           <span class="js-copy-button-text"
@@ -553,7 +559,9 @@
                           href="{{ herramienta.recurso }}"
                           target="_blank"
                           rel="noopener noreferrer"
-                          class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition"
+                          class="inline-flex w-max items-center gap-2 rounded-[8px] border-2 border-[#184397] text-[#184397] font-semibold px-8 py-[14px] hover:bg-[#184397] hover:text-white transition js-evento-enlace"
+                          data-evento="ir_al_recurso"
+                          data-recurso-nombre="{{ herramienta.nombre }}"
                         >
                           <i
                             class="fa-solid fa-arrow-up-right-from-square text-sm"
@@ -1066,6 +1074,17 @@
           }, 2000);
         }
 
+        function registrarEventoGA(nombre, params) {
+          if (typeof gtag !== "function") return; // ad-blocker o GA no cargado
+          const limpios = {};
+          Object.keys(params || {}).forEach((k) => {
+            const v = params[k];
+            // GA4 trunca silenciosamente valores > 100 caracteres
+            if (v != null && v !== "") limpios[k] = String(v).slice(0, 100);
+          });
+          gtag("event", nombre, limpios);
+        }
+
         async function copiarAlPortapapeles(url) {
           if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(url);
@@ -1103,6 +1122,11 @@
               const resultado = await copiarAlPortapapeles(url);
               if (resultado) {
                 setCopyFeedback(button, successText);
+                registrarEventoGA("copiar_url", {
+                  etiqueta: label,
+                  recurso: button.getAttribute("data-recurso-nombre"),
+                  url: url,
+                });
               }
             } catch (error) {
               console.error("Error al copiar la URL.", error);
@@ -1119,8 +1143,27 @@
             if (!selectedUrl) {
               return;
             }
+            const opcion =
+              event.target.options[event.target.selectedIndex];
+            registrarEventoGA("descarga", {
+              formato: opcion ? opcion.text.trim() : "",
+              recurso: select.getAttribute("data-recurso-nombre"),
+              url: selectedUrl,
+            });
             window.open(selectedUrl, "_blank", "noopener,noreferrer");
             select.value = "";
+          });
+        });
+
+        document.querySelectorAll(".js-evento-enlace").forEach((enlace) => {
+          enlace.addEventListener("click", () => {
+            registrarEventoGA(
+              enlace.getAttribute("data-evento") || "click_enlace",
+              {
+                recurso: enlace.getAttribute("data-recurso-nombre"),
+                url: enlace.getAttribute("href"),
+              },
+            );
           });
         });
       });
