@@ -61,10 +61,24 @@ def obtener_ids_servicios_por_institucion(ids_institucion):
   return [fila[0] for fila in filas]
 
 def ids_instituciones_por_nodo(nodo_ids_padre):
-  return [
-      inst.id for inst in
-      Institucion.query.filter(Institucion.id_padre.in_(nodo_ids_padre)).all()
-  ]
+  # La jerarquía tiene varios niveles (categoría -> sector -> institución ->
+  # dependencias), por lo que se recorre todo el subárbol de cada nodo.
+  filas = db.session.query(Institucion.id, Institucion.id_padre).all()
+  hijos_por_padre = {}
+  for id_inst, id_padre in filas:
+    hijos_por_padre.setdefault(id_padre, []).append(id_inst)
+
+  ids = []
+  visitados = set()
+  pendientes = list(nodo_ids_padre)
+  while pendientes:
+    id_padre = pendientes.pop()
+    for id_hijo in hijos_por_padre.get(id_padre, []):
+      if id_hijo not in visitados:
+        visitados.add(id_hijo)
+        ids.append(id_hijo)
+        pendientes.append(id_hijo)
+  return ids
 
 def ids_institucion_usuario(usuario):
   return [usuario.id_institucion]
@@ -82,18 +96,19 @@ def build_estado_nodos_herramientas(es_vista_global, ids_inst_usuario):
       ids_inst_nodo = [i for i in ids_inst_nodo if i in ids_inst_usuario]
 
     if ids_inst_nodo:
-      q_nodo = HerramientaGeografica.query.filter(HerramientaGeografica.id_institucion.in_(ids_inst_nodo))
-      total = q_nodo.count()
-      operativos = q_nodo.filter(HerramientaGeografica.estado == True).count()
+      base = db.session.query(HerramientaGeografica.id_institucion).filter(
+          HerramientaGeografica.id_institucion.in_(ids_inst_nodo))
+      total = base.distinct().count()
+      con_incidencias = base.filter(HerramientaGeografica.estado.isnot(True)).distinct().count()
     else:
-      total = operativos = 0
+      total = con_incidencias = 0
 
     nodos_estado.append({
         'clave': nodo['clave'],
         'nombre': nodo['nombre'],
         'total': total,
-        'operativos': operativos,
-        'inoperativos': total - operativos,
+        'operativas': total - con_incidencias,
+        'con_incidencias': con_incidencias,
         'detalle_url': url_for('monitoreos.detalles', categoria='nodo', recurso='herramienta', nodo=nodo['clave']),
     })
   return nodos_estado
@@ -106,22 +121,22 @@ def build_estado_nodos_servicios(es_vista_global, ids_inst_usuario):
       ids_inst_nodo = [i for i in ids_inst_nodo if i in ids_inst_usuario]
 
     if ids_inst_nodo:
-      ids_sg_nodo = obtener_ids_servicios_por_institucion(ids_inst_nodo)
-      if ids_sg_nodo:
-        q_nodo = ServicioGeografico.query.filter(ServicioGeografico.id.in_(ids_sg_nodo))
-        total = q_nodo.count()
-        operativos = q_nodo.filter(ServicioGeografico.estado == True).count()
-      else:
-        total = operativos = 0
+      base = (
+          db.session.query(CapaGeografica.id_institucion)
+          .join(ServicioGeografico, ServicioGeografico.id_capa_geografica == CapaGeografica.id)
+          .filter(CapaGeografica.id_institucion.in_(ids_inst_nodo))
+      )
+      total = base.distinct().count()
+      con_incidencias = base.filter(ServicioGeografico.estado.isnot(True)).distinct().count()
     else:
-      total = operativos = 0
+      total = con_incidencias = 0
 
     nodos_estado.append({
         'clave': nodo['clave'],
         'nombre': nodo['nombre'],
         'total': total,
-        'operativos': operativos,
-        'inoperativos': total - operativos,
+        'operativas': total - con_incidencias,
+        'con_incidencias': con_incidencias,
         'detalle_url': url_for('monitoreos.detalles', categoria='nodo', recurso='servicio', nodo=nodo['clave']),
     })
   return nodos_estado
